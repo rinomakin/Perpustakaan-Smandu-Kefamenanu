@@ -2,51 +2,6 @@
 
 Sistem informasi perpustakaan digital untuk SMAN 2 Kefamenanu yang dikembangkan menggunakan Laravel 10 dengan fitur lengkap untuk mengelola data perpustakaan. sistem ini masih dalam tahap pengembangan
 
-## Fitur Utama
-
-### 🎯 Admin Perpustakaan
-
--   **Dashboard Admin** - Overview statistik perpustakaan
--   **Manajemen Data Master**:
-    -   Data Anggota (Siswa, Guru, Staff)
-    -   Data Buku dengan fitur barcode
-    -   Data Jurusan dan Kelas
-    -   Kategori dan Jenis Buku
-    -   Sumber Buku, Penerbit, Penulis
--   **Transaksi**:
-    -   Peminjaman dan Pengembalian Buku
-    -   Sistem Denda Otomatis
--   **Laporan**:
-    -   Laporan Anggota
-    -   Laporan Buku
-    -   Laporan Kas
--   **Cetak**:
-    -   Kartu Perpustakaan Siswa
-    -   Label Buku
--   **Pengaturan Website** - Konfigurasi dinamis website
-
-### 👨‍🏫 Kepala Sekolah
-
--   Dashboard dengan statistik perpustakaan
--   Laporan bulanan peminjaman
--   Monitoring kinerja perpustakaan
-
-### 👨‍💼 Petugas Perpustakaan
-
--   Beranda dengan informasi perpustakaan
--   Halaman tentang (sejarah, visi, misi sekolah)
--   Absensi pengunjung perpustakaan
-
-### 👨‍🎓 Frontend (Siswa/Guru)
-
--   Pencarian buku berdasarkan:
-    -   Judul buku
-    -   Penulis
-    -   ISBN/Barcode
-    -   Penerbit
--   Informasi lokasi buku di rak perpustakaan
--   Status ketersediaan buku
-
 ## Teknologi yang Digunakan
 
 -   **Backend**: Laravel 10
@@ -118,8 +73,6 @@ php artisan serve
 ```
 
 ## Akun Default
-
-Setelah menjalankan seeder, sistem akan memiliki akun default:
 
 ### Admin
 
