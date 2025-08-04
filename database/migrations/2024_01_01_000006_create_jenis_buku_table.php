@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('jenis_buku', function (Blueprint $table) {
             $table->id();
             $table->string('nama_jenis');
-            $table->string('kode_jenis')->unique();
+            $table->string('kode_jenis', 10)->unique();
             $table->text('deskripsi')->nullable();
-            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }
@@ -28,4 +28,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('jenis_buku');
     }
-}; 
+};

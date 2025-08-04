@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\JenisBuku;
 use Illuminate\Database\Seeder;
+use App\Models\JenisBuku;
 
 class JenisBukuSeeder extends Seeder
 {
@@ -12,15 +12,59 @@ class JenisBukuSeeder extends Seeder
      */
     public function run(): void
     {
-        $jenis = [
-            ['nama_jenis' => 'Buku Teks', 'kode_jenis' => 'TEKS', 'deskripsi' => 'Buku teks pelajaran'],
-            ['nama_jenis' => 'Buku Non-Teks', 'kode_jenis' => 'NON-TEKS', 'deskripsi' => 'Buku non-teks pelajaran'],
-            ['nama_jenis' => 'Buku Fiksi', 'kode_jenis' => 'FIKSI', 'deskripsi' => 'Buku fiksi'],
-            ['nama_jenis' => 'Buku Non-Fiksi', 'kode_jenis' => 'NON-FIKSI', 'deskripsi' => 'Buku non-fiksi'],
+        $jenisBuku = [
+            [
+                'nama_jenis' => 'Buku Pelajaran',
+                'kode_jenis' => 'BP',
+                'deskripsi' => 'Buku-buku yang digunakan untuk pembelajaran di sekolah',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Referensi',
+                'kode_jenis' => 'BR',
+                'deskripsi' => 'Buku-buku yang berisi informasi referensi dan pengetahuan umum',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Fiksi',
+                'kode_jenis' => 'BF',
+                'deskripsi' => 'Buku-buku cerita fiksi, novel, dan karya sastra',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Non-Fiksi',
+                'kode_jenis' => 'BNF',
+                'deskripsi' => 'Buku-buku yang berisi informasi faktual dan ilmiah',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Komik',
+                'kode_jenis' => 'BK',
+                'deskripsi' => 'Buku-buku komik dan manga',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Ensiklopedia',
+                'kode_jenis' => 'BE',
+                'deskripsi' => 'Buku-buku ensiklopedia dan kamus',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Majalah',
+                'kode_jenis' => 'BM',
+                'deskripsi' => 'Majalah dan publikasi berkala',
+                'status' => true,
+            ],
+            [
+                'nama_jenis' => 'Buku Lainnya',
+                'kode_jenis' => 'BL',
+                'deskripsi' => 'Buku-buku yang tidak termasuk dalam kategori di atas',
+                'status' => true,
+            ],
         ];
 
-        foreach ($jenis as $j) {
-            JenisBuku::create($j);
+        foreach ($jenisBuku as $jenis) {
+            JenisBuku::create($jenis);
         }
     }
-} 
+}

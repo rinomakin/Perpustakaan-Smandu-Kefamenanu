@@ -58,6 +58,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // CRUD Anggota
     Route::resource('anggota', AnggotaController::class);
+    Route::post('/anggota/bulk-delete', [AnggotaController::class, 'bulkDelete'])->name('anggota.bulk-delete');
+    Route::get('/anggota/export', [AnggotaController::class, 'export'])->name('anggota.export');
+    Route::get('/anggota/download-template', [AnggotaController::class, 'downloadTemplate'])->name('anggota.download-template');
+    Route::post('/anggota/import', [AnggotaController::class, 'import'])->name('anggota.import');
+    Route::get('/anggota/cetak-kartu/{id}', [AnggotaController::class, 'cetakKartu'])->name('anggota.cetak-kartu');
+    Route::post('/anggota/scan-barcode', [AnggotaController::class, 'scanBarcode'])->name('anggota.scan-barcode');
     
     // CRUD Buku
     Route::resource('buku', BukuController::class);
@@ -74,6 +80,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // CRUD Jenis Buku
     Route::resource('jenis-buku', JenisBukuController::class);
+    Route::get('/jenis-buku/export', [JenisBukuController::class, 'export'])->name('jenis-buku.export');
+    Route::post('/jenis-buku/bulk-delete', [JenisBukuController::class, 'bulkDelete'])->name('jenis-buku.bulk-delete');
     
     // CRUD Sumber Buku
     Route::resource('sumber-buku', SumberBukuController::class);
