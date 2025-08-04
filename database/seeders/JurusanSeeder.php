@@ -13,8 +13,8 @@ class JurusanSeeder extends Seeder
     public function run(): void
     {
         $jurusan = [
-            ['nama_jurusan' => 'IPA', 'kode_jurusan' => 'IPA', 'deskripsi' => 'Ilmu Pengetahuan Alam'],
-            ['nama_jurusan' => 'IPS', 'kode_jurusan' => 'IPS', 'deskripsi' => 'Ilmu Pengetahuan Sosial'],
+            ['nama_jurusan' => 'IPA', 'kode_jurusan' => 'IPA', 'deskripsi' => 'Ilmu Pengetahuan Alam', 'status' => 'aktif'],
+            ['nama_jurusan' => 'IPS', 'kode_jurusan' => 'IPS', 'deskripsi' => 'Ilmu Pengetahuan Sosial', 'status' => 'aktif'],
         ];
 
         foreach ($jurusan as $j) {

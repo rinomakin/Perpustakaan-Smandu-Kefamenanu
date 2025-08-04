@@ -24,9 +24,16 @@
                 </div>
                 <nav class="flex items-center space-x-8">
                     <a href="{{ route('frontend.home') }}" class="text-white hover:text-blue-200 font-medium">Beranda</a>
-                    <a href="#" class="text-white hover:text-blue-200 font-medium">Tentang</a>
+                    <a href="#" class="text-white hover:text-blue-200 font-medium">Tentag</a>
                     <a href="{{ route('petugas.absensi-pengunjung.index') }}" class="bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 font-medium">Absen Pengunjung</a>
                     <a href="{{ route('frontend.koleksi') }}" class="text-white hover:text-blue-200 font-medium">Koleksi Buku</a>
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" 
+                                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </form>
                 </nav>
             </div>
         </div>
@@ -197,6 +204,7 @@
                             <i class="fas fa-plus mr-2"></i>Catat Absensi
                         </button>
                     </div>
+                    
                 </form>
             </div>
         </div>

@@ -18,7 +18,7 @@
                         <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-12 w-auto">
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold">SIPERPUS</h1>
+                        <h1 class="text-2xl font-bold">{{ $pengaturan->nama_website ?? 'SIPERPUS' }}</h1>
                         <p class="text-blue-100 text-sm">Sistem Perpustakaan</p>
                     </div>
                 </div>
@@ -31,8 +31,14 @@
                             Tentang <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </a>
                     </div>
+                    
                     <a href="{{ route('petugas.absensi-pengunjung.index') }}" class="text-white hover:text-blue-200 font-medium">Absen Pengunjung</a>
                     <a href="{{ route('frontend.koleksi') }}" class="bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 font-medium">Koleksi Buku</a>
+                    <a class="flex items-center  justify-center gap-2 cursor-pointer">
+                        <p class= "text-white  font-medium cursor-pointer" ">Petugas</p>
+                        <i class="fas fa-user text-white mr-2"></i>
+                    </a>
+                    
                 </nav>
             </div>
         </div>
@@ -47,7 +53,7 @@
                 <div class="w-32 h-32 bg-green-500 rounded-full border-4 border-yellow-400 mx-auto flex items-center justify-center mb-4">
                     <div class="text-center">
                         <i class="fas fa-book text-white text-3xl mb-2"></i>
-                        <div class="text-xs font-bold">SMK</div>
+                        <div class="text-xs font-bold">{{ $pengaturan->nama_website ?? 'SIPERPUS' }}</div>
                     </div>
                 </div>
                 <div class="text-xs text-center">

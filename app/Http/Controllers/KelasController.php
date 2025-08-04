@@ -16,7 +16,7 @@ class KelasController extends Controller
     public function index()
     {
         $kelas = Kelas::with('jurusan')->paginate(10);
-        $jurusan = Jurusan::where('status', 1)->get();
+        $jurusan = Jurusan::where('status', 'aktif')->get();
         return view('admin.kelas.index', compact('kelas', 'jurusan'));
     }
 
@@ -24,10 +24,13 @@ class KelasController extends Controller
     {
         $request->validate([
             'nama_kelas' => 'required|string|max:255',
-            'kode_kelas' => 'required|string|max:10|unique:kelas,kode_kelas',
+            'kode_kelas' => 'required|string|max:20|unique:kelas,kode_kelas',
             'jurusan_id' => 'required|exists:jurusan,id',
-            'tahun_ajaran' => 'required|string|max:9',
-            'status' => 'required|boolean',
+            'tahun_ajaran' => 'required|regex:/^\d{4}\/\d{4}$/',
+            'status' => 'required|in:0,1',
+        ], [
+            'tahun_ajaran.regex' => 'Format tahun ajaran harus YYYY/YYYY (contoh: 2024/2025)',
+            'kode_kelas.unique' => 'Kode kelas sudah digunakan',
         ]);
 
         Kelas::create($request->all());
@@ -43,8 +46,10 @@ class KelasController extends Controller
         $request->validate([
             'nama_kelas' => 'required|string|max:255',
             'jurusan_id' => 'required|exists:jurusan,id',
-            'tahun_ajaran' => 'required|string|max:9',
-            'status' => 'required|boolean',
+            'tahun_ajaran' => 'required|regex:/^\d{4}\/\d{4}$/',
+            'status' => 'required|in:0,1',
+        ], [
+            'tahun_ajaran.regex' => 'Format tahun ajaran harus YYYY/YYYY (contoh: 2024/2025)',
         ]);
 
         // Kode kelas tidak bisa diubah, jadi kita exclude dari update

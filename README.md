@@ -24,7 +24,7 @@ Sistem informasi perpustakaan digital untuk SMAN 2 Kefamenanu yang dikembangkan 
 1. **Clone Repository**
 
 ```bash
-git clone [repository-url]
+git clone https://github.com/rinomakin/Perpustakaan-Smandu-Kefamenanu.git
 cd perpus-smandu-kefamenanu
 ```
 
