@@ -37,15 +37,12 @@
         .card-middle {
             flex: 1;
             padding: 20px;
-            background: #f8f9fa;
-            border-left: 2px solid #e9ecef;
         }
         
         .card-right {
             flex: 1.5;
             padding: 20px;
             background: #ffffff;
-            border-left: 2px solid #e9ecef;
         }
         
         .logo {
@@ -68,7 +65,7 @@
         }
         
         .school-name {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 5px;
@@ -83,24 +80,35 @@
         }
         
         .member-name {
-            font-size: 24px;
+            font-size: 12px;
             font-weight: bold;
             text-align: center;
             margin: 30px 0;
             color: #333;
         }
         
-        .qr-code {
-            width: 80px;
-            height: 80px;
-            background: #f8f9fa;
-            border: 2px solid #dee2e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .barcode-container {
+            text-align: center;
             margin: 20px auto;
+            padding: 10px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            max-width: 200px;
+        }
+        
+        .barcode-image {
+            width: 100%;
+            height: auto;
+            max-width: 180px;
+            margin-bottom: 5px;
+        }
+        
+        .barcode-text {
+            font-family: 'Courier New', monospace;
             font-size: 8px;
-            color: #666;
+            color: #333;
+            text-align: center;
         }
         
         .member-type {
@@ -155,7 +163,7 @@
         }
         
         .rules-title {
-            font-size: 16px;
+            font-size: 12px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 15px;
@@ -246,17 +254,19 @@
                     SMK
                 </div>
                 <div class="school-name">Kartu Perpustakaan</div>
-                <div class="school-name">SMK Soedirman Purbalingga</div>
+                <div class="school-name">SMK Negeri 1 Kefamenanu</div>
                 <div class="school-address">
-                    Dusun II, Gandasull, Kec. Bobotsari, Kabupaten Purbalingga, Jawa Tengah<br>
-                    Telp. (0281) 750071. NPSN 20300629, Kode Pos 51153
+                    Jl. Soekarno-Hatta, Kefamenanu, Timor Tengah Utara<br>
+                    Telp. (0388) 21001. NPSN 50100101
                 </div>
             </div>
             
             <div class="member-name">{{ $anggota->nama_lengkap }}</div>
             
-            <div class="qr-code">
-                {{ $anggota->barcode_anggota }}
+            <div class="barcode-container">
+                <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($anggota->barcode_anggota, 'C128') }}" 
+                     alt="Barcode" class="barcode-image">
+                <div class="barcode-text">{{ $anggota->barcode_anggota }}</div>
             </div>
         </div>
         

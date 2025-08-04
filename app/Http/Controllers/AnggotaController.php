@@ -87,17 +87,16 @@ class AnggotaController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:aktif,nonaktif,ditangguhkan',
             'tanggal_bergabung' => 'required|date',
+            'barcode_anggota' => 'required|string|unique:anggota,barcode_anggota',
         ]);
 
         DB::beginTransaction();
         try {
-            // Generate nomor anggota dan barcode otomatis
+            // Generate nomor anggota otomatis
             $nomorAnggota = Anggota::generateNomorAnggota();
-            $barcodeAnggota = Anggota::generateBarcodeAnggota();
 
             $data = $request->all();
             $data['nomor_anggota'] = $nomorAnggota;
-            $data['barcode_anggota'] = $barcodeAnggota;
 
             // Handle foto upload
             if ($request->hasFile('foto')) {
@@ -128,18 +127,9 @@ class AnggotaController extends Controller
 
     public function edit($id)
     {
-        try {
-            $anggota = Anggota::findOrFail($id);
-            return response()->json([
-                'success' => true,
-                'data' => $anggota
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Data tidak ditemukan'
-            ], 404);
-        }
+        $anggota = Anggota::findOrFail($id);
+        $kelas = Kelas::with('jurusan')->get();
+        return view('admin.anggota.edit', compact('anggota', 'kelas'));
     }
 
     public function update(Request $request, $id)
@@ -162,6 +152,11 @@ class AnggotaController extends Controller
         try {
             $anggota = Anggota::findOrFail($id);
             $data = $request->all();
+
+            // Handle barcode - if empty, keep current barcode
+            if (empty($data['barcode_anggota'])) {
+                unset($data['barcode_anggota']);
+            }
 
             // Handle foto upload
             if ($request->hasFile('foto')) {
@@ -463,6 +458,26 @@ class AnggotaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Anggota tidak ditemukan'
+            ]);
+        }
+    }
+
+    public function generateBarcode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string'
+        ]);
+
+        try {
+            $barcodeImage = \App\Helpers\BarcodeHelper::generateBarcodeImage($request->code, 'C128');
+            return response()->json([
+                'success' => true,
+                'barcode' => $barcodeImage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal generate barcode'
             ]);
         }
     }
