@@ -262,6 +262,9 @@ class AnggotaController extends Controller
         ]);
 
         try {
+            // Clean existing duplicates before import
+            $cleanedCount = Anggota::cleanAndRegenerateDuplicates();
+            
             $import = new AnggotaImport();
             Excel::import($import, $request->file('file'));
 
@@ -269,23 +272,45 @@ class AnggotaController extends Controller
             $errors = $import->getErrors();
             
             if ($importedCount > 0) {
-                $message = "Berhasil mengimpor {$importedCount} data anggota.";
+                $message = "✅ Berhasil mengimpor {$importedCount} data anggota.";
+                
+                if ($cleanedCount > 0) {
+                    $message .= " 🔧 {$cleanedCount} data duplikasi telah dibersihkan.";
+                }
                 
                 if (!empty($errors)) {
-                    $message .= ' Beberapa error: ' . implode(', ', array_slice($errors, 0, 5));
-                    if (count($errors) > 5) {
-                        $message .= ' dan ' . (count($errors) - 5) . ' error lainnya.';
+                    $uniqueErrors = array_unique($errors);
+                    $errorCount = count($uniqueErrors);
+                    $message .= " ⚠️ Ditemukan {$errorCount} jenis error:";
+                    
+                    // Tampilkan hanya 3 error pertama untuk tidak terlalu panjang
+                    $displayErrors = array_slice($uniqueErrors, 0, 3);
+                    foreach ($displayErrors as $error) {
+                        $message .= "\n• " . $error;
+                    }
+                    
+                    if ($errorCount > 3) {
+                        $message .= "\n• Dan " . ($errorCount - 3) . " error lainnya.";
                     }
                 }
                 
                 return redirect()->route('anggota.index')
                     ->with('success', $message);
             } else {
-                $errorMessage = 'Tidak ada data yang berhasil diimpor.';
+                $errorMessage = '❌ Tidak ada data yang berhasil diimpor.';
                 if (!empty($errors)) {
-                    $errorMessage .= ' Error: ' . implode(', ', array_slice($errors, 0, 5));
-                    if (count($errors) > 5) {
-                        $errorMessage .= ' dan ' . (count($errors) - 5) . ' error lainnya.';
+                    $uniqueErrors = array_unique($errors);
+                    $errorCount = count($uniqueErrors);
+                    $errorMessage .= "\n\nDitemukan {$errorCount} jenis error:";
+                    
+                    // Tampilkan hanya 5 error pertama
+                    $displayErrors = array_slice($uniqueErrors, 0, 5);
+                    foreach ($displayErrors as $error) {
+                        $errorMessage .= "\n• " . $error;
+                    }
+                    
+                    if ($errorCount > 5) {
+                        $errorMessage .= "\n• Dan " . ($errorCount - 5) . " error lainnya.";
                     }
                 }
                 
@@ -294,7 +319,7 @@ class AnggotaController extends Controller
             }
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+                ->with('error', '❌ Terjadi kesalahan saat import: ' . $e->getMessage());
         }
     }
 
@@ -340,6 +365,133 @@ class AnggotaController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Gagal generate barcode'
+            ]);
+        }
+    }
+
+    // Method untuk membersihkan data duplikasi
+    public function cleanDuplicateData()
+    {
+        try {
+            $cleaned = Anggota::cleanDuplicateData();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil membersihkan {$cleaned} data duplikasi."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Method untuk regenerate kode yang duplikasi
+    public function regenerateDuplicateCodes()
+    {
+        try {
+            $regenerated = Anggota::regenerateDuplicateCodes();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil regenerate {$regenerated} kode duplikasi."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Method untuk membersihkan dan regenerate data duplikasi
+    public function cleanAndRegenerateDuplicates()
+    {
+        try {
+            $processed = Anggota::cleanAndRegenerateDuplicates();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil membersihkan dan regenerate {$processed} data duplikasi."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Method untuk mengecek data duplikasi
+    public function checkDuplicateData()
+    {
+        try {
+            $duplicateNomor = Anggota::select('nomor_anggota')
+                ->groupBy('nomor_anggota')
+                ->havingRaw('COUNT(*) > 1')
+                ->count();
+
+            $duplicateBarcode = Anggota::select('barcode_anggota')
+                ->groupBy('barcode_anggota')
+                ->havingRaw('COUNT(*) > 1')
+                ->count();
+
+            $duplicateNIK = Anggota::select('nik')
+                ->groupBy('nik')
+                ->havingRaw('COUNT(*) > 1')
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'duplicate_nomor' => $duplicateNomor,
+                    'duplicate_barcode' => $duplicateBarcode,
+                    'duplicate_nik' => $duplicateNIK,
+                    'total_duplicates' => $duplicateNomor + $duplicateBarcode + $duplicateNIK
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Method untuk menampilkan statistik import
+    public function getImportStats()
+    {
+        try {
+            $totalAnggota = Anggota::count();
+            $duplicateNomor = Anggota::select('nomor_anggota')
+                ->groupBy('nomor_anggota')
+                ->havingRaw('COUNT(*) > 1')
+                ->count();
+            $duplicateBarcode = Anggota::select('barcode_anggota')
+                ->groupBy('barcode_anggota')
+                ->havingRaw('COUNT(*) > 1')
+                ->count();
+            $duplicateNIK = Anggota::select('nik')
+                ->groupBy('nik')
+                ->havingRaw('COUNT(*) > 1')
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_anggota' => $totalAnggota,
+                    'duplicate_nomor' => $duplicateNomor,
+                    'duplicate_barcode' => $duplicateBarcode,
+                    'duplicate_nik' => $duplicateNIK,
+                    'total_duplicates' => $duplicateNomor + $duplicateBarcode + $duplicateNIK,
+                    'clean_data' => $totalAnggota - ($duplicateNomor + $duplicateBarcode + $duplicateNIK)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
             ]);
         }
     }

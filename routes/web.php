@@ -64,6 +64,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/anggota/cetak-kartu/{id}', [AnggotaController::class, 'cetakKartu'])->name('anggota.cetak-kartu');
     Route::post('/anggota/scan-barcode', [AnggotaController::class, 'scanBarcode'])->name('anggota.scan-barcode');
     Route::post('/anggota/generate-barcode', [AnggotaController::class, 'generateBarcode'])->name('anggota.generate-barcode');
+    Route::post('/anggota/clean-duplicates', [AnggotaController::class, 'cleanDuplicateData'])->name('anggota.clean-duplicates');
+    Route::post('/anggota/regenerate-duplicates', [AnggotaController::class, 'regenerateDuplicateCodes'])->name('anggota.regenerate-duplicates');
+    Route::post('/anggota/clean-and-regenerate', [AnggotaController::class, 'cleanAndRegenerateDuplicates'])->name('anggota.clean-and-regenerate');
+    Route::get('/anggota/check-duplicates', [AnggotaController::class, 'checkDuplicateData'])->name('anggota.check-duplicates');
+    Route::get('/anggota/import-stats', [AnggotaController::class, 'getImportStats'])->name('anggota.import-stats');
     Route::resource('anggota', AnggotaController::class);
     
     // CRUD Buku
