@@ -145,7 +145,7 @@
             </div>
             
             <div class="flex items-end space-x-2">
-                <button type="submit" 
+                <button type="submit flex items-center space-x-2" 
                         class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                     <i class="fas fa-search mr-1"></i>Cari
                 </button>
@@ -204,7 +204,7 @@
                             </label>
                         </th>
                         <th class="px-4 py-3">No</th>
-                        <th class="px-4 py-3">No. Anggota</th>
+                        <!-- <th class="px-4 py-3">No. Anggota</th> -->
                         <th class="px-4 py-3">Nama Lengkap</th>
                         <th class="px-4 py-3">NIK</th>
                         <th class="px-4 py-3">Kelas/Jurusan</th>
@@ -225,14 +225,14 @@
                         <td class="px-4 py-3 text-sm">
                             {{ $index + $anggota->firstItem() }}
                         </td>
+                        <!-- <td class="px-4 py-3 text-sm"> -->
+                            <!-- <div class="font-medium text-gray-900">{{ $item->nomor_anggota }}</div> -->
+                            <!-- <div class="text-xs text-gray-500 mb-1">{{ $item->barcode_anggota }}</div> -->
+                            <!-- <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($item->barcode_anggota, 'C128') }}"  -->
+                                 <!-- alt="Barcode" class="w-24 h-8 object-contain"> -->
+                        <!-- </td> -->
                         <td class="px-4 py-3 text-sm">
-                            <div class="font-medium text-gray-900">{{ $item->nomor_anggota }}</div>
-                            <div class="text-xs text-gray-500 mb-1">{{ $item->barcode_anggota }}</div>
-                            <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($item->barcode_anggota, 'C128') }}" 
-                                 alt="Barcode" class="w-24 h-8 object-contain">
-                        </td>
-                        <td class="px-4 py-3 text-sm">
-                            <div class="flex items-center">
+                            <!-- <div class="flex items-center">
                                 @if($item->foto)
                                     <img src="{{ asset('storage/anggota/' . $item->foto) }}" 
                                          alt="Foto" class="w-8 h-8 rounded-full mr-3">
@@ -241,7 +241,7 @@
                                         <i class="fas fa-user text-gray-600 text-xs"></i>
                                     </div>
                                 @endif
-                                <div>
+                                <div> -->
                                     <div class="font-medium text-gray-900">{{ $item->nama_lengkap }}</div>
                                     <div class="text-xs text-gray-500">{{ $item->email ?: '-' }}</div>
                                 </div>
@@ -340,19 +340,21 @@
             <form method="POST" action="{{ route('anggota.import') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-4">
-                    <label for="file" class="block text-sm font-medium text-gray-700 mb-2">File CSV <span class="text-red-500">*</span></label>
-                    <input type="file" name="file" id="file" accept=".csv,.txt" required
+                    <label for="file" class="block text-sm font-medium text-gray-700 mb-2">File Excel/CSV <span class="text-red-500">*</span></label>
+                    <input type="file" name="file" id="file" accept=".xlsx,.xls,.csv" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="mt-1 text-xs text-gray-500">Format: CSV. Maksimal 2MB</p>
+                    <p class="mt-1 text-xs text-gray-500">Format: Excel (.xlsx, .xls) atau CSV. Maksimal 2MB</p>
                 </div>
                 
                 <div class="mb-4 p-3 bg-blue-50 rounded-md">
                     <p class="text-sm text-blue-800">
                         <strong>Catatan:</strong><br>
                         • Download template terlebih dahulu<br>
+                        • Format file: Excel (.xlsx, .xls) atau CSV<br>
                         • Pastikan format data sesuai template<br>
                         • NIK harus unik dan tidak boleh duplikat<br>
-                        • Nomor anggota dan barcode akan digenerate otomatis
+                        • Nomor anggota dan barcode akan digenerate otomatis<br>
+                        • Template sudah berisi daftar kelas untuk referensi
                     </p>
                 </div>
                 

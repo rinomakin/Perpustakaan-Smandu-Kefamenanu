@@ -9,6 +9,10 @@ use App\Models\Jurusan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AnggotaExport;
+use App\Exports\AnggotaTemplateExport;
+use App\Imports\AnggotaImport;
 
 class AnggotaController extends Controller
 {
@@ -239,200 +243,58 @@ class AnggotaController extends Controller
 
     public function export(Request $request)
     {
-        $query = Anggota::with(['kelas.jurusan']);
-
-        // Apply filters
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('nama_lengkap', 'like', "%{$search}%")
-                  ->orWhere('nomor_anggota', 'like', "%{$search}%")
-                  ->orWhere('barcode_anggota', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('kelas_id')) {
-            $query->where('kelas_id', $request->kelas_id);
-        }
-
-        if ($request->filled('jenis_anggota')) {
-            $query->where('jenis_anggota', $request->jenis_anggota);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $anggota = $query->get();
-
-        $filename = 'anggota_' . date('Y-m-d_H-i-s') . '.csv';
+        $filename = 'anggota_' . date('Y-m-d_H-i-s') . '.xlsx';
         
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function() use ($anggota) {
-            $file = fopen('php://output', 'w');
-            
-            // CSV headers
-            fputcsv($file, [
-                'Nomor Anggota',
-                'Barcode',
-                'Nama Lengkap',
-                'NIK',
-                'Alamat',
-                'Nomor Telepon',
-                'Email',
-                'Kelas',
-                'Jurusan',
-                'Jabatan',
-                'Jenis Anggota',
-                'Status',
-                'Tanggal Bergabung'
-            ]);
-
-            foreach ($anggota as $item) {
-                fputcsv($file, [
-                    $item->nomor_anggota,
-                    $item->barcode_anggota,
-                    $item->nama_lengkap,
-                    $item->nik,
-                    $item->alamat,
-                    $item->nomor_telepon,
-                    $item->email,
-                    $item->kelas ? $item->kelas->nama_kelas : '-',
-                    $item->kelas && $item->kelas->jurusan ? $item->kelas->jurusan->nama_jurusan : '-',
-                    $item->jabatan,
-                    $item->jenis_anggota,
-                    $item->status,
-                    $item->tanggal_bergabung->format('Y-m-d')
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(new AnggotaExport($request), $filename);
     }
 
     public function downloadTemplate()
     {
-        $filename = 'template_import_anggota.csv';
+        $filename = 'template_import_anggota.xlsx';
         
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function() {
-            $file = fopen('php://output', 'w');
-            
-            // CSV headers
-            fputcsv($file, [
-                'nama_lengkap',
-                'nik',
-                'alamat',
-                'nomor_telepon',
-                'email',
-                'kelas_id',
-                'jabatan',
-                'jenis_anggota',
-                'status',
-                'tanggal_bergabung'
-            ]);
-
-            // Sample data
-            fputcsv($file, [
-                'John Doe',
-                '1234567890123456',
-                'Jl. Contoh No. 123',
-                '081234567890',
-                'john@example.com',
-                '1',
-                'Siswa',
-                'siswa',
-                'aktif',
-                '2024-01-01'
-            ]);
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(new AnggotaTemplateExport(), $filename);
     }
 
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:2048'
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:2048'
         ]);
 
-        DB::beginTransaction();
         try {
-            $file = $request->file('file');
-            $handle = fopen($file->getPathname(), 'r');
+            $import = new AnggotaImport();
+            Excel::import($import, $request->file('file'));
+
+            $importedCount = $import->getImportedCount();
+            $errors = $import->getErrors();
             
-            // Skip header row
-            $header = fgetcsv($handle);
-            $imported = 0;
-            $errors = [];
-
-            while (($data = fgetcsv($handle)) !== false) {
-                try {
-                    $row = array_combine($header, $data);
-                    
-                    // Validate required fields
-                    if (empty($row['nama_lengkap']) || empty($row['nik'])) {
-                        $errors[] = "Baris " . ($imported + 2) . ": Nama lengkap dan NIK wajib diisi";
-                        continue;
+            if ($importedCount > 0) {
+                $message = "Berhasil mengimpor {$importedCount} data anggota.";
+                
+                if (!empty($errors)) {
+                    $message .= ' Beberapa error: ' . implode(', ', array_slice($errors, 0, 5));
+                    if (count($errors) > 5) {
+                        $message .= ' dan ' . (count($errors) - 5) . ' error lainnya.';
                     }
-
-                    // Check if NIK already exists
-                    if (Anggota::where('nik', $row['nik'])->exists()) {
-                        $errors[] = "Baris " . ($imported + 2) . ": NIK sudah terdaftar";
-                        continue;
-                    }
-
-                    // Generate nomor anggota dan barcode
-                    $nomorAnggota = Anggota::generateNomorAnggota();
-                    $barcodeAnggota = Anggota::generateBarcodeAnggota();
-
-                    Anggota::create([
-                        'nomor_anggota' => $nomorAnggota,
-                        'barcode_anggota' => $barcodeAnggota,
-                        'nama_lengkap' => $row['nama_lengkap'],
-                        'nik' => $row['nik'],
-                        'alamat' => $row['alamat'] ?? '',
-                        'nomor_telepon' => $row['nomor_telepon'] ?? '',
-                        'email' => $row['email'] ?? null,
-                        'kelas_id' => $row['kelas_id'] ?? null,
-                        'jabatan' => $row['jabatan'] ?? null,
-                        'jenis_anggota' => $row['jenis_anggota'] ?? 'siswa',
-                        'status' => $row['status'] ?? 'aktif',
-                        'tanggal_bergabung' => $row['tanggal_bergabung'] ?? now(),
-                    ]);
-
-                    $imported++;
-                } catch (\Exception $e) {
-                    $errors[] = "Baris " . ($imported + 2) . ": " . $e->getMessage();
                 }
+                
+                return redirect()->route('anggota.index')
+                    ->with('success', $message);
+            } else {
+                $errorMessage = 'Tidak ada data yang berhasil diimpor.';
+                if (!empty($errors)) {
+                    $errorMessage .= ' Error: ' . implode(', ', array_slice($errors, 0, 5));
+                    if (count($errors) > 5) {
+                        $errorMessage .= ' dan ' . (count($errors) - 5) . ' error lainnya.';
+                    }
+                }
+                
+                return redirect()->back()
+                    ->with('error', $errorMessage);
             }
-
-            fclose($handle);
-            DB::commit();
-
-            $message = "Berhasil mengimpor {$imported} data anggota.";
-            if (!empty($errors)) {
-                $message .= " Error: " . implode(', ', $errors);
-            }
-
-            return redirect()->route('anggota.index')
-                ->with('success', $message);
         } catch (\Exception $e) {
-            DB::rollback();
             return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
         }
     }
 

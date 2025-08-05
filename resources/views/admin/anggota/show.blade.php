@@ -97,23 +97,25 @@
                             {{ ucfirst($anggota->status) }}
                         </span>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Tanggal Bergabung</label>
-                        <div class="text-gray-900">{{ $anggota->tanggal_bergabung->format('d F Y') }}</div>
-                    </div>
-                    
-                    @if($anggota->kelas)
-                    <div>
+
+                     @if($anggota->kelas)
+                    <!-- <div>
                         <label class="block text-sm font-medium text-gray-700">Kelas</label>
                         <div class="text-gray-900">{{ $anggota->kelas->nama_kelas }}</div>
-                    </div>
+                    </div> -->
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Jurusan</label>
                         <div class="text-gray-900">{{ $anggota->kelas->jurusan->nama_jurusan }}</div>
                     </div>
                     @endif
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tanggal Bergabung</label>
+                        <div class="text-gray-900">{{ $anggota->tanggal_bergabung->format('d F Y') }}</div>
+                    </div>
+                    
+                   
                     
                     @if($anggota->jabatan)
                     <div>

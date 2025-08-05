@@ -57,14 +57,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/pengaturan-website', [AdminController::class, 'updatePengaturanWebsite'])->name('admin.pengaturan.update');
     
     // CRUD Anggota
-    Route::resource('anggota', AnggotaController::class);
-    Route::post('/anggota/bulk-delete', [AnggotaController::class, 'bulkDelete'])->name('anggota.bulk-delete');
     Route::get('/anggota/export', [AnggotaController::class, 'export'])->name('anggota.export');
     Route::get('/anggota/download-template', [AnggotaController::class, 'downloadTemplate'])->name('anggota.download-template');
     Route::post('/anggota/import', [AnggotaController::class, 'import'])->name('anggota.import');
+    Route::post('/anggota/bulk-delete', [AnggotaController::class, 'bulkDelete'])->name('anggota.bulk-delete');
     Route::get('/anggota/cetak-kartu/{id}', [AnggotaController::class, 'cetakKartu'])->name('anggota.cetak-kartu');
     Route::post('/anggota/scan-barcode', [AnggotaController::class, 'scanBarcode'])->name('anggota.scan-barcode');
     Route::post('/anggota/generate-barcode', [AnggotaController::class, 'generateBarcode'])->name('anggota.generate-barcode');
+    Route::resource('anggota', AnggotaController::class);
     
     // CRUD Buku
     Route::resource('buku', BukuController::class);
