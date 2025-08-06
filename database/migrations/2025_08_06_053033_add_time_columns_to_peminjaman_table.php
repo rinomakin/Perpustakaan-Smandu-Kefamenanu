@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('anggota', function (Blueprint $table) {
-            //
+        Schema::table('peminjaman', function (Blueprint $table) {
+            $table->time('jam_peminjaman')->nullable()->after('tanggal_peminjaman');
+            $table->time('jam_kembali')->nullable()->after('tanggal_harus_kembali');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('anggota', function (Blueprint $table) {
-            //
+        Schema::table('peminjaman', function (Blueprint $table) {
+            $table->dropColumn(['jam_peminjaman', 'jam_kembali']);
         });
     }
 };

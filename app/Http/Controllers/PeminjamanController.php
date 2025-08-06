@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Peminjaman;
+use App\Models\DetailPeminjaman;
 use App\Models\Anggota;
 use App\Models\Buku;
+use Illuminate\Support\Facades\DB;
 
 class PeminjamanController extends Controller
 {
@@ -16,7 +18,7 @@ class PeminjamanController extends Controller
 
     public function index()
     {
-        $peminjaman = Peminjaman::with(['anggota', 'user'])->paginate(10);
+        $peminjaman = Peminjaman::with(['anggota', 'user', 'detailPeminjaman.buku'])->paginate(10);
         return view('admin.peminjaman.index', compact('peminjaman'));
     }
 
@@ -34,34 +36,63 @@ class PeminjamanController extends Controller
             'buku_ids' => 'required|array',
             'buku_ids.*' => 'exists:buku,id',
             'tanggal_peminjaman' => 'required|date',
-            'tanggal_pengembalian' => 'required|date|after:tanggal_peminjaman',
-            'keterangan' => 'nullable|string',
+            'jam_peminjaman' => 'nullable|date_format:H:i',
+            'tanggal_harus_kembali' => 'required|date|after:tanggal_peminjaman',
+            'jam_kembali' => 'nullable|date_format:H:i',
+            'catatan' => 'nullable|string',
         ]);
 
-        $peminjaman = Peminjaman::create([
-            'nomor_peminjaman' => Peminjaman::generateNomorPeminjaman(),
-            'anggota_id' => $request->anggota_id,
-            'user_id' => auth()->id(),
-            'tanggal_peminjaman' => $request->tanggal_peminjaman,
-            'tanggal_pengembalian' => $request->tanggal_pengembalian,
-            'status' => 'dipinjam',
-            'keterangan' => $request->keterangan,
-        ]);
-
-        // Create detail peminjaman for each book
-        foreach ($request->buku_ids as $buku_id) {
-            $peminjaman->detailPeminjaman()->create([
-                'buku_id' => $buku_id,
-                'return_condition' => 'baik',
-            ]);
-
-            // Update book stock
-            $buku = Buku::find($buku_id);
-            $buku->decrement('stok_tersedia');
+        // Custom validation for jam_kembali
+        if ($request->jam_peminjaman && $request->jam_kembali) {
+            if ($request->jam_peminjaman === $request->jam_kembali) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['jam_kembali' => 'Jam pengembalian tidak boleh sama dengan jam peminjaman']);
+            }
         }
 
-        return redirect()->route('peminjaman.index')
-            ->with('success', 'Peminjaman berhasil dicatat.');
+        DB::beginTransaction();
+        try {
+            // Create peminjaman
+            $peminjaman = Peminjaman::create([
+                'nomor_peminjaman' => Peminjaman::generateNomorPeminjaman(),
+                'anggota_id' => $request->anggota_id,
+                'user_id' => auth()->id(),
+                'tanggal_peminjaman' => $request->tanggal_peminjaman,
+                'jam_peminjaman' => $request->jam_peminjaman ?? now()->format('H:i'),
+                'tanggal_harus_kembali' => $request->tanggal_harus_kembali,
+                'jam_kembali' => $request->jam_kembali,
+                'status' => 'dipinjam',
+                'catatan' => $request->catatan,
+            ]);
+
+            // Create detail peminjaman for each book
+            foreach ($request->buku_ids as $buku_id) {
+                $buku = Buku::find($buku_id);
+                
+                // Check if book is available
+                if ($buku->stok_tersedia <= 0) {
+                    throw new \Exception("Buku {$buku->judul_buku} tidak tersedia");
+                }
+
+                $peminjaman->detailPeminjaman()->create([
+                    'buku_id' => $buku_id,
+                    'kondisi_kembali' => 'baik',
+                    'catatan' => null,
+                ]);
+
+                // Update book stock
+                $buku->decrement('stok_tersedia');
+            }
+
+            DB::commit();
+            return redirect()->route('peminjaman.index')
+                ->with('success', 'Peminjaman berhasil dicatat.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function show($id)
@@ -72,9 +103,10 @@ class PeminjamanController extends Controller
 
     public function edit($id)
     {
-        $peminjaman = Peminjaman::findOrFail($id);
+        $peminjaman = Peminjaman::with(['detailPeminjaman.buku'])->findOrFail($id);
         $anggota = Anggota::where('status', 'aktif')->get();
-        return view('admin.peminjaman.edit', compact('peminjaman', 'anggota'));
+        $buku = Buku::where('stok_tersedia', '>', 0)->get();
+        return view('admin.peminjaman.edit', compact('peminjaman', 'anggota', 'buku'));
     }
 
     public function update(Request $request, $id)
@@ -84,10 +116,17 @@ class PeminjamanController extends Controller
         $request->validate([
             'anggota_id' => 'required|exists:anggota,id',
             'tanggal_peminjaman' => 'required|date',
-            'tanggal_pengembalian' => 'required|date|after:tanggal_peminjaman',
+            'jam_peminjaman' => 'nullable|date_format:H:i',
+            'tanggal_harus_kembali' => 'required|date|after:tanggal_peminjaman',
+            'jam_kembali' => 'nullable|date_format:H:i',
             'status' => 'required|in:dipinjam,dikembalikan,terlambat',
-            'keterangan' => 'nullable|string',
+            'catatan' => 'nullable|string',
         ]);
+
+        // Jika status diubah menjadi dikembalikan, set jam_kembali otomatis
+        if ($request->status === 'dikembalikan' && !$request->jam_kembali) {
+            $request->merge(['jam_kembali' => now()->format('H:i')]);
+        }
 
         $peminjaman->update($request->all());
         
@@ -98,9 +137,352 @@ class PeminjamanController extends Controller
     public function destroy($id)
     {
         $peminjaman = Peminjaman::findOrFail($id);
-        $peminjaman->delete();
         
-        return redirect()->route('peminjaman.index')
-            ->with('success', 'Data peminjaman berhasil dihapus.');
+        DB::beginTransaction();
+        try {
+            // Return all books to stock
+            foreach ($peminjaman->detailPeminjaman as $detail) {
+                $detail->buku->increment('stok_tersedia');
+            }
+            
+            $peminjaman->delete();
+            DB::commit();
+            
+            return redirect()->route('peminjaman.index')
+                ->with('success', 'Data peminjaman berhasil dihapus.');
+                
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    // Method untuk menampilkan detail peminjaman dengan QR scanner
+    public function detail($id)
+    {
+        $peminjaman = Peminjaman::with(['anggota', 'user', 'detailPeminjaman.buku'])->findOrFail($id);
+        $buku = Buku::where('stok_tersedia', '>', 0)->get();
+        return view('admin.peminjaman.detail', compact('peminjaman', 'buku'));
+    }
+
+    // AJAX method untuk menambah buku ke peminjaman
+    public function addBook(Request $request)
+    {
+        $request->validate([
+            'peminjaman_id' => 'required|exists:peminjaman,id',
+            'buku_id' => 'required|exists:buku,id',
+        ]);
+
+        $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
+        $buku = Buku::findOrFail($request->buku_id);
+
+        // Check if book is already in this loan
+        $existingDetail = $peminjaman->detailPeminjaman()->where('buku_id', $request->buku_id)->first();
+        if ($existingDetail) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku ini sudah ada dalam peminjaman ini'
+            ]);
+        }
+
+        // Check if book is available
+        if ($buku->stok_tersedia <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku tidak tersedia'
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $detail = $peminjaman->detailPeminjaman()->create([
+                'buku_id' => $request->buku_id,
+                'kondisi_kembali' => 'baik',
+                'catatan' => null,
+            ]);
+
+            $buku->decrement('stok_tersedia');
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Buku berhasil ditambahkan',
+                'detail' => $detail->load('buku')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // AJAX method untuk menghapus buku dari peminjaman
+    public function removeBook(Request $request)
+    {
+        $request->validate([
+            'detail_id' => 'required|exists:detail_peminjaman,id',
+        ]);
+
+        $detail = DetailPeminjaman::findOrFail($request->detail_id);
+        $buku = $detail->buku;
+
+        DB::beginTransaction();
+        try {
+            $buku->increment('stok_tersedia');
+            $detail->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Buku berhasil dihapus dari peminjaman'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // AJAX method untuk scan QR code
+    public function scanQR(Request $request)
+    {
+        $request->validate([
+            'peminjaman_id' => 'required|exists:peminjaman,id',
+            'barcode' => 'required|string',
+        ]);
+
+        $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
+        $buku = Buku::where('barcode', $request->barcode)->first();
+
+        if (!$buku) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku tidak ditemukan'
+            ]);
+        }
+
+        // Check if book is already in this loan
+        $existingDetail = $peminjaman->detailPeminjaman()->where('buku_id', $buku->id)->first();
+        if ($existingDetail) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku ini sudah ada dalam peminjaman ini'
+            ]);
+        }
+
+        // Check if book is available
+        if ($buku->stok_tersedia <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku tidak tersedia'
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $detail = $peminjaman->detailPeminjaman()->create([
+                'buku_id' => $buku->id,
+                'kondisi_kembali' => 'baik',
+                'catatan' => null,
+            ]);
+
+            $buku->decrement('stok_tersedia');
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Buku berhasil ditambahkan',
+                'detail' => $detail->load('buku')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * API untuk scan barcode anggota
+     */
+    public function scanAnggota(Request $request)
+    {
+        $request->validate([
+            'barcode' => 'required|string'
+        ]);
+
+        $anggota = Anggota::where('barcode_anggota', $request->barcode)
+                          ->where('status', 'aktif')
+                          ->with('kelas')
+                          ->first();
+
+        if (!$anggota) {
+            // Get some example barcodes for better error message
+            $exampleBarcodes = Anggota::where('status', 'aktif')
+                                     ->whereNotNull('barcode_anggota')
+                                     ->take(3)
+                                     ->pluck('barcode_anggota')
+                                     ->toArray();
+            
+            $message = 'Anggota dengan barcode "' . $request->barcode . '" tidak ditemukan atau tidak aktif.';
+            if (!empty($exampleBarcodes)) {
+                $message .= ' Contoh barcode yang valid: ' . implode(', ', $exampleBarcodes);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => $message
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $anggota->id,
+                'nama_lengkap' => $anggota->nama_lengkap,
+                'nomor_anggota' => $anggota->nomor_anggota,
+                'barcode_anggota' => $anggota->barcode_anggota,
+                'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
+                'jenis_anggota' => $anggota->jenis_anggota
+            ]
+        ]);
+    }
+
+    /**
+     * API untuk scan barcode buku
+     */
+    public function scanBuku(Request $request)
+    {
+        $request->validate([
+            'barcode' => 'required|string'
+        ]);
+
+        $buku = Buku::where('barcode_buku', $request->barcode)
+                    ->where('stok_tersedia', '>', 0)
+                    ->with('penulis', 'penerbit', 'kategoriBuku', 'jenisBuku')
+                    ->first();
+
+        if (!$buku) {
+            // Get some example barcodes for better error message
+            $exampleBarcodes = Buku::where('stok_tersedia', '>', 0)
+                                   ->whereNotNull('barcode_buku')
+                                   ->take(3)
+                                   ->pluck('barcode_buku')
+                                   ->toArray();
+            
+            $message = 'Buku dengan barcode "' . $request->barcode . '" tidak ditemukan atau stok habis.';
+            if (!empty($exampleBarcodes)) {
+                $message .= ' Contoh barcode yang valid: ' . implode(', ', $exampleBarcodes);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => $message
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $buku->id,
+                'judul_buku' => $buku->judul_buku,
+                'barcode_buku' => $buku->barcode_buku,
+                'isbn' => $buku->isbn,
+                'stok_tersedia' => $buku->stok_tersedia,
+                'penulis' => $buku->penulis ? $buku->penulis->nama_penulis : 'N/A',
+                'penerbit' => $buku->penerbit ? $buku->penerbit->nama_penerbit : 'N/A',
+                'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
+            ]
+        ]);
+    }
+
+    /**
+     * API untuk scan multiple barcode buku
+     */
+    public function scanMultipleBuku(Request $request)
+    {
+        $request->validate([
+            'barcodes' => 'required|array',
+            'barcodes.*' => 'string'
+        ]);
+
+        $bukuList = [];
+        $errors = [];
+
+        foreach ($request->barcodes as $barcode) {
+            $buku = Buku::where('barcode_buku', $barcode)
+                        ->where('stok_tersedia', '>', 0)
+                        ->with('penulis', 'penerbit', 'kategoriBuku', 'jenisBuku')
+                        ->first();
+
+            if ($buku) {
+                $bukuList[] = [
+                    'id' => $buku->id,
+                    'judul_buku' => $buku->judul_buku,
+                    'barcode_buku' => $buku->barcode_buku,
+                    'isbn' => $buku->isbn,
+                    'stok_tersedia' => $buku->stok_tersedia,
+                    'penulis' => $buku->penulis ? $buku->penulis->nama_penulis : 'N/A',
+                    'penerbit' => $buku->penerbit ? $buku->penerbit->nama_penerbit : 'N/A',
+                    'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
+                ];
+            } else {
+                $errors[] = "Buku dengan barcode {$barcode} tidak ditemukan atau stok habis";
+            }
+        }
+
+        return response()->json([
+            'success' => count($bukuList) > 0,
+            'data' => $bukuList,
+            'errors' => $errors
+        ]);
+    }
+
+    /**
+     * API untuk search anggota
+     */
+    public function searchAnggota(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2'
+        ]);
+
+        $query = $request->query;
+        
+        $anggota = Anggota::where('status', 'aktif')
+                          ->where(function($q) use ($query) {
+                              $q->where('nama_lengkap', 'LIKE', "%{$query}%")
+                                ->orWhere('nomor_anggota', 'LIKE', "%{$query}%")
+                                ->orWhere('barcode_anggota', 'LIKE', "%{$query}%");
+                          })
+                          ->with('kelas')
+                          ->take(10)
+                          ->get()
+                          ->map(function($anggota) {
+                              return [
+                                  'id' => $anggota->id,
+                                  'nama_lengkap' => $anggota->nama_lengkap,
+                                  'nomor_anggota' => $anggota->nomor_anggota,
+                                  'barcode_anggota' => $anggota->barcode_anggota,
+                                  'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
+                                  'jenis_anggota' => $anggota->jenis_anggota
+                              ];
+                          });
+
+        return response()->json([
+            'success' => true,
+            'data' => $anggota
+        ]);
     }
 } 

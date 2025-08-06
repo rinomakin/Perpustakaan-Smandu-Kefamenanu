@@ -20,6 +20,7 @@ use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\DendaController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\CetakController;
+use App\Http\Controllers\RiwayatPeminjamanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +74,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // CRUD Buku
     Route::resource('buku', BukuController::class);
+    Route::post('/buku/generate-barcode', [BukuController::class, 'generateBarcode'])->name('buku.generate-barcode');
+    Route::post('/buku/generate-multiple-barcode', [BukuController::class, 'generateMultipleBarcode'])->name('buku.generate-multiple-barcode');
+    Route::get('/buku/{id}/print-barcode', [BukuController::class, 'printBarcode'])->name('buku.print-barcode');
+    Route::post('/buku/print-multiple-barcode', [BukuController::class, 'printMultipleBarcode'])->name('buku.print-multiple-barcode');
+    Route::get('/buku/export', [BukuController::class, 'export'])->name('buku.export');
+    Route::get('/buku/download-template', [BukuController::class, 'downloadTemplate'])->name('buku.download-template');
+    Route::post('/buku/import', [BukuController::class, 'import'])->name('buku.import');
+    Route::post('/buku/scan-barcode', [BukuController::class, 'scanBarcode'])->name('buku.scan-barcode');
+    Route::delete('/buku/destroy-multiple', [BukuController::class, 'destroyMultiple'])->name('buku.destroy-multiple');
     
     // CRUD Jurusan
     Route::resource('jurusan', JurusanController::class);
@@ -83,6 +93,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // CRUD Kategori Buku
     Route::resource('kategori-buku', KategoriBukuController::class);
+    Route::delete('/kategori-buku/destroy-multiple', [KategoriBukuController::class, 'destroyMultiple'])->name('kategori-buku.destroy-multiple');
     
     // CRUD Jenis Buku
     Route::resource('jenis-buku', JenisBukuController::class);
@@ -100,19 +111,33 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // CRUD Peminjaman
     Route::resource('peminjaman', PeminjamanController::class);
+    Route::post('/peminjaman/scan-anggota', [PeminjamanController::class, 'scanAnggota'])->name('peminjaman.scan-anggota');
+    Route::post('/peminjaman/scan-buku', [PeminjamanController::class, 'scanBuku'])->name('peminjaman.scan-buku');
+    Route::post('/peminjaman/scan-multiple-buku', [PeminjamanController::class, 'scanMultipleBuku'])->name('peminjaman.scan-multiple-buku');
+    Route::post('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
     
     // CRUD Denda
     Route::resource('denda', DendaController::class);
+    
+    // CRUD Absensi Pengunjung
+    Route::resource('absensi-pengunjung', AbsensiPengunjungController::class);
+    
+    // Riwayat Peminjaman
+    Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('riwayat-peminjaman.index');
+    Route::get('/riwayat-peminjaman/export', [RiwayatPeminjamanController::class, 'export'])->name('riwayat-peminjaman.export');
     
     // Laporan
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/anggota', [LaporanController::class, 'anggota'])->name('admin.laporan.anggota');
     Route::get('/laporan/buku', [LaporanController::class, 'buku'])->name('admin.laporan.buku');
+    Route::get('/laporan/peminjaman', [LaporanController::class, 'peminjaman'])->name('admin.laporan.peminjaman');
+    Route::get('/laporan/denda', [LaporanController::class, 'denda'])->name('admin.laporan.denda');
+    Route::get('/laporan/absensi', [LaporanController::class, 'absensi'])->name('admin.laporan.absensi');
     Route::get('/laporan/kas', [LaporanController::class, 'kas'])->name('admin.laporan.kas');
     
     // Cetak
-    Route::get('/cetak/kartu-anggota/{id}', [CetakController::class, 'kartuAnggota'])->name('admin.cetak.kartu');
     Route::get('/cetak/label-buku/{id}', [CetakController::class, 'labelBuku'])->name('admin.cetak.label');
+    Route::get('/cetak/kartu-anggota/{id}', [CetakController::class, 'kartuAnggota'])->name('admin.cetak.kartu');
 });
 
 // Petugas Routes

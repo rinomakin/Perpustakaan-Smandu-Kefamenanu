@@ -16,16 +16,20 @@ class Peminjaman extends Model
         'anggota_id',
         'user_id',
         'tanggal_peminjaman',
+        'jam_peminjaman',
         'tanggal_harus_kembali',
         'tanggal_kembali',
+        'jam_kembali',
         'status',
         'catatan',
     ];
 
     protected $casts = [
         'tanggal_peminjaman' => 'date',
+        'jam_peminjaman' => 'datetime:H:i',
         'tanggal_harus_kembali' => 'date',
         'tanggal_kembali' => 'date',
+        'jam_kembali' => 'datetime:H:i',
     ];
 
     public function anggota()

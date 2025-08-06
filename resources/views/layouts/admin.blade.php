@@ -11,6 +11,9 @@
     @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .sidebar-transition {
@@ -27,6 +30,51 @@
                 transform: translateX(0);
             }
         }
+        
+        /* Additional CSS to ensure proper styling */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn {
+            @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+        }
+        
+        .btn-primary {
+            @apply bg-blue-600 hover:bg-blue-700 text-white;
+        }
+        
+        .btn-success {
+            @apply bg-green-600 hover:bg-green-700 text-white;
+        }
+        
+        .btn-danger {
+            @apply bg-red-600 hover:bg-red-700 text-white;
+        }
+        
+        .btn-warning {
+            @apply bg-yellow-600 hover:bg-yellow-700 text-white;
+        }
+        
+        .form-input {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+        }
+        
+        .card {
+            @apply bg-white rounded-lg shadow-md border border-gray-200;
+        }
+        
+        .table {
+            @apply min-w-full divide-y divide-gray-200;
+        }
+        
+        .table th {
+            @apply px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+        }
+        
+        .table td {
+            @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -35,7 +83,7 @@
         <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden sidebar-overlay"></div>
         
         <!-- Sidebar -->
-        <div id="sidebar" class="bg-blue-800 text-white w-64 flex-shrink-0 sidebar-transition lg:translate-x-0 sidebar-mobile z-50">
+        <div id="sidebar" class="bg-gradient-to-b from-blue-500 to-indigo-600 text-white w-64 flex-shrink-0 sidebar-transition lg:translate-x-0 sidebar-mobile z-50">
             <div class="p-4 h-full flex flex-col">
                 <!-- Header Sidebar dengan Tombol Close untuk Mobile -->
                 <div class="flex items-center justify-between mb-6">
@@ -45,11 +93,11 @@
                         </div>
                         <div>
                             <h1 class="font-bold text-lg">{{ $pengaturan->nama_website ?? 'SIPERPUS' }}</h1>
-                            <p class="text-blue-200 text-xs">Admin Panel</p>
+                            <p class="text-blue-100 text-xs">Admin Panel</p>
                         </div>
                     </div>
                     <!-- Tombol Close untuk Mobile -->
-                    <button id="closeSidebar" class="lg:hidden text-white hover:text-blue-200 p-2">
+                    <button id="closeSidebar" class="lg:hidden text-white hover:text-blue-100 p-2">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
@@ -57,17 +105,17 @@
                 <!-- Navigation Menu -->
                 <nav class="flex-1 space-y-2 overflow-y-auto">
                     <a href="{{ route('admin.dashboard') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-700' : '' }}">
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-tachometer-alt w-5"></i>
                         <span>Dashboard</span>
                     </a>
                     
-                    <div class="border-t border-blue-700 my-4"></div>
+                    <div class="border-t border-white border-opacity-20 my-4"></div>
                     
                     <!-- Data Master Dropdown -->
                     <div class="relative">
                         <button id="dataMasterBtn" 
-                                class="w-full flex items-center justify-between space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('jurusan.*', 'kelas.*', 'jenis-buku.*', 'sumber-buku.*', 'penerbit.*', 'penulis.*') ? 'bg-blue-700' : '' }}">
+                                class="w-full flex items-center justify-between space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jurusan.*', 'kelas.*', 'jenis-buku.*', 'sumber-buku.*', 'penerbit.*', 'penulis.*') ? 'bg-white bg-opacity-20' : '' }}">
                             <div class="flex items-center space-x-3">
                                 <i class="fas fa-database w-5"></i>
                                 <span>Data Master</span>
@@ -75,39 +123,45 @@
                             <i id="dataMasterIcon" class="fas fa-chevron-down w-4 transition-transform"></i>
                         </button>
                         
-                        <div id="dataMasterDropdown" class="hidden bg-blue-900 rounded-lg mt-1 ml-4">
+                        <div id="dataMasterDropdown" class="hidden bg-white bg-opacity-10 rounded-lg mt-1 ml-4">
                             <a href="{{ route('jurusan.index') }}" 
-                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('jurusan.*') ? 'bg-blue-700' : '' }}">
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jurusan.*') ? 'bg-white bg-opacity-20' : '' }}">
                                 <i class="fas fa-graduation-cap w-5"></i>
                                 <span>Data Jurusan</span>
                             </a>
                             
                             <a href="{{ route('kelas.index') }}" 
-                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('kelas.*') ? 'bg-blue-700' : '' }}">
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kelas.*') ? 'bg-white bg-opacity-20' : '' }}">
                                 <i class="fas fa-chalkboard w-5"></i>
                                 <span>Data Kelas</span>
                             </a>
                             
                             <a href="{{ route('jenis-buku.index') }}" 
-                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('jenis-buku.*') ? 'bg-blue-700' : '' }}">
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jenis-buku.*') ? 'bg-white bg-opacity-20' : '' }}">
                                 <i class="fas fa-list w-5"></i>
                                 <span>Jenis Buku</span>
                             </a>
                             
+                            <a href="{{ route('kategori-buku.index') }}" 
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kategori-buku.*') ? 'bg-white bg-opacity-20' : '' }}">
+                                <i class="fas fa-tags w-5"></i>
+                                <span>Kategori Buku</span>
+                            </a>
+                            
                             <a href="{{ route('sumber-buku.index') }}" 
-                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('sumber-buku.*') ? 'bg-blue-700' : '' }}">
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('sumber-buku.*') ? 'bg-white bg-opacity-20' : '' }}">
                                 <i class="fas fa-source w-5"></i>
                                 <span>Sumber Buku</span>
                             </a>
                             
                             <a href="{{ route('penerbit.index') }}" 
-                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('penerbit.*') ? 'bg-blue-700' : '' }}">
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('penerbit.*') ? 'bg-white bg-opacity-20' : '' }}">
                                 <i class="fas fa-building w-5"></i>
                                 <span>Penerbit</span>
                             </a>
                             
                             <a href="{{ route('penulis.index') }}" 
-                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('penulis.*') ? 'bg-blue-700' : '' }}">
+                               class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('penulis.*') ? 'bg-white bg-opacity-20' : '' }}">
                                 <i class="fas fa-user-edit w-5"></i>
                                 <span>Penulis</span>
                             </a>
@@ -115,41 +169,49 @@
                     </div>
                     
                     <a href="{{ route('anggota.index') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('anggota.*') ? 'bg-blue-700' : '' }}">
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('anggota.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-users w-5"></i>
                         <span>Data Anggota</span>
                     </a>
                     
                     <a href="{{ route('buku.index') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('buku.*') ? 'bg-blue-700' : '' }}">
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('buku.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-book w-5"></i>
                         <span>Data Buku</span>
                     </a>
                     
-                    <a href="{{ route('peminjaman.index') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-blue-700' : '' }}">
+                                        <a href="{{ route('peminjaman.index') }}"
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-exchange-alt w-5"></i>
                         <span>Peminjaman</span>
                     </a>
                     
-                    <div class="border-t border-blue-700 my-4"></div>
+                    <a href="{{ route('riwayat-peminjaman.index') }}"
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('riwayat-peminjaman.*') ? 'bg-white bg-opacity-20' : '' }}">
+                        <i class="fas fa-history w-5"></i>
+                        <span>Riwayat Peminjaman</span>
+                    </a>
+                    
+                    
+                    
+                    <div class="border-t border-white border-opacity-20 my-4"></div>
                     
                     <a href="{{ route('laporan.index') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-blue-700' : '' }}">
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-chart-bar w-5"></i>
                         <span>Laporan</span>
                     </a>
                     
                     <a href="{{ route('admin.pengaturan') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors {{ request()->routeIs('admin.pengaturan') ? 'bg-blue-700' : '' }}">
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.pengaturan') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-cog w-5"></i>
                         <span>Pengaturan Website</span>
                     </a>
                 </nav>
                 
                 <!-- Footer Sidebar -->
-                <div class="border-t border-blue-700 pt-4 mt-auto">
-                    <div class="text-center text-blue-200 text-xs">
+                <div class="border-t border-white border-opacity-20 pt-4 mt-auto">
+                    <div class="text-center text-blue-100 text-xs">
                         <p>&copy; {{ date('Y') }} {{ $pengaturan->nama_website ?? 'SIPERPUS' }}</p>
                         <p>All rights reserved</p>
                     </div>

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Anggota;
 use App\Models\Buku;
 use App\Models\Denda;
+use App\Models\Peminjaman;
+use App\Models\AbsensiPengunjung;
 
 class LaporanController extends Controller
 {
@@ -39,5 +41,23 @@ class LaporanController extends Controller
         $dendaBelumDibayar = $denda->where('status_pembayaran', 'belum_dibayar')->sum('jumlah_denda');
         
         return view('admin.laporan.kas', compact('denda', 'totalDenda', 'dendaDibayar', 'dendaBelumDibayar'));
+    }
+
+    public function peminjaman()
+    {
+        $peminjaman = Peminjaman::with(['anggota', 'buku'])->get();
+        return view('admin.laporan.peminjaman', compact('peminjaman'));
+    }
+
+    public function denda()
+    {
+        $denda = Denda::with(['anggota', 'peminjaman'])->get();
+        return view('admin.laporan.denda', compact('denda'));
+    }
+
+    public function absensi()
+    {
+        $absensi = AbsensiPengunjung::all();
+        return view('admin.laporan.absensi', compact('absensi'));
     }
 } 
