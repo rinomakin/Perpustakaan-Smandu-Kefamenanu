@@ -18,6 +18,7 @@ class AnggotaTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, 
         $sampleData = [
             [
                 'John Doe',
+                'Laki-laki',
                 '1234567890123456',
                 'Jl. Contoh No. 123, Kota Contoh',
                 '081234567890',
@@ -30,6 +31,7 @@ class AnggotaTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, 
             ],
             [
                 'Jane Smith',
+                'Perempuan',
                 '9876543210987654',
                 'Jl. Sample No. 456, Kota Sample',
                 '089876543210',
@@ -52,6 +54,7 @@ class AnggotaTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, 
                     '',
                     '',
                     '',
+                    '',
                     $k->id,
                     '',
                     '',
@@ -62,6 +65,7 @@ class AnggotaTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, 
         } else {
             $kelasData[] = [
                 'Belum ada data kelas. Silakan tambahkan kelas terlebih dahulu.',
+                '',
                 '',
                 '',
                 '',
@@ -81,6 +85,7 @@ class AnggotaTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, 
     {
         return [
             'nama_lengkap',
+            'jenis_kelamin',
             'nik',
             'alamat',
             'nomor_telepon',
@@ -122,6 +127,7 @@ class AnggotaTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, 
         foreach ($kelas as $k) {
             $kelasData[] = [
                 'ID: ' . $k->id . ' - ' . $k->nama_kelas . ' (' . $k->jurusan->nama_jurusan . ')',
+                '',
                 '',
                 '',
                 '',

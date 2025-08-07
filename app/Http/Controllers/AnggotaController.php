@@ -81,6 +81,7 @@ class AnggotaController extends Controller
     {
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'nik' => 'required|string|unique:anggota,nik',
             'alamat' => 'required|string',
             'nomor_telepon' => 'required|string|max:20',
@@ -140,6 +141,7 @@ class AnggotaController extends Controller
     {
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'nik' => 'required|string|unique:anggota,nik,' . $id,
             'alamat' => 'required|string',
             'nomor_telepon' => 'required|string|max:20',

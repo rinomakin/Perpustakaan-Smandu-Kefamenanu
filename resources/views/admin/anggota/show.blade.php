@@ -44,6 +44,13 @@
                     <div>
                         <div class="text-xl font-semibold">{{ $anggota->nama_lengkap }}</div>
                         <div class="text-sm text-gray-600">{{ ucfirst($anggota->jenis_anggota) }}</div>
+                        <div class="text-sm text-gray-500 mt-1">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                {{ $anggota->jenis_kelamin == 'Laki-laki' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' }}">
+                                <i class="fas {{ $anggota->jenis_kelamin == 'Laki-laki' ? 'fa-mars' : 'fa-venus' }} mr-1"></i>
+                                {{ $anggota->jenis_kelamin ?: '-' }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 

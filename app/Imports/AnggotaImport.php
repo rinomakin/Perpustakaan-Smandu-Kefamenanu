@@ -31,6 +31,7 @@ class AnggotaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
             
             // Convert data types and clean up
             $namaLengkap = trim((string)($row['nama_lengkap'] ?? ''));
+            $jenisKelamin = trim((string)($row['jenis_kelamin'] ?? ''));
             $nik = trim((string)($row['nik'] ?? ''));
             $alamat = trim((string)($row['alamat'] ?? ''));
             $nomorTelepon = trim((string)($row['nomor_telepon'] ?? ''));
@@ -92,6 +93,12 @@ class AnggotaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
                 return null;
             }
 
+            // Validate jenis kelamin
+            if (!empty($jenisKelamin) && !in_array($jenisKelamin, ['Laki-laki', 'Perempuan'])) {
+                $this->addUniqueError("Baris " . ($this->imported + 1) . ": Jenis kelamin harus 'Laki-laki' atau 'Perempuan'");
+                return null;
+            }
+
             // Validate kelas_id if provided
             if (!empty($kelasId) && !\App\Models\Kelas::find($kelasId)) {
                 $this->addUniqueError("Baris " . ($this->imported + 1) . ": ID Kelas tidak valid");
@@ -144,6 +151,7 @@ class AnggotaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
                 'nomor_anggota' => $generatedData['nomor_anggota'],
                 'barcode_anggota' => $generatedData['barcode_anggota'],
                 'nama_lengkap' => $namaLengkap,
+                'jenis_kelamin' => !empty($jenisKelamin) ? $jenisKelamin : null,
                 'nik' => $nik,
                 'alamat' => $alamat,
                 'nomor_telepon' => $nomorTelepon,
@@ -164,6 +172,7 @@ class AnggotaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
     {
         return [
             'nama_lengkap' => 'nullable',
+            'jenis_kelamin' => 'nullable',
             'nik' => 'nullable',
             'alamat' => 'nullable',
             'nomor_telepon' => 'nullable',

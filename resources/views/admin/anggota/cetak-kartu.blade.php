@@ -4,298 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kartu Perpustakaan - {{ $anggota->nama_lengkap }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @media print {
             body { margin: 0; }
             .no-print { display: none; }
         }
         
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        
-        .card-container {
-            width: 210mm;
-            height: 148mm;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            display: flex;
-            overflow: hidden;
-        }
-        
-        .card-left {
-            flex: 2;
-            padding: 20px;
-            position: relative;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        }
-        
-        .card-middle {
-            flex: 1;
-            padding: 20px;
-        }
-        
-        .card-right {
-            flex: 1.5;
-            padding: 20px;
-            background: #ffffff;
-        }
-        
-        .logo {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        
-        .logo-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-        }
-        
-        .school-name {
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        
-        .school-address {
-            font-size: 10px;
-            text-align: center;
-            color: #666;
-            line-height: 1.3;
-        }
-        
-        .member-name {
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            margin: 30px 0;
-            color: #333;
-        }
-        
-        .barcode-container {
-            text-align: center;
-            margin: 20px auto;
-            padding: 10px;
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            max-width: 200px;
-        }
-        
         .barcode-image {
             width: 100%;
             height: auto;
             max-width: 180px;
-            margin-bottom: 5px;
         }
         
         .barcode-text {
             font-family: 'Courier New', monospace;
-            font-size: 8px;
-            color: #333;
-            text-align: center;
-        }
-        
-        .member-type {
-            background: #000;
-            color: white;
-            padding: 8px 15px;
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .member-id {
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        
-        .validity {
-            font-size: 10px;
-            text-align: center;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .photo-placeholder {
-            width: 60px;
-            height: 60px;
-            background: #e9ecef;
-            border: 2px solid #dee2e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 10px auto;
-            color: #666;
-            font-size: 12px;
-        }
-        
-        .book-icon {
-            width: 40px;
-            height: 40px;
-            background: #e9ecef;
-            border: 2px solid #dee2e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 10px auto;
-            color: #666;
-            font-size: 12px;
-        }
-        
-        .rules-title {
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .rules-list {
-            font-size: 9px;
-            line-height: 1.4;
-            color: #333;
-        }
-        
-        .rules-list ol {
-            margin: 0;
-            padding-left: 15px;
-        }
-        
-        .rules-list li {
-            margin-bottom: 5px;
-        }
-        
-        .signature {
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .signature-line {
-            width: 100px;
-            height: 1px;
-            background: #333;
-            margin: 5px auto;
-        }
-        
-        .signature-name {
-            font-size: 10px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .signature-title {
-            font-size: 8px;
-            color: #666;
-        }
-        
-        .wave-pattern {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(135deg, 
-                rgba(40, 167, 69, 0.1) 0%, 
-                rgba(32, 201, 151, 0.2) 50%, 
-                rgba(40, 167, 69, 0.3) 100%);
-            clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 60%);
-        }
-        
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .print-button:hover {
-            background: #0056b3;
         }
     </style>
 </head>
-<body>
-    <button onclick="window.print()" class="print-button no-print">
-        <i class="fas fa-print"></i> Cetak Kartu
+<body class="bg-gray-100 p-5">
+    <button onclick="window.print()" class="fixed top-5 right-5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg no-print">
+        <i class="fas fa-print mr-2"></i>Cetak Kartu
     </button>
     
-    <div class="card-container">
-        <!-- Left Panel - Main Card -->
-        <div class="card-left">
-            <div class="wave-pattern"></div>
-            
-            <div class="logo">
-                <div class="logo-circle">
-                    SMK
+    <div class="w-[700px] h-[250px] mx-auto bg-white shadow-lg rounded-lg flex overflow-hidden border">
+        <!-- Left Panel - Member Information -->
+        <div class="w-[350px] h-[250px] p-4 bg-white border-r-2 border-gray-200">
+            <div class="flex">
+               <div class="w-1/2">
+                <div class="flex items-center justify-center mb-2">
+
+                    <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
                 </div>
-                <div class="school-name">Kartu Perpustakaan</div>
-                <div class="school-name">SMK Negeri 1 Kefamenanu</div>
-                <div class="school-address">
-                    Jl. Soekarno-Hatta, Kefamenanu, Timor Tengah Utara<br>
-                    Telp. (0388) 21001. NPSN 50100101
+                    <div class="text-center">
+                        <div class="text-[8px] font-bold text-gray-800 uppercase">KARTU PERPUSTAKAAN</div>
+                        <div class="text-[8px] font-bold text-gray-800 uppercase">SMA Negeri 2 kefamenanu</div>
+                        <div class="text-[8px] text-gray-600 mb-4">Jl. Contoh Alamat No. 123, Kota, Provinsi</div>
+                        <div class="text-[14px] font-bold text-gray-800 uppercase  ">
+                                     {{ $anggota->nama_lengkap }}
+                        </div>
+                        <div class="inline-block p-2 mb-4  rounded-lg max-w-[150px]">
+                    <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($anggota->barcode_anggota, 'C128') }}" 
+                         alt="Barcode" class="barcode-image mb-1">
+                    <div class="barcode-text text-[10px] text-gray-700">{{ $anggota->barcode_anggota }}</div>
+                </div>
                 </div>
             </div>
-            
-            <div class="member-name">{{ $anggota->nama_lengkap }}</div>
-            
-            <div class="barcode-container">
-                <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($anggota->barcode_anggota, 'C128') }}" 
-                     alt="Barcode" class="barcode-image">
-                <div class="barcode-text">{{ $anggota->barcode_anggota }}</div>
+            <div class="flex-grow text-right ">
+                <div class="text-[14px] font-bold bg-slate-500 text-center text-white mb-2 ">{{ strtoupper($anggota->jenis_anggota) }}</div>
+                <div class="text-[10px] text-gray-600 font-bold text-center mb-2">{{ $anggota->nomor_anggota }}</div>
+                <div class="text-[8px] text-gray-600 font-semibold text-center">Kartu Berlaku Hingga </div>
+                <div class="text-[8px] text-gray-600 font-bold text-center mb-2"> Selama Menjadi Siswa</div>
+                <div class="w-[90px] h-[110px] bg-gray-200 mb-2 border-gray-300 rounded flex items-center justify-center mx-auto">
+                    @if($anggota->foto)
+                        <img src="{{ asset('storage/anggota/' . $anggota->foto) }}" 
+                             alt="Foto" class="w-full h-full object-cover rounded">
+                    @else
+                        <i class="fas fa-user text-gray-500 text-lg"></i>
+                    @endif
+                </div>
+                
             </div>
+
         </div>
-        
-        <!-- Middle Panel - Member Details -->
-        <div class="card-middle">
-            <div class="member-type">{{ strtoupper($anggota->jenis_anggota) }}</div>
-            <div class="member-id">{{ $anggota->nomor_anggota }}</div>
-            <div class="validity">Berlaku Hingga Selama Menjadi {{ ucfirst($anggota->jenis_anggota) }}</div>
             
-            <div class="photo-placeholder">
-                @if($anggota->foto)
-                    <img src="{{ asset('storage/anggota/' . $anggota->foto) }}" 
-                         alt="Foto" style="width: 100%; height: 100%; object-fit: cover;">
-                @else
-                    <i class="fas fa-user"></i>
-                @endif
-            </div>
-            
-            <div class="book-icon">
-                <i class="fas fa-book"></i>
-            </div>
+
         </div>
         
         <!-- Right Panel - Library Rules -->
-        <div class="card-right">
-            <div class="rules-title">PERATURAN PERPUSTAKAAN</div>
+        <div class="w-[350px] h-[250px] p-4 bg-white">
+            <div class="text-center mb-4">
+                <div class="text-sm font-bold text-black uppercase border-b-2 border-black-200 pb-2">
+                    PERATURAN PERPUSTAKAAN
+                </div>
+            </div>
             
-            <div class="rules-list">
-                <ol>
+            <div class="text-xs text-gray-700 leading-tight mb-4">
+                <ol class="list-decimal text-[8px] font-semibold list-inside space-y-1">
                     <li>Kartu dibawa setiap berkunjung ke Perpustakaan.</li>
                     <li>Kartu tidak dapat dipinjamkan kepada orang lain.</li>
                     <li>Kartu berlaku selama menjadi anggota perpustakaan.</li>
@@ -305,21 +91,14 @@
                     <li>Kartu ini dapat dicabut apabila yang bersangkutan tidak memenuhi ketentuan diatas</li>
                 </ol>
             </div>
-            
-            <div class="signature">
-                <div class="signature-title">Kepala Perpustakaan</div>
-                <div class="signature-line"></div>
-                <div class="signature-name">Suhartono</div>
+            <div class="text-xs text-gray-600 text-right pr-5">
+                <div class=" text-[8px]">Kefamenanu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                <div class="font-bold text-[8px]">Kepala Perpustakaan</div>
+                <div class="mt-3 ">
+                    <span class="text-[8px]">Kepala Sekolah</span>
+                </div>          
             </div>
         </div>
     </div>
-    
-    <script>
-        // Auto print when page loads
-        window.onload = function() {
-            // Uncomment the line below to auto-print
-            // window.print();
-        }
-    </script>
 </body>
 </html> 

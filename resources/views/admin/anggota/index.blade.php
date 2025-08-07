@@ -57,9 +57,7 @@
 
 @section('content')
 <div class="container px-6 mx-auto grid">
-    <h2 class="my-6 text-2xl font-semibold text-gray-700">
-        Data Anggota
-    </h2>
+    
 
     <!-- Alert Sukses -->
     @if(session('success'))
@@ -206,6 +204,7 @@
                         <th class="px-4 py-3">No</th>
                         <!-- <th class="px-4 py-3">No. Anggota</th> -->
                         <th class="px-4 py-3">Nama Lengkap</th>
+                        <th class="px-4 py-3">Jenis Kelamin</th>
                         <th class="px-4 py-3">NIK</th>
                         <th class="px-4 py-3">Kelas/Jurusan</th>
                         <th class="px-4 py-3">Jenis Anggota</th>
@@ -246,6 +245,13 @@
                                     <div class="text-xs text-gray-500">{{ $item->email ?: '-' }}</div>
                                 </div>
                             </div>
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                {{ $item->jenis_kelamin == 'Laki-laki' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' }}">
+                                <i class="fas {{ $item->jenis_kelamin == 'Laki-laki' ? 'fa-mars' : 'fa-venus' }} mr-1"></i>
+                                {{ $item->jenis_kelamin ?: '-' }}
+                            </span>
                         </td>
                         <td class="px-4 py-3 text-sm">
                             {{ $item->nik }}
@@ -305,7 +311,7 @@
                     </tr>
                     @empty
                     <tr class="text-gray-700">
-                        <td colspan="9" class="px-4 py-3 text-sm text-center">
+                        <td colspan="10" class="px-4 py-3 text-sm text-center">
                             Tidak ada data anggota.
                         </td>
                     </tr>

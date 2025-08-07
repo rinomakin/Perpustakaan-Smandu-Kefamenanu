@@ -16,6 +16,7 @@ class Anggota extends Model
         'nomor_anggota',
         'barcode_anggota',
         'nama_lengkap',
+        'jenis_kelamin',
         'nik',
         'alamat',
         'nomor_telepon',
