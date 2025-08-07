@@ -31,13 +31,19 @@
             
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Nomor Peminjaman</label>
+                        <p class="text-gray-900 font-semibold">{{ $peminjaman->nomor_peminjaman }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Jumlah Buku</label>
+                        <p class="text-gray-900 font-semibold">{{ $peminjaman->jumlah_buku }} Buku</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Loan Information -->
                     <div class="space-y-4">
-                        <div>
-                            <h4 class="font-semibold text-gray-700 mb-2">Nomor Peminjaman</h4>
-                            <p class="text-lg font-bold text-blue-600">{{ $peminjaman->nomor_peminjaman }}</p>
-                        </div>
-
                         <div>
                             <h4 class="font-semibold text-gray-700 mb-2">Status</h4>
                             @if($peminjaman->status == 'dipinjam')
@@ -131,8 +137,9 @@
                                 </div>
                                 <div class="flex-1">
                                     <h5 class="font-semibold text-sm">{{ $detail->buku->judul_buku }}</h5>
-                                    <p class="text-xs text-gray-500">{{ $detail->buku->penulis->nama_penulis ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $detail->buku->penulis ?? 'N/A' }}</p>
                                     <p class="text-xs text-gray-500">ISBN: {{ $detail->buku->isbn ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-500">Jumlah: <span class="font-semibold text-blue-600">{{ $detail->jumlah ?? 1 }}</span> eksemplar</p>
                                     <p class="text-xs text-gray-500">Kondisi: {{ $detail->kondisi_kembali }}</p>
                                     @if($detail->catatan)
                                     <p class="text-xs text-gray-500 mt-1">{{ $detail->catatan }}</p>

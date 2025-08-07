@@ -77,8 +77,8 @@
         <svg id="barcode-{{ $buku->id }}"></svg>
         <div class="barcode-code">{{ $buku->barcode }}</div>
         <div class="book-info">
-            <div>Penulis: {{ $buku->penulis ? $buku->penulis->nama_penulis : '-' }}</div>
-            <div>Penerbit: {{ $buku->penerbit ? $buku->penerbit->nama_penerbit : '-' }}</div>
+            <div>Penulis: {{ $buku->penulis ?? '-' }}</div>
+            <div>Penerbit: {{ $buku->penerbit ?? '-' }}</div>
             <div>Kategori: {{ $buku->kategori ? $buku->kategori->nama_kategori : '-' }}</div>
             @if($buku->isbn)
                 <div>ISBN: {{ $buku->isbn }}</div>

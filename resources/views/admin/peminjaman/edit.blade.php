@@ -127,7 +127,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h5 class="font-semibold text-sm">{{ $detail->buku->judul_buku }}</h5>
-                                    <p class="text-xs text-gray-500">{{ $detail->buku->penulis->nama_penulis ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $detail->buku->penulis ?? 'N/A' }}</p>
                                     <p class="text-xs text-gray-500">ISBN: {{ $detail->buku->isbn ?? 'N/A' }}</p>
                                 </div>
                             </div>

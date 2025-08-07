@@ -30,12 +30,11 @@
     
     <div class="w-[700px] h-[250px] mx-auto bg-inherit bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg rounded-lg flex overflow-hidden border">
         <!-- Left Panel - Member Information -->
-        <div class="w-[350px] h-[250px] p-4  border-r-2 border-gray-200">
+        <div class="w-[350px] h-[250px] p-4 border-r-2 border-gray-200">
             <div class="flex">
                <div class="w-1/2">
                 <div class="flex items-center justify-center mb-2">
-
-                    <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-10 w-auto">
                 </div>
                     <div class="text-center">
                         <div class="text-[8px] font-bold text-white uppercase">KARTU PERPUSTAKAAN</div>
@@ -44,15 +43,15 @@
                         <div class="text-[10px] font-bold mb-7 text-white uppercase border-b-2 border-gray-400 pb-1">
                                      {{ $anggota->nama_lengkap }}
                         </div>
-                        <div class="inline-block p-2 mb-4  rounded-lg max-w-[150px]">
+                        <div class="inline-block p-2 mb-4 rounded-lg max-w-[150px]">
                     <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($anggota->barcode_anggota, 'C128') }}" 
                          alt="Barcode" class="barcode-image text-white mb-1">
                     <div class="barcode-text text-[10px] text-white">{{ $anggota->barcode_anggota }}</div>
                 </div>
                 </div>
             </div>
-            <div class="flex-grow text-right ">
-                <div class="text-[14px] font-bold bg-slate-500 text-center text-white mb-2 ">{{ strtoupper($anggota->jenis_anggota) }}</div>
+            <div class="flex-grow text-right">
+                <div class="text-[14px] font-bold bg-slate-500 text-center text-white mb-2">{{ strtoupper($anggota->jenis_anggota) }}</div>
                 <div class="text-[10px] text-white font-bold text-center mb-2">{{ $anggota->nomor_anggota }}</div>
                 <div class="text-[8px] text-white font-semibold text-center">Kartu Berlaku Hingga </div>
                 <div class="text-[8px] text-white font-bold text-center mb-2"> Selama Menjadi Siswa</div>
@@ -69,11 +68,10 @@
 
         </div>
             
-
         </div>
         
         <!-- Right Panel - Library Rules -->
-        <div class="w-[350px] h-[250px] p-4 ">
+        <div class="w-[350px] h-[250px] p-4">
             <div class="text-center mb-4">
                 <div class="text-sm font-bold text-black uppercase border-b-2 border-black-200 pb-2">
                     PERATURAN PERPUSTAKAAN
@@ -92,9 +90,9 @@
                 </ol>
             </div>
             <div class="text-xs text-white text-right pr-5">
-                <div class=" text-[8px]">Kefamenanu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                <div class="text-[8px]">Kefamenanu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
                 <div class="font-bold text-[8px]">Kepala Perpustakaan</div>
-                <div class="mt-3 ">
+                <div class="mt-3">
                     <span class="text-[8px]">Kepala Sekolah</span>
                 </div>          
             </div>

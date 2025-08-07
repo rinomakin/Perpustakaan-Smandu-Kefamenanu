@@ -22,7 +22,7 @@ class BukuExport implements FromCollection, WithHeadings, WithMapping, ShouldAut
 
     public function collection()
     {
-        $query = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis', 'sumber']);
+        $query = Buku::with(['kategori', 'jenis', 'sumber']);
 
         if ($this->request) {
             // Apply search filter
@@ -107,8 +107,8 @@ class BukuExport implements FromCollection, WithHeadings, WithMapping, ShouldAut
             $buku->judul_buku,
             $buku->isbn ?? '-',
             $buku->barcode ?? '-',
-            $buku->penulis ? $buku->penulis->nama_penulis : '-',
-            $buku->penerbit ? $buku->penerbit->nama_penerbit : '-',
+            $buku->penulis ?? '-',
+            $buku->penerbit ?? '-',
             $buku->kategori ? $buku->kategori->nama_kategori : '-',
             $buku->jenis ? $buku->jenis->nama_jenis : '-',
             $buku->sumber ? $buku->sumber->nama_sumber : '-',

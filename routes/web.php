@@ -14,13 +14,13 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\KategoriBukuController;
 use App\Http\Controllers\JenisBukuController;
 use App\Http\Controllers\SumberBukuController;
-use App\Http\Controllers\PenerbitController;
-use App\Http\Controllers\PenulisController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\DendaController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\CetakController;
 use App\Http\Controllers\RiwayatPeminjamanController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +51,12 @@ Route::middleware(['auth', 'role:petugas'])->prefix('frontend')->group(function 
     Route::get('/koleksi-buku', [FrontendController::class, 'koleksiBuku'])->name('frontend.koleksi');
 });
 
+// API Routes untuk AJAX (tanpa middleware admin)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
+    Route::get('/peminjaman/search-buku', [PeminjamanController::class, 'searchBuku'])->name('peminjaman.search-buku');
+});
+
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
@@ -63,6 +69,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/anggota/import', [AnggotaController::class, 'import'])->name('anggota.import');
     Route::post('/anggota/bulk-delete', [AnggotaController::class, 'bulkDelete'])->name('anggota.bulk-delete');
     Route::get('/anggota/cetak-kartu/{id}', [AnggotaController::class, 'cetakKartu'])->name('anggota.cetak-kartu');
+Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKartu'])->name('anggota.bulk-print-kartu');
     Route::post('/anggota/scan-barcode', [AnggotaController::class, 'scanBarcode'])->name('anggota.scan-barcode');
     Route::post('/anggota/generate-barcode', [AnggotaController::class, 'generateBarcode'])->name('anggota.generate-barcode');
     Route::post('/anggota/clean-duplicates', [AnggotaController::class, 'cleanDuplicateData'])->name('anggota.clean-duplicates');
@@ -77,6 +84,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/buku/generate-barcode', [BukuController::class, 'generateBarcode'])->name('buku.generate-barcode');
     Route::post('/buku/generate-multiple-barcode', [BukuController::class, 'generateMultipleBarcode'])->name('buku.generate-multiple-barcode');
     Route::get('/buku/{id}/print-barcode', [BukuController::class, 'printBarcode'])->name('buku.print-barcode');
+Route::get('/buku/{id}/cetak-barcode', [BukuController::class, 'cetakBarcode'])->name('buku.cetak-barcode');
     Route::post('/buku/print-multiple-barcode', [BukuController::class, 'printMultipleBarcode'])->name('buku.print-multiple-barcode');
     Route::get('/buku/export', [BukuController::class, 'export'])->name('buku.export');
     Route::get('/buku/download-template', [BukuController::class, 'downloadTemplate'])->name('buku.download-template');
@@ -103,22 +111,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // CRUD Sumber Buku
     Route::resource('sumber-buku', SumberBukuController::class);
     
-    // CRUD Penerbit
-    Route::resource('penerbit', PenerbitController::class);
-    
-    // CRUD Penulis
-    Route::resource('penulis', PenulisController::class);
-    
     // CRUD Rak Buku
     Route::resource('rak-buku', \App\Http\Controllers\Admin\RakBukuController::class);
     Route::get('/rak-buku/get-rak', [\App\Http\Controllers\Admin\RakBukuController::class, 'getRakBuku'])->name('rak-buku.get-rak');
+    
+    // CRUD Role
+    Route::resource('role', RoleController::class);
+    Route::post('/role/generate-kode', [RoleController::class, 'generateKode'])->name('role.generate-kode');
+    
+    // CRUD User
+    Route::resource('user', UserController::class);
+    Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     
     // CRUD Peminjaman
     Route::resource('peminjaman', PeminjamanController::class);
     Route::post('/peminjaman/scan-anggota', [PeminjamanController::class, 'scanAnggota'])->name('peminjaman.scan-anggota');
     Route::post('/peminjaman/scan-buku', [PeminjamanController::class, 'scanBuku'])->name('peminjaman.scan-buku');
     Route::post('/peminjaman/scan-multiple-buku', [PeminjamanController::class, 'scanMultipleBuku'])->name('peminjaman.scan-multiple-buku');
-    Route::post('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
     
     // CRUD Denda
     Route::resource('denda', DendaController::class);

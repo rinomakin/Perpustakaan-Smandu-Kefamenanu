@@ -331,6 +331,14 @@ class AnggotaController extends Controller
         return view('admin.anggota.cetak-kartu', compact('anggota'));
     }
 
+    public function bulkPrintKartu(Request $request)
+    {
+        $ids = explode(',', $request->ids);
+        $anggotaList = Anggota::whereIn('id', $ids)->get();
+        
+        return view('admin.anggota.bulk-print-kartu', compact('anggotaList'));
+    }
+
     public function scanBarcode(Request $request)
     {
         $barcode = $request->barcode;

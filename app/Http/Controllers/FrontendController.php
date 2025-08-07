@@ -11,7 +11,7 @@ class FrontendController extends Controller
     public function index()
     {
         $pengaturan = PengaturanWebsite::first();
-        $bukuTerbaru = Buku::with(['penulis', 'penerbit', 'kategori'])
+        $bukuTerbaru = Buku::with(['kategori'])
             ->where('status', 'tersedia')
             ->orderBy('created_at', 'desc')
             ->limit(6)
@@ -26,7 +26,7 @@ class FrontendController extends Controller
         $query = $request->get('q');
         $kategori = $request->get('kategori');
         
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis'])
+        $buku = Buku::with(['kategori', 'jenis'])
             ->where('status', 'tersedia');
             
         if ($query) {
@@ -34,12 +34,8 @@ class FrontendController extends Controller
                 $q->where('judul_buku', 'like', "%{$query}%")
                   ->orWhere('isbn', 'like', "%{$query}%")
                   ->orWhere('barcode', 'like', "%{$query}%")
-                  ->orWhereHas('penulis', function($q) use ($query) {
-                      $q->where('nama_penulis', 'like', "%{$query}%");
-                  })
-                  ->orWhereHas('penerbit', function($q) use ($query) {
-                      $q->where('nama_penerbit', 'like', "%{$query}%");
-                  });
+                  ->orWhere('penulis', 'like', "%{$query}%")
+                  ->orWhere('penerbit', 'like', "%{$query}%");
             });
         }
         
@@ -63,7 +59,7 @@ class FrontendController extends Controller
     public function koleksiBuku()
     {
         $pengaturan = PengaturanWebsite::first();
-        $bukuTerbaru = Buku::with(['penulis', 'penerbit', 'kategori'])
+        $bukuTerbaru = Buku::with(['kategori'])
             ->where('status', 'tersedia')
             ->orderBy('created_at', 'desc')
             ->limit(8)

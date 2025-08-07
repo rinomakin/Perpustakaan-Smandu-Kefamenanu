@@ -22,6 +22,7 @@ class Peminjaman extends Model
         'jam_kembali',
         'status',
         'catatan',
+        'jumlah_buku',
     ];
 
     protected $casts = [

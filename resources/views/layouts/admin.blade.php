@@ -122,7 +122,7 @@
 
                     <!-- Data Master Dropdown -->
                     <div class="relative group flex items-center">
-                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jurusan.*', 'kelas.*', 'jenis-buku.*', 'sumber-buku.*', 'penerbit.*', 'penulis.*', 'kategori-buku.*', 'rak-buku.*') ? 'bg-white bg-opacity-20' : '' }}">
+                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jurusan.*', 'kelas.*', 'jenis-buku.*', 'sumber-buku.*', 'penerbit.*', 'penulis.*', 'kategori-buku.*', 'rak-buku.*', 'role.*') ? 'bg-white bg-opacity-20' : '' }}">
                             <i class="fas fa-database"></i>
                             <p class="whitespace-nowrap">Master</p>
                             <i class="fas fa-chevron-down text-xs"></i>
@@ -131,7 +131,12 @@
                         <!-- Dropdown Menu -->
                         <div class="absolute text-xs top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
-                                <a href="{{ route('jurusan.index') }}" 
+                            <a href="{{ route('role.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('role.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-user-shield w-5"></i>
+                                    <span>Role</span>
+                                </a>   
+                            <a href="{{ route('jurusan.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('jurusan.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-graduation-cap w-5"></i>
                                     <span>Data Jurusan</span>
@@ -167,17 +172,7 @@
                                     <span>Sumber Buku</span>
                                 </a>
                                 
-                                <a href="{{ route('penerbit.index') }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('penerbit.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-building w-5"></i>
-                                    <span>Penerbit</span>
-                                </a>
                                 
-                                <a href="{{ route('penulis.index') }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('penulis.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-user-edit w-5"></i>
-                                    <span>Penulis</span>
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -189,6 +184,13 @@
                         <span class="whitespace-nowrap text-xs">Data Anggota</span>
                     </a>
 
+                    <!-- User Management -->
+                    <a href="{{ route('user.index') }}" 
+                       class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('user.*') ? 'bg-white bg-opacity-20' : '' }}">
+                        <i class="fas fa-user-cog text-xs"></i>
+                        <span class="whitespace-nowrap text-xs">User</span>
+                    </a>
+
                     <!-- Data Buku -->
                     <a href="{{ route('buku.index') }}" 
                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('buku.*') ? 'bg-white bg-opacity-20' : '' }}">
@@ -196,26 +198,63 @@
                         <span class="whitespace-nowrap text-xs">Data Buku</span>
                     </a>
 
-                    <!-- Peminjaman -->
-                    <a href="{{ route('peminjaman.index') }}"
-                       class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-white bg-opacity-20' : '' }}">
-                        <i class="fas fa-exchange-alt text-xs"></i>
-                        <span class="whitespace-nowrap text-xs">Peminjaman</span>
-                    </a>
+                    <!-- Transaksi Dropdown -->
+                    <div class="relative group flex items-center">
+                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('peminjaman.*', 'pengembalian.*') ? 'bg-white bg-opacity-20' : '' }}">
+                            <i class="fas fa-exchange-alt"></i>
+                            <p class="whitespace-nowrap">Transaksi</p>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="absolute text-xs top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="py-2">
+                                <a href="{{ route('peminjaman.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-book-reader w-5"></i>
+                                    <span>Peminjaman</span>
+                                </a>
+                                
+                                <a href="" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                    <i class="fas fa-undo w-5"></i>
+                                    <span>Pengembalian</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-                    <!-- Riwayat Peminjaman -->
-                    <a href="{{ route('riwayat-peminjaman.index') }}"
-                       class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('riwayat-peminjaman.*') ? 'bg-white bg-opacity-20' : '' }}">
-                        <i class="fas fa-history text-xs"></i>
-                        <span class="whitespace-nowrap text-xs">Riwayat</span>
-                    </a>
-
-                    <!-- Laporan -->
-                    <a href="{{ route('laporan.index') }}" 
-                       class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
-                        <i class="fas fa-chart-bar text-xs"></i>
-                        <span class="whitespace-nowrap text-xs">Laporan</span>
-                    </a>
+                    <!-- Laporan Dropdown -->
+                    <div class="relative group flex items-center">
+                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
+                            <i class="fas fa-chart-bar"></i>
+                            <p class="whitespace-nowrap">Laporan</p>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="absolute text-xs top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="py-2">
+                                <a href="" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-users w-5"></i>
+                                    <span>Laporan Anggota</span>
+                                </a>
+                                
+                                <a href="" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                    <i class="fas fa-book w-5"></i>
+                                    <span>Laporan Buku</span>
+                                </a>
+                                
+                                <a href="" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                    <i class="fas fa-money-bill w-5"></i>
+                                    <span>Laporan Kas</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Pengaturan -->
                     <a href="{{ route('admin.pengaturan') }}" 
@@ -276,6 +315,11 @@
                 <!-- Mobile Data Master -->
                 <div class="border-t border-gray-100 pt-2">
                     <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">Data Master</div>
+                    <a href="{{ route('role.index') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('role.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-user-shield w-5"></i>
+                        <span>Role</span>
+                    </a>
                     <a href="{{ route('jurusan.index') }}" 
                        class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('jurusan.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-graduation-cap w-5"></i>
@@ -306,16 +350,7 @@
                         <i class="fas fa-source w-5"></i>
                         <span>Sumber Buku</span>
                     </a>
-                    <a href="{{ route('penerbit.index') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('penerbit.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                        <i class="fas fa-building w-5"></i>
-                        <span>Penerbit</span>
-                    </a>
-                    <a href="{{ route('penulis.index') }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('penulis.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                        <i class="fas fa-user-edit w-5"></i>
-                        <span>Penulis</span>
-                    </a>
+                    
                 </div>
                 
                 <a href="{{ route('anggota.index') }}" 
@@ -324,29 +359,52 @@
                     <span>Data Anggota</span>
                 </a>
                 
+                <a href="{{ route('user.index') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('user.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <i class="fas fa-user-cog w-5"></i>
+                    <span>User</span>
+                </a>
+                
                 <a href="{{ route('buku.index') }}" 
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                     <i class="fas fa-book w-5"></i>
                     <span>Data Buku</span>
                 </a>
                 
-                <a href="{{ route('peminjaman.index') }}"
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                    <i class="fas fa-exchange-alt w-5"></i>
-                    <span>Peminjaman</span>
-                </a>
+                <!-- Mobile Transaksi -->
+                <div class="border-t border-gray-100 pt-2">
+                    <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">Transaksi</div>
+                    <a href="{{ route('peminjaman.index') }}"
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-book-reader w-5"></i>
+                        <span>Peminjaman</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-undo w-5"></i>
+                        <span>Pengembalian</span>
+                    </a>
+                </div>
                 
-                <a href="{{ route('riwayat-peminjaman.index') }}"
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('riwayat-peminjaman.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                    <i class="fas fa-history w-5"></i>
-                    <span>Riwayat Peminjaman</span>
-                </a>
-                
-                <a href="{{ route('laporan.index') }}" 
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                    <i class="fas fa-chart-bar w-5"></i>
-                    <span>Laporan</span>
-                </a>
+                <!-- Mobile Laporan -->
+                <div class="border-t border-gray-100 pt-2">
+                    <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">Laporan</div>
+                    <a href="" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.anggota') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-users w-5"></i>
+                        <span>Laporan Anggota</span>
+                    </a>
+                    <a href="" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.buku') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-book w-5"></i>
+                        <span>Laporan Buku</span>
+                    </a>
+                    <a href="" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.kas') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-money-bill w-5"></i>
+                        <span>Laporan Kas</span>
+                    </a>
+                </div>
                 
                 <a href="{{ route('admin.pengaturan') }}" 
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.pengaturan') ? 'bg-blue-50 text-blue-700' : '' }}">
@@ -375,7 +433,7 @@
         <!-- Page Header -->
         <div class="bg-white shadow-sm border-b border-gray-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <h1 class="text-2xl font-bold text-gray-900">@yield('title', 'Dashboard')</h1>
+                <h1 class="text-xl text-center font-bold text-gray-900">@yield('title', 'Dashboard')</h1>
             </div>
         </div>
 

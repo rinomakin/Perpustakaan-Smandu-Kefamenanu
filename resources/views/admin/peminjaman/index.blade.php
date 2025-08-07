@@ -35,6 +35,7 @@
                                 <th scope="col" class="px-6 py-3">No</th>
                                 <th scope="col" class="px-6 py-3">Nomor Peminjaman</th>
                                 <th scope="col" class="px-6 py-3">Anggota</th>
+                                <th scope="col" class="px-6 py-3">Jumlah Buku</th>
                                 <th scope="col" class="px-6 py-3">Tanggal Pinjam</th>
                                 <th scope="col" class="px-6 py-3">Batas Kembali</th>
                                 <th scope="col" class="px-6 py-3">Status</th>
@@ -53,6 +54,11 @@
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-gray-900">{{ $loan->anggota->nama_lengkap }}</div>
                                     <div class="text-gray-500 text-xs">{{ $loan->anggota->nisn }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                        {{ $loan->jumlah_buku }} Buku
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div>
@@ -103,7 +109,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
                                     Tidak ada data peminjaman
                                 </td>
                             </tr>

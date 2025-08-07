@@ -46,10 +46,10 @@
                         {{ $b->judul ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        {{ $b->penulis->nama_penulis ?? 'N/A' }}
+                        {{ $b->penulis ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        {{ $b->penerbit->nama_penerbit ?? 'N/A' }}
+                        {{ $b->penerbit ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
                         {{ $b->kategori->nama_kategori ?? 'N/A' }}

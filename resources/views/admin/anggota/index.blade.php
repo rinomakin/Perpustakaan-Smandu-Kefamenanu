@@ -182,6 +182,11 @@
                     class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-red-600 border border-transparent rounded-lg active:bg-red-600 hover:bg-red-700 focus:outline-none focus:shadow-outline-red hidden">
                 <i class="fas fa-trash mr-1"></i> Hapus Terpilih
             </button>
+            
+            <button onclick="bulkPrintKartu()" id="bulkPrintBtn" 
+                    class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-indigo-600 border border-transparent rounded-lg active:bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:shadow-outline-indigo hidden">
+                <i class="fas fa-id-card mr-1"></i> Cetak Kartu Terpilih
+            </button>
         </div>
         
         <div class="text-sm text-gray-600">
@@ -405,12 +410,21 @@ function toggleSelectAll() {
 function updateBulkDeleteButton() {
     const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkPrintBtn = document.getElementById('bulkPrintBtn');
     
     if (bulkDeleteBtn) {
         if (checkedBoxes.length > 0) {
             bulkDeleteBtn.classList.remove('hidden');
         } else {
             bulkDeleteBtn.classList.add('hidden');
+        }
+    }
+    
+    if (bulkPrintBtn) {
+        if (checkedBoxes.length > 0) {
+            bulkPrintBtn.classList.remove('hidden');
+        } else {
+            bulkPrintBtn.classList.add('hidden');
         }
     }
 }
@@ -454,6 +468,20 @@ function bulkDelete() {
         console.error('Error:', error);
         alert('Terjadi kesalahan saat menghapus data');
     });
+}
+
+function bulkPrintKartu() {
+    const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+    const ids = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+        alert('Pilih data yang akan dicetak kartunya');
+        return;
+    }
+    
+    // Redirect ke halaman cetak kartu dengan ID yang dipilih
+    const url = '{{ route("anggota.bulk-print-kartu") }}?ids=' + ids.join(',');
+    window.open(url, '_blank');
 }
 
 // Close modal when clicking outside

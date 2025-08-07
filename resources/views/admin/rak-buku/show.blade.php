@@ -205,10 +205,10 @@
                             <div class="text-sm text-gray-500">{{ $buku->isbn ?? 'ISBN tidak tersedia' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $buku->penulis->nama_penulis ?? 'Tidak diketahui' }}</div>
+                            <div class="text-sm text-gray-900">{{ $buku->penulis ?? 'Tidak diketahui' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $buku->penerbit->nama_penerbit ?? 'Tidak diketahui' }}</div>
+                            <div class="text-sm text-gray-900">{{ $buku->penerbit ?? 'Tidak diketahui' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">{{ $buku->stok }}</div>

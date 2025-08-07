@@ -144,37 +144,27 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="penulis_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="penulis" class="block text-sm font-medium text-gray-700 mb-2">
                                 Penulis <span class="text-red-500">*</span>
                             </label>
-                            <select id="penulis_id" name="penulis_id" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('penulis_id') border-red-500 @enderror">
-                                <option value="">Pilih Penulis</option>
-                                @foreach($penulis as $pen)
-                                    <option value="{{ $pen->id }}" {{ old('penulis_id') == $pen->id ? 'selected' : '' }}>
-                                        {{ $pen->nama_penulis }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('penulis_id')
+                            <input type="text" id="penulis" name="penulis" required
+                                   value="{{ old('penulis') }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('penulis') border-red-500 @enderror"
+                                   placeholder="Masukkan nama penulis">
+                            @error('penulis')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label for="penerbit_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="penerbit" class="block text-sm font-medium text-gray-700 mb-2">
                                 Penerbit <span class="text-red-500">*</span>
                             </label>
-                            <select id="penerbit_id" name="penerbit_id" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('penerbit_id') border-red-500 @enderror">
-                                <option value="">Pilih Penerbit</option>
-                                @foreach($penerbit as $pub)
-                                    <option value="{{ $pub->id }}" {{ old('penerbit_id') == $pub->id ? 'selected' : '' }}>
-                                        {{ $pub->nama_penerbit }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('penerbit_id')
+                            <input type="text" id="penerbit" name="penerbit" required
+                                   value="{{ old('penerbit') }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('penerbit') border-red-500 @enderror"
+                                   placeholder="Masukkan nama penerbit">
+                            @error('penerbit')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

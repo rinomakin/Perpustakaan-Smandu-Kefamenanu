@@ -15,8 +15,8 @@ class Buku extends Model
         'judul_buku',
         'isbn',
         'barcode',
-        'penulis_id',
-        'penerbit_id',
+        'penulis',
+        'penerbit',
         'kategori_id',
         'jenis_id',
         'sumber_id',
@@ -39,15 +39,7 @@ class Buku extends Model
         'stok_tersedia' => 'integer',
     ];
 
-    public function penulis()
-    {
-        return $this->belongsTo(Penulis::class);
-    }
 
-    public function penerbit()
-    {
-        return $this->belongsTo(Penerbit::class);
-    }
 
     public function kategori()
     {

@@ -161,11 +161,11 @@
                         <div class="space-y-1 text-sm text-gray-600">
                             <div class="flex items-center">
                                 <i class="fas fa-user mr-2 text-gray-400"></i>
-                                <span>{{ $buku->penulis->nama_penulis }}</span>
+                                <span>{{ $buku->penulis }}</span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-building mr-2 text-gray-400"></i>
-                                <span>{{ $buku->penerbit->nama_penerbit }}</span>
+                                <span>{{ $buku->penerbit }}</span>
                             </div>
                             @if($buku->tahun_terbit)
                             <div class="flex items-center">

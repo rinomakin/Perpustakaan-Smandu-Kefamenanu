@@ -22,7 +22,7 @@ class CetakController extends Controller
 
     public function labelBuku($id)
     {
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori'])->findOrFail($id);
+        $buku = Buku::with(['kategori'])->findOrFail($id);
         return view('admin.cetak.label-buku', compact('buku'));
     }
 } 

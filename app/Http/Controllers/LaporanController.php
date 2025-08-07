@@ -29,7 +29,7 @@ class LaporanController extends Controller
 
     public function buku()
     {
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori'])->get();
+        $buku = Buku::with(['kategori'])->get();
         return view('admin.laporan.buku', compact('buku'));
     }
 

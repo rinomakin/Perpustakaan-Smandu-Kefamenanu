@@ -7,8 +7,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use App\Models\Penulis;
-use App\Models\Penerbit;
 use App\Models\KategoriBuku;
 use App\Models\JenisBuku;
 use App\Models\SumberBuku;
@@ -17,8 +15,6 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
 {
     public function array(): array
     {
-        $penulis = Penulis::all();
-        $penerbit = Penerbit::all();
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
         $sumber = SumberBuku::all();
@@ -28,8 +24,8 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
                 'Pemrograman Web dengan Laravel',
                 '978-602-123456-7-8',
                 'BK000001', // Barcode (opsional, akan auto-generate jika kosong)
-                $penulis->first() ? $penulis->first()->id : '1', // ID Penulis
-                $penerbit->first() ? $penerbit->first()->id : '1', // ID Penerbit
+                'John Doe', // Nama Penulis (string)
+                'Penerbit Teknologi', // Nama Penerbit (string)
                 $kategoris->first() ? $kategoris->first()->id : '1', // ID Kategori
                 $jenis->first() ? $jenis->first()->id : '1', // ID Jenis
                 $sumber->first() ? $sumber->first()->id : '1', // ID Sumber
@@ -45,8 +41,8 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
                 'Matematika Dasar untuk SMA',
                 '978-602-987654-3-2',
                 'BK000002',
-                $penulis->count() > 1 ? $penulis->get(1)->id : ($penulis->first() ? $penulis->first()->id : '1'),
-                $penerbit->count() > 1 ? $penerbit->get(1)->id : ($penerbit->first() ? $penerbit->first()->id : '1'),
+                'Jane Smith',
+                'Penerbit Pendidikan',
                 $kategoris->count() > 1 ? $kategoris->get(1)->id : ($kategoris->first() ? $kategoris->first()->id : '1'),
                 $jenis->count() > 1 ? $jenis->get(1)->id : ($jenis->first() ? $jenis->first()->id : '1'),
                 $sumber->count() > 1 ? $sumber->get(1)->id : ($sumber->first() ? $sumber->first()->id : '1'),
@@ -63,52 +59,6 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
         // Tambahkan data referensi untuk setiap master data
         $referenceData = [];
         
-        // Data Penulis
-        $penulisData = [];
-        if ($penulis->count() > 0) {
-            foreach ($penulis as $p) {
-                $penulisData[] = [
-                    'ID: ' . $p->id . ' - ' . $p->nama_penulis,
-                    '',
-                    '',
-                    $p->id,
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    ''
-                ];
-            }
-        }
-
-        // Data Penerbit
-        $penerbitData = [];
-        if ($penerbit->count() > 0) {
-            foreach ($penerbit as $pub) {
-                $penerbitData[] = [
-                    '',
-                    '',
-                    '',
-                    '',
-                    'ID: ' . $pub->id . ' - ' . $pub->nama_penerbit,
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    ''
-                ];
-            }
-        }
-
         // Data Kategori
         $kategoriData = [];
         if ($kategoris->count() > 0) {
@@ -120,6 +70,7 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
                     '',
                     '',
                     'ID: ' . $kat->id . ' - ' . $kat->nama_kategori,
+                    '',
                     '',
                     '',
                     '',
@@ -150,6 +101,7 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
                     '',
                     '',
                     '',
+                    '',
                     ''
                 ];
             }
@@ -173,6 +125,7 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
                     '',
                     '',
                     '',
+                    '',
                     ''
                 ];
             }
@@ -180,10 +133,6 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
 
         return array_merge(
             $sampleData, 
-            [[''], [''], ['DAFTAR PENULIS UNTUK REFERENSI:'], ['']], 
-            $penulisData,
-            [[''], [''], ['DAFTAR PENERBIT UNTUK REFERENSI:'], ['']], 
-            $penerbitData,
             [[''], [''], ['DAFTAR KATEGORI UNTUK REFERENSI:'], ['']], 
             $kategoriData,
             [[''], [''], ['DAFTAR JENIS UNTUK REFERENSI:'], ['']], 
@@ -199,8 +148,8 @@ class BukuTemplateExport implements FromArray, WithHeadings, ShouldAutoSize, Wit
             'judul_buku',
             'isbn',
             'barcode',
-            'penulis_id',
-            'penerbit_id',
+            'penulis',
+            'penerbit',
             'kategori_id',
             'jenis_id',
             'sumber_id',

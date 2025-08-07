@@ -126,8 +126,8 @@
             <svg id="barcode-{{ $item->id }}"></svg>
             <div class="barcode-code">{{ $item->barcode ?? 'Belum ada barcode' }}</div>
             <div class="book-info">
-                <div>Penulis: {{ $item->penulis ? $item->penulis->nama_penulis : '-' }}</div>
-                <div>Penerbit: {{ $item->penerbit ? $item->penerbit->nama_penerbit : '-' }}</div>
+                <div>Penulis: {{ $item->penulis ?? '-' }}</div>
+                <div>Penerbit: {{ $item->penerbit ?? '-' }}</div>
                 <div>Kategori: {{ $item->kategori ? $item->kategori->nama_kategori : '-' }}</div>
                 @if($item->isbn)
                     <div>ISBN: {{ $item->isbn }}</div>

@@ -45,7 +45,7 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h5 class="font-semibold">{{ $detail->buku->judul_buku }}</h5>
-                                    <p class="text-sm text-gray-500">{{ $detail->buku->penulis->nama_penulis ?? 'N/A' }}</p>
+                                    <p class="text-sm text-gray-500">{{ $detail->buku->penulis ?? 'N/A' }}</p>
                                 </div>
                                 <button onclick="removeBook({{ $detail->id }})" 
                                         class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">

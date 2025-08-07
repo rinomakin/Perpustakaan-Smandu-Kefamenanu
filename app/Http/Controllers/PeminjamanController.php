@@ -35,6 +35,8 @@ class PeminjamanController extends Controller
             'anggota_id' => 'required|exists:anggota,id',
             'buku_ids' => 'required|array',
             'buku_ids.*' => 'exists:buku,id',
+            'jumlah_buku' => 'required|array',
+            'jumlah_buku.*' => 'required|integer|min:1',
             'tanggal_peminjaman' => 'required|date',
             'jam_peminjaman' => 'nullable|date_format:H:i',
             'tanggal_harus_kembali' => 'required|date|after:tanggal_peminjaman',
@@ -53,6 +55,9 @@ class PeminjamanController extends Controller
 
         DB::beginTransaction();
         try {
+            // Calculate total books
+            $totalBooks = array_sum($request->jumlah_buku);
+            
             // Create peminjaman
             $peminjaman = Peminjaman::create([
                 'nomor_peminjaman' => Peminjaman::generateNomorPeminjaman(),
@@ -64,25 +69,29 @@ class PeminjamanController extends Controller
                 'jam_kembali' => $request->jam_kembali,
                 'status' => 'dipinjam',
                 'catatan' => $request->catatan,
+                'jumlah_buku' => $totalBooks,
             ]);
 
-            // Create detail peminjaman for each book
-            foreach ($request->buku_ids as $buku_id) {
+            // Create detail peminjaman for each book with quantity
+            foreach ($request->buku_ids as $index => $buku_id) {
                 $buku = Buku::find($buku_id);
+                $jumlah = $request->jumlah_buku[$buku_id] ?? 1;
                 
                 // Check if book is available
-                if ($buku->stok_tersedia <= 0) {
-                    throw new \Exception("Buku {$buku->judul_buku} tidak tersedia");
+                if ($buku->stok_tersedia < $jumlah) {
+                    throw new \Exception("Buku {$buku->judul_buku} hanya tersedia {$buku->stok_tersedia} eksemplar, diminta {$jumlah} eksemplar");
                 }
 
+                // Create detail peminjaman
                 $peminjaman->detailPeminjaman()->create([
                     'buku_id' => $buku_id,
+                    'jumlah' => $jumlah,
                     'kondisi_kembali' => 'baik',
                     'catatan' => null,
                 ]);
 
                 // Update book stock
-                $buku->decrement('stok_tersedia');
+                $buku->decrement('stok_tersedia', $jumlah);
             }
 
             DB::commit();
@@ -140,9 +149,9 @@ class PeminjamanController extends Controller
         
         DB::beginTransaction();
         try {
-            // Return all books to stock
+            // Return all books to stock with correct quantity
             foreach ($peminjaman->detailPeminjaman as $detail) {
-                $detail->buku->increment('stok_tersedia');
+                $detail->buku->increment('stok_tersedia', $detail->jumlah ?? 1);
             }
             
             $peminjaman->delete();
@@ -171,6 +180,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'peminjaman_id' => 'required|exists:peminjaman,id',
             'buku_id' => 'required|exists:buku,id',
+            'jumlah' => 'required|integer|min:1',
         ]);
 
         $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
@@ -186,10 +196,10 @@ class PeminjamanController extends Controller
         }
 
         // Check if book is available
-        if ($buku->stok_tersedia <= 0) {
+        if ($buku->stok_tersedia < $request->jumlah) {
             return response()->json([
                 'success' => false,
-                'message' => 'Buku tidak tersedia'
+                'message' => "Buku hanya tersedia {$buku->stok_tersedia} eksemplar, diminta {$request->jumlah} eksemplar"
             ]);
         }
 
@@ -197,11 +207,17 @@ class PeminjamanController extends Controller
         try {
             $detail = $peminjaman->detailPeminjaman()->create([
                 'buku_id' => $request->buku_id,
+                'jumlah' => $request->jumlah,
                 'kondisi_kembali' => 'baik',
                 'catatan' => null,
             ]);
 
-            $buku->decrement('stok_tersedia');
+            $buku->decrement('stok_tersedia', $request->jumlah);
+
+            // Update jumlah_buku di peminjaman
+            $peminjaman->update([
+                'jumlah_buku' => $peminjaman->detailPeminjaman()->sum('jumlah')
+            ]);
 
             DB::commit();
 
@@ -229,11 +245,18 @@ class PeminjamanController extends Controller
 
         $detail = DetailPeminjaman::findOrFail($request->detail_id);
         $buku = $detail->buku;
+        $jumlah = $detail->jumlah ?? 1;
 
         DB::beginTransaction();
         try {
-            $buku->increment('stok_tersedia');
+            $buku->increment('stok_tersedia', $jumlah);
             $detail->delete();
+
+            // Update jumlah_buku di peminjaman
+            $peminjaman = $detail->peminjaman;
+            $peminjaman->update([
+                'jumlah_buku' => $peminjaman->detailPeminjaman()->sum('jumlah')
+            ]);
 
             DB::commit();
 
@@ -257,6 +280,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'peminjaman_id' => 'required|exists:peminjaman,id',
             'barcode' => 'required|string',
+            'jumlah' => 'required|integer|min:1',
         ]);
 
         $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
@@ -279,10 +303,10 @@ class PeminjamanController extends Controller
         }
 
         // Check if book is available
-        if ($buku->stok_tersedia <= 0) {
+        if ($buku->stok_tersedia < $request->jumlah) {
             return response()->json([
                 'success' => false,
-                'message' => 'Buku tidak tersedia'
+                'message' => "Buku hanya tersedia {$buku->stok_tersedia} eksemplar, diminta {$request->jumlah} eksemplar"
             ]);
         }
 
@@ -290,11 +314,17 @@ class PeminjamanController extends Controller
         try {
             $detail = $peminjaman->detailPeminjaman()->create([
                 'buku_id' => $buku->id,
+                'jumlah' => $request->jumlah,
                 'kondisi_kembali' => 'baik',
                 'catatan' => null,
             ]);
 
-            $buku->decrement('stok_tersedia');
+            $buku->decrement('stok_tersedia', $request->jumlah);
+
+            // Update jumlah_buku di peminjaman
+            $peminjaman->update([
+                'jumlah_buku' => $peminjaman->detailPeminjaman()->sum('jumlah')
+            ]);
 
             DB::commit();
 
@@ -370,7 +400,7 @@ class PeminjamanController extends Controller
 
         $buku = Buku::where('barcode_buku', $request->barcode)
                     ->where('stok_tersedia', '>', 0)
-                    ->with('penulis', 'penerbit', 'kategoriBuku', 'jenisBuku')
+                    ->with('kategoriBuku', 'jenisBuku')
                     ->first();
 
         if (!$buku) {
@@ -400,8 +430,8 @@ class PeminjamanController extends Controller
                 'barcode_buku' => $buku->barcode_buku,
                 'isbn' => $buku->isbn,
                 'stok_tersedia' => $buku->stok_tersedia,
-                'penulis' => $buku->penulis ? $buku->penulis->nama_penulis : 'N/A',
-                'penerbit' => $buku->penerbit ? $buku->penerbit->nama_penerbit : 'N/A',
+                'penulis' => $buku->penulis ?? 'N/A',
+                'penerbit' => $buku->penerbit ?? 'N/A',
                 'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
             ]
         ]);
@@ -423,7 +453,7 @@ class PeminjamanController extends Controller
         foreach ($request->barcodes as $barcode) {
             $buku = Buku::where('barcode_buku', $barcode)
                         ->where('stok_tersedia', '>', 0)
-                        ->with('penulis', 'penerbit', 'kategoriBuku', 'jenisBuku')
+                        ->with('kategoriBuku', 'jenisBuku')
                         ->first();
 
             if ($buku) {
@@ -433,8 +463,8 @@ class PeminjamanController extends Controller
                     'barcode_buku' => $buku->barcode_buku,
                     'isbn' => $buku->isbn,
                     'stok_tersedia' => $buku->stok_tersedia,
-                    'penulis' => $buku->penulis ? $buku->penulis->nama_penulis : 'N/A',
-                    'penerbit' => $buku->penerbit ? $buku->penerbit->nama_penerbit : 'N/A',
+                    'penulis' => $buku->penulis ?? 'N/A',
+                    'penerbit' => $buku->penerbit ?? 'N/A',
                     'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
                 ];
             } else {
@@ -464,6 +494,7 @@ class PeminjamanController extends Controller
                           ->where(function($q) use ($query) {
                               $q->where('nama_lengkap', 'LIKE', "%{$query}%")
                                 ->orWhere('nomor_anggota', 'LIKE', "%{$query}%")
+                                ->orWhere('nisn', 'LIKE', "%{$query}%")
                                 ->orWhere('barcode_anggota', 'LIKE', "%{$query}%");
                           })
                           ->with('kelas')
@@ -474,6 +505,7 @@ class PeminjamanController extends Controller
                                   'id' => $anggota->id,
                                   'nama_lengkap' => $anggota->nama_lengkap,
                                   'nomor_anggota' => $anggota->nomor_anggota,
+                                  'nisn' => $anggota->nisn,
                                   'barcode_anggota' => $anggota->barcode_anggota,
                                   'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
                                   'jenis_anggota' => $anggota->jenis_anggota
@@ -483,6 +515,46 @@ class PeminjamanController extends Controller
         return response()->json([
             'success' => true,
             'data' => $anggota
+        ]);
+    }
+
+    /**
+     * API untuk search buku
+     */
+    public function searchBuku(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2'
+        ]);
+
+        $query = $request->query;
+        
+        $buku = Buku::where('stok_tersedia', '>', 0)
+                    ->where(function($q) use ($query) {
+                        $q->where('judul_buku', 'LIKE', "%{$query}%")
+                          ->orWhere('penulis', 'LIKE', "%{$query}%")
+                          ->orWhere('isbn', 'LIKE', "%{$query}%")
+                          ->orWhere('barcode_buku', 'LIKE', "%{$query}%");
+                    })
+                    ->with('kategoriBuku', 'jenisBuku')
+                    ->take(10)
+                    ->get()
+                    ->map(function($buku) {
+                        return [
+                            'id' => $buku->id,
+                            'judul_buku' => $buku->judul_buku,
+                            'penulis' => $buku->penulis ?? 'N/A',
+                            'penerbit' => $buku->penerbit ?? 'N/A',
+                            'isbn' => $buku->isbn ?? 'N/A',
+                            'barcode_buku' => $buku->barcode_buku ?? 'N/A',
+                            'stok_tersedia' => $buku->stok_tersedia,
+                            'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
+                        ];
+                    });
+
+        return response()->json([
+            'success' => true,
+            'data' => $buku
         ]);
     }
 } 

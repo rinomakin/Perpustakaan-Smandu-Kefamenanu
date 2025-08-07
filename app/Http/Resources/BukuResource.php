@@ -24,18 +24,8 @@ class BukuResource extends JsonResource
             'status_text' => $this->status ? 'Tersedia' : 'Dipinjam',
             'created_at' => $this->created_at?->format('d-m-Y H:i:s'),
             'updated_at' => $this->updated_at?->format('d-m-Y H:i:s'),
-            'penulis' => $this->whenLoaded('penulis', function () {
-                return [
-                    'id' => $this->penulis->id,
-                    'nama' => $this->penulis->nama,
-                ];
-            }),
-            'penerbit' => $this->whenLoaded('penerbit', function () {
-                return [
-                    'id' => $this->penerbit->id,
-                    'nama' => $this->penerbit->nama,
-                ];
-            }),
+            'penulis' => $this->penulis,
+            'penerbit' => $this->penerbit,
             'jenis_buku' => $this->whenLoaded('jenisBuku', function () {
                 return [
                     'id' => $this->jenisBuku->id,

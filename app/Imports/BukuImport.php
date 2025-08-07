@@ -33,8 +33,8 @@ class BukuImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
             $judulBuku = trim((string)($row['judul_buku'] ?? ''));
             $isbn = trim((string)($row['isbn'] ?? ''));
             $barcode = trim((string)($row['barcode'] ?? ''));
-            $penulisId = !empty($row['penulis_id']) ? (int)$row['penulis_id'] : null;
-            $penerbitId = !empty($row['penerbit_id']) ? (int)$row['penerbit_id'] : null;
+            $penulis = trim((string)($row['penulis'] ?? ''));
+            $penerbit = trim((string)($row['penerbit'] ?? ''));
             $kategoriId = !empty($row['kategori_id']) ? (int)$row['kategori_id'] : null;
             $jenisId = !empty($row['jenis_id']) ? (int)$row['jenis_id'] : null;
             $sumberId = !empty($row['sumber_id']) ? (int)$row['sumber_id'] : null;
@@ -52,15 +52,15 @@ class BukuImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
                 return null;
             }
 
-            // Validate penulis_id
-            if (empty($penulisId) || !\App\Models\Penulis::find($penulisId)) {
-                $this->addUniqueError("Baris " . ($this->imported + 1) . ": ID Penulis tidak valid");
+            // Validate penulis
+            if (empty($penulis)) {
+                $this->addUniqueError("Baris " . ($this->imported + 1) . ": Nama penulis wajib diisi");
                 return null;
             }
 
-            // Validate penerbit_id
-            if (empty($penerbitId) || !\App\Models\Penerbit::find($penerbitId)) {
-                $this->addUniqueError("Baris " . ($this->imported + 1) . ": ID Penerbit tidak valid");
+            // Validate penerbit
+            if (empty($penerbit)) {
+                $this->addUniqueError("Baris " . ($this->imported + 1) . ": Nama penerbit wajib diisi");
                 return null;
             }
 
@@ -137,8 +137,8 @@ class BukuImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
                 'judul_buku' => $judulBuku,
                 'isbn' => !empty($isbn) ? $isbn : null,
                 'barcode' => $barcode,
-                'penulis_id' => $penulisId,
-                'penerbit_id' => $penerbitId,
+                'penulis' => $penulis,
+                'penerbit' => $penerbit,
                 'kategori_id' => $kategoriId,
                 'jenis_id' => $jenisId,
                 'sumber_id' => !empty($sumberId) ? $sumberId : null,
@@ -163,8 +163,8 @@ class BukuImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
             'judul_buku' => 'nullable',
             'isbn' => 'nullable',
             'barcode' => 'nullable',
-            'penulis_id' => 'nullable',
-            'penerbit_id' => 'nullable',
+            'penulis' => 'nullable',
+            'penerbit' => 'nullable',
             'kategori_id' => 'nullable',
             'jenis_id' => 'nullable',
             'sumber_id' => 'nullable',
@@ -182,8 +182,8 @@ class BukuImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
     {
         return [
             'judul_buku.required' => 'Judul buku wajib diisi',
-            'penulis_id.exists' => 'ID Penulis tidak valid',
-            'penerbit_id.exists' => 'ID Penerbit tidak valid',
+            'penulis.required' => 'Nama penulis wajib diisi',
+            'penerbit.required' => 'Nama penerbit wajib diisi',
             'kategori_id.exists' => 'ID Kategori tidak valid',
             'jenis_id.exists' => 'ID Jenis tidak valid',
             'sumber_id.exists' => 'ID Sumber tidak valid',

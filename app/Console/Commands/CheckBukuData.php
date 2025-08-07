@@ -4,8 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use App\Models\Penulis;
-use App\Models\Penerbit;
 use App\Models\KategoriBuku;
 use App\Models\JenisBuku;
 use App\Models\SumberBuku;
@@ -37,50 +35,8 @@ class CheckBukuData extends Command
 
         $errors = [];
 
-        // Cek tabel penulis
-        $this->info('1. Cek Tabel Penulis:');
-        try {
-            $penulisCount = Penulis::count();
-            $this->line("   - Jumlah penulis: {$penulisCount}");
-            if ($penulisCount > 0) {
-                $penulis = Penulis::take(3)->get();
-                foreach ($penulis as $p) {
-                    $this->line("   - ID: {$p->id}, Nama: {$p->nama_penulis}");
-                }
-            } else {
-                $this->warn("   - ⚠️  Tidak ada data penulis!");
-                $errors[] = "Tidak ada data penulis";
-            }
-        } catch (\Exception $e) {
-            $this->error("   - ❌ Error: " . $e->getMessage());
-            $errors[] = "Error pada tabel penulis: " . $e->getMessage();
-        }
-
-        $this->newLine();
-
-        // Cek tabel penerbit
-        $this->info('2. Cek Tabel Penerbit:');
-        try {
-            $penerbitCount = Penerbit::count();
-            $this->line("   - Jumlah penerbit: {$penerbitCount}");
-            if ($penerbitCount > 0) {
-                $penerbit = Penerbit::take(3)->get();
-                foreach ($penerbit as $p) {
-                    $this->line("   - ID: {$p->id}, Nama: {$p->nama_penerbit}");
-                }
-            } else {
-                $this->warn("   - ⚠️  Tidak ada data penerbit!");
-                $errors[] = "Tidak ada data penerbit";
-            }
-        } catch (\Exception $e) {
-            $this->error("   - ❌ Error: " . $e->getMessage());
-            $errors[] = "Error pada tabel penerbit: " . $e->getMessage();
-        }
-
-        $this->newLine();
-
         // Cek tabel kategori buku
-        $this->info('3. Cek Tabel Kategori Buku:');
+        $this->info('1. Cek Tabel Kategori Buku:');
         try {
             $kategoriCount = KategoriBuku::count();
             $this->line("   - Jumlah kategori: {$kategoriCount}");
@@ -101,7 +57,7 @@ class CheckBukuData extends Command
         $this->newLine();
 
         // Cek tabel jenis buku
-        $this->info('4. Cek Tabel Jenis Buku:');
+        $this->info('2. Cek Tabel Jenis Buku:');
         try {
             $jenisCount = JenisBuku::count();
             $this->line("   - Jumlah jenis: {$jenisCount}");
@@ -122,7 +78,7 @@ class CheckBukuData extends Command
         $this->newLine();
 
         // Cek tabel sumber buku
-        $this->info('5. Cek Tabel Sumber Buku:');
+        $this->info('3. Cek Tabel Sumber Buku:');
         try {
             $sumberCount = SumberBuku::count();
             $this->line("   - Jumlah sumber: {$sumberCount}");
@@ -143,7 +99,7 @@ class CheckBukuData extends Command
         $this->newLine();
 
         // Cek tabel buku
-        $this->info('6. Cek Tabel Buku:');
+        $this->info('4. Cek Tabel Buku:');
         try {
             $bukuCount = Buku::count();
             $this->line("   - Jumlah buku: {$bukuCount}");
@@ -171,8 +127,6 @@ class CheckBukuData extends Command
             }
             $this->newLine();
             $this->info('💡 Solusi: Jalankan seeder untuk mengisi data master:');
-            $this->line('   php artisan db:seed --class=PenulisSeeder');
-            $this->line('   php artisan db:seed --class=PenerbitSeeder');
             $this->line('   php artisan db:seed --class=KategoriBukuSeeder');
             $this->line('   php artisan db:seed --class=JenisBukuSeeder');
             $this->line('   php artisan db:seed --class=SumberBukuSeeder');

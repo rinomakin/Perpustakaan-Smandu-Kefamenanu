@@ -85,12 +85,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Penulis</label>
-                            <p class="text-gray-900">{{ $buku->penulis->nama_penulis ?? 'Tidak diketahui' }}</p>
+                            <p class="text-gray-900">{{ $buku->penulis ?? 'Tidak diketahui' }}</p>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Penerbit</label>
-                            <p class="text-gray-900">{{ $buku->penerbit->nama_penerbit ?? 'Tidak diketahui' }}</p>
+                            <p class="text-gray-900">{{ $buku->penerbit ?? 'Tidak diketahui' }}</p>
                         </div>
                     </div>
                 </div>

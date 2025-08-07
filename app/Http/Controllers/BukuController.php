@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Buku;
-use App\Models\Penulis;
-use App\Models\Penerbit;
 use App\Models\KategoriBuku;
 use App\Models\JenisBuku;
 use App\Models\SumberBuku;
@@ -25,7 +23,7 @@ class BukuController extends Controller
 
     public function index(Request $request)
     {
-        $query = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis', 'sumber', 'rak']);
+        $query = Buku::with(['kategori', 'jenis', 'sumber']);
 
         // Filter berdasarkan pencarian
         if ($request->filled('search')) {
@@ -35,12 +33,8 @@ class BukuController extends Controller
                   ->orWhere('isbn', 'LIKE', "%{$search}%")
                   ->orWhere('barcode', 'LIKE', "%{$search}%")
                   ->orWhere('lokasi_rak', 'LIKE', "%{$search}%")
-                  ->orWhereHas('penulis', function($q) use ($search) {
-                      $q->where('nama_penulis', 'LIKE', "%{$search}%");
-                  })
-                  ->orWhereHas('penerbit', function($q) use ($search) {
-                      $q->where('nama_penerbit', 'LIKE', "%{$search}%");
-                  })
+                  ->orWhere('penulis', 'LIKE', "%{$search}%")
+                  ->orWhere('penerbit', 'LIKE', "%{$search}%")
                   ->orWhereHas('kategori', function($q) use ($search) {
                       $q->where('nama_kategori', 'LIKE', "%{$search}%");
                   });
@@ -81,22 +75,19 @@ class BukuController extends Controller
         // Data untuk filter
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
-        $penulis = Penulis::all();
-        $penerbit = Penerbit::all();
+
         
-        return view('admin.buku.index', compact('buku', 'kategoris', 'jenis', 'penulis', 'penerbit'));
+        return view('admin.buku.index', compact('buku', 'kategoris', 'jenis'));
     }
 
     public function create()
     {
-        $penulis = Penulis::all();
-        $penerbit = Penerbit::all();
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
         $sumber = SumberBuku::all();
         $rakBuku = RakBuku::aktif()->get();
         
-        return view('admin.buku.create', compact('penulis', 'penerbit', 'kategoris', 'jenis', 'sumber', 'rakBuku'));
+        return view('admin.buku.create', compact('kategoris', 'jenis', 'sumber', 'rakBuku'));
     }
 
     public function store(Request $request)
@@ -104,8 +95,8 @@ class BukuController extends Controller
         try {
             $request->validate([
                 'judul_buku' => 'required|string|max:255',
-                'penulis_id' => 'required|exists:penulis,id',
-                'penerbit_id' => 'required|exists:penerbit,id',
+                'penulis' => 'required|string|max:255',
+                'penerbit' => 'required|string|max:255',
                 'kategori_id' => 'required|exists:kategori_buku,id',
                 'jenis_id' => 'required|exists:jenis_buku,id',
                 'sumber_id' => 'required|exists:sumber_buku,id',
@@ -237,7 +228,7 @@ class BukuController extends Controller
     public function scanBarcode(Request $request)
     {
         $barcode = $request->barcode;
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis', 'sumber'])
+        $buku = Buku::with(['kategori', 'jenis', 'sumber'])
                     ->where('barcode', $barcode)
                     ->first();
 
@@ -259,9 +250,19 @@ class BukuController extends Controller
      */
     public function printBarcode($id)
     {
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori'])->findOrFail($id);
+        $buku = Buku::with(['kategori'])->findOrFail($id);
         
         return view('admin.buku.print-barcode', compact('buku'));
+    }
+
+    /**
+     * Cetak barcode untuk buku tunggal (versi cetak)
+     */
+    public function cetakBarcode($id)
+    {
+        $buku = Buku::with(['kategori'])->findOrFail($id);
+        
+        return view('admin.buku.cetak-barcode', compact('buku'));
     }
 
     /**
@@ -274,7 +275,7 @@ class BukuController extends Controller
             'buku_ids.*' => 'exists:buku,id'
         ]);
 
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori'])
+        $buku = Buku::with(['kategori', 'jenis', 'sumber'])
                     ->whereIn('id', $request->buku_ids)
                     ->get();
 
@@ -367,21 +368,19 @@ class BukuController extends Controller
 
     public function show($id)
     {
-        $buku = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis', 'sumber'])->findOrFail($id);
+        $buku = Buku::with(['kategori', 'jenis', 'sumber'])->findOrFail($id);
         return view('admin.buku.show', compact('buku'));
     }
 
     public function edit($id)
     {
         $buku = Buku::findOrFail($id);
-        $penulis = Penulis::all();
-        $penerbit = Penerbit::all();
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
         $sumber = SumberBuku::all();
         $rakBuku = RakBuku::aktif()->get();
         
-        return view('admin.buku.edit', compact('buku', 'penulis', 'penerbit', 'kategoris', 'jenis', 'sumber', 'rakBuku'));
+        return view('admin.buku.edit', compact('buku', 'kategoris', 'jenis', 'sumber', 'rakBuku'));
     }
 
     public function update(Request $request, $id)
@@ -390,8 +389,8 @@ class BukuController extends Controller
         
         $request->validate([
             'judul_buku' => 'required|string|max:255',
-            'penulis_id' => 'required|exists:penulis,id',
-            'penerbit_id' => 'required|exists:penerbit,id',
+            'penulis' => 'required|string|max:255',
+            'penerbit' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategori_buku,id',
             'jenis_id' => 'required|exists:jenis_buku,id',
             'sumber_id' => 'required|exists:sumber_buku,id',

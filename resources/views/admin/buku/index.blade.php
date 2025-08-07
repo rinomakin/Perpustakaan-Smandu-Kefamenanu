@@ -136,7 +136,7 @@
     <!-- Books Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200" style="min-width: 1200px;">
+            <table class="min-w-full divide-y divide-gray-200" style="min-width: 900px;">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -150,12 +150,6 @@
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Judul
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Penulis
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Penerbit
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Rak
@@ -203,16 +197,6 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900 max-w-xs truncate" title="{{ $bukuItem->penulis->nama_penulis ?? 'Penulis tidak diketahui' }}">
-                                {{ $bukuItem->penulis->nama_penulis ?? 'Penulis tidak diketahui' }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900 max-w-xs truncate" title="{{ $bukuItem->penerbit->nama_penerbit ?? 'Penerbit tidak diketahui' }}">
-                                {{ $bukuItem->penerbit->nama_penerbit ?? 'Penerbit tidak diketahui' }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
                             @if($bukuItem->rak)
                                 <div class="text-sm text-gray-900">
                                     <div class="font-medium">{{ $bukuItem->rak->nama_rak }}</div>
@@ -246,15 +230,19 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex items-center space-x-2">
                                 <a href="{{ route('buku.show', $bukuItem->id) }}" 
-                                   class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
+                                   class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 <a href="{{ route('buku.edit', $bukuItem->id) }}" 
-                                   class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200">
+                                   class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <a href="{{ route('buku.cetak-barcode', $bukuItem->id) }}" 
+                                   class="text-green-600 hover:text-green-900 transition-colors duration-200" title="Cetak Barcode" target="_blank">
+                                    <i class="fas fa-print"></i>
+                                </a>
                                 <button onclick="deleteBuku({{ $bukuItem->id }})" 
-                                        class="text-red-600 hover:text-red-900 transition-colors duration-200">
+                                        class="text-red-600 hover:text-red-900 transition-colors duration-200" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -262,7 +250,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="11" class="px-6 py-12 text-center">
+                        <td colspan="9" class="px-6 py-12 text-center">
                             <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                 <i class="fas fa-book text-3xl text-gray-400"></i>
                             </div>
@@ -598,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <ul class="text-sm text-blue-700 mt-1 list-disc list-inside space-y-1">
                                     <li>Download template terlebih dahulu</li>
                                     <li>Isi data sesuai format template</li>
-                                    <li>Pastikan ID master data (penulis, penerbit, dll) valid</li>
+                                    <li>Pastikan ID master data (kategori, jenis, dll) valid</li>
                                     <li>Barcode kosong akan di-generate otomatis</li>
                                 </ul>
                             </div>
