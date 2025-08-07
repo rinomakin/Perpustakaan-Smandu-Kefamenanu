@@ -9,6 +9,7 @@ use App\Models\Penerbit;
 use App\Models\KategoriBuku;
 use App\Models\JenisBuku;
 use App\Models\SumberBuku;
+use App\Models\RakBuku;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BukuExport;
@@ -24,7 +25,7 @@ class BukuController extends Controller
 
     public function index(Request $request)
     {
-        $query = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis', 'sumber']);
+        $query = Buku::with(['penulis', 'penerbit', 'kategori', 'jenis', 'sumber', 'rak']);
 
         // Filter berdasarkan pencarian
         if ($request->filled('search')) {
@@ -93,8 +94,9 @@ class BukuController extends Controller
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
         $sumber = SumberBuku::all();
+        $rakBuku = RakBuku::aktif()->get();
         
-        return view('admin.buku.create', compact('penulis', 'penerbit', 'kategoris', 'jenis', 'sumber'));
+        return view('admin.buku.create', compact('penulis', 'penerbit', 'kategoris', 'jenis', 'sumber', 'rakBuku'));
     }
 
     public function store(Request $request)
@@ -113,6 +115,7 @@ class BukuController extends Controller
                 'bahasa' => 'nullable|string|max:50',
                 'jumlah_stok' => 'required|integer|min:1',
                 'lokasi_rak' => 'nullable|string|max:255',
+                'rak_id' => 'nullable|exists:rak_buku,id',
                 'gambar_sampul' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'deskripsi' => 'nullable|string',
                 'status' => 'required|in:tersedia,tidak_tersedia',
@@ -376,8 +379,9 @@ class BukuController extends Controller
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
         $sumber = SumberBuku::all();
+        $rakBuku = RakBuku::aktif()->get();
         
-        return view('admin.buku.edit', compact('buku', 'penulis', 'penerbit', 'kategoris', 'jenis', 'sumber'));
+        return view('admin.buku.edit', compact('buku', 'penulis', 'penerbit', 'kategoris', 'jenis', 'sumber', 'rakBuku'));
     }
 
     public function update(Request $request, $id)
@@ -397,6 +401,7 @@ class BukuController extends Controller
             'bahasa' => 'nullable|string|max:50',
             'jumlah_stok' => 'required|integer|min:1',
             'lokasi_rak' => 'nullable|string|max:255',
+            'rak_id' => 'nullable|exists:rak_buku,id',
             'gambar_sampul' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'deskripsi' => 'nullable|string',
             'status' => 'required|in:tersedia,tidak_tersedia',

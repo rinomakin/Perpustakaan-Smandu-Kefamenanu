@@ -90,16 +90,16 @@
     <div class="mb-6 bg-white rounded-lg shadow-md p-4">
         <form method="GET" action="{{ route('anggota.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <div>
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Cari</label>
+                <label for="search" class="block text-xs font-medium text-gray-700 mb-1">Cari</label>
                 <input type="text" name="search" id="search" value="{{ request('search') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       class="w-full text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                        placeholder="Nama, NIK, No. Anggota...">
             </div>
             
             <div>
-                <label for="kelas_id" class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                <label for="kelas_id" class="block text-xs font-medium text-gray-700 mb-1">Kelas</label>
                 <select name="kelas_id" id="kelas_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Kelas</option>
                     @foreach($kelas as $k)
                         <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>
@@ -110,9 +110,9 @@
             </div>
             
             <div>
-                <label for="jurusan_id" class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
+                <label for="jurusan_id" class="block text-xs font-medium text-gray-700 mb-1">Jurusan</label>
                 <select name="jurusan_id" id="jurusan_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Jurusan</option>
                     @foreach($jurusan as $j)
                         <option value="{{ $j->id }}" {{ request('jurusan_id') == $j->id ? 'selected' : '' }}>
@@ -123,9 +123,9 @@
             </div>
             
             <div>
-                <label for="jenis_anggota" class="block text-sm font-medium text-gray-700 mb-1">Jenis Anggota</label>
+                <label for="jenis_anggota" class="block text-xs font-medium text-gray-700 mb-1">Jenis Anggota</label>
                 <select name="jenis_anggota" id="jenis_anggota"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Jenis</option>
                     <option value="siswa" {{ request('jenis_anggota') == 'siswa' ? 'selected' : '' }}>Siswa</option>
                     <option value="guru" {{ request('jenis_anggota') == 'guru' ? 'selected' : '' }}>Guru</option>
@@ -134,9 +134,9 @@
             </div>
             
             <div>
-                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label for="status" class="block text-xs font-medium text-gray-700 mb-1">Status</label>
                 <select name="status" id="status"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Status</option>
                     <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -146,11 +146,11 @@
             
             <div class="flex items-end space-x-2">
                 <button type="submit flex items-center space-x-2" 
-                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        class="bg-blue-500 hover:bg-blue-600 text-xs text-white px-4 py-2 rounded-lg text-xs transition-colors">
                     <i class="fas fa-search mr-1"></i>Cari
                 </button>
                 <a href="{{ route('anggota.index') }}" 
-                   class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                   class="bg-gray-500  hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-xs transition-colors">
                     <i class="fas fa-refresh mr-1"></i>Reset
                 </a>
             </div>

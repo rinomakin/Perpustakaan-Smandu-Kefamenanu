@@ -109,6 +109,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // CRUD Penulis
     Route::resource('penulis', PenulisController::class);
     
+    // CRUD Rak Buku
+    Route::resource('rak-buku', \App\Http\Controllers\Admin\RakBukuController::class);
+    Route::get('/rak-buku/get-rak', [\App\Http\Controllers\Admin\RakBukuController::class, 'getRakBuku'])->name('rak-buku.get-rak');
+    
     // CRUD Peminjaman
     Route::resource('peminjaman', PeminjamanController::class);
     Route::post('/peminjaman/scan-anggota', [PeminjamanController::class, 'scanAnggota'])->name('peminjaman.scan-anggota');

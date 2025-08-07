@@ -20,6 +20,7 @@ class Buku extends Model
         'kategori_id',
         'jenis_id',
         'sumber_id',
+        'rak_id',
         'tahun_terbit',
         'jumlah_halaman',
         'bahasa',
@@ -66,6 +67,11 @@ class Buku extends Model
     public function detailPeminjaman()
     {
         return $this->hasMany(DetailPeminjaman::class);
+    }
+
+    public function rak()
+    {
+        return $this->belongsTo(RakBuku::class, 'rak_id');
     }
 
     // Method untuk generate barcode otomatis

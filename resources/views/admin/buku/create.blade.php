@@ -115,11 +115,20 @@
                         </div>
 
                         <div>
-                            <label for="lokasi_rak" class="block text-sm font-medium text-gray-700 mb-2">Lokasi Rak</label>
-                            <input type="text" id="lokasi_rak" name="lokasi_rak" value="{{ old('lokasi_rak') }}"
-                                   class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('lokasi_rak') border-red-500 @enderror"
-                                   placeholder="Contoh: Rak A-1">
-                            @error('lokasi_rak')
+                            <label for="rak_id" class="block text-sm font-medium text-gray-700 mb-2">Rak Buku</label>
+                            <select id="rak_id" name="rak_id"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('rak_id') border-red-500 @enderror">
+                                <option value="">Pilih Rak Buku</option>
+                                @foreach($rakBuku as $rak)
+                                    <option value="{{ $rak->id }}" {{ old('rak_id') == $rak->id ? 'selected' : '' }}>
+                                        {{ $rak->nama_rak }}  - {{ $rak->lokasi ?? 'Lokasi tidak ditentukan' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Pilih rak buku untuk mengelompokkan buku berdasarkan lokasi penyimpanan
+                            </p>
+                            @error('rak_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
