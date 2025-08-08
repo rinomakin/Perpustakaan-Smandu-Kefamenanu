@@ -13,9 +13,6 @@
 </style>
 <div class="space-y-6">
 
-
-
-
     <!-- Filter Section -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
         <form method="GET" action="{{ route('buku.index') }}" class=" flex gap-4">
@@ -81,7 +78,7 @@
         </form>
     </div>
 
-        <!-- Header Section with Actions -->
+    <!-- Header Section with Actions -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -241,7 +238,7 @@
                                    class="text-green-600 hover:text-green-900 transition-colors duration-200" title="Cetak Barcode" target="_blank">
                                     <i class="fas fa-print"></i>
                                 </a>
-                                <button onclick="deleteBuku({{ $bukuItem->id }})" 
+                                <button onclick="confirmDeleteBuku({{ $bukuItem->id }})" 
                                         class="text-red-600 hover:text-red-900 transition-colors duration-200" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -379,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.generateBarcodeSelected = function() {
         const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
         if (selectedIds.length === 0) {
-            alert('Pilih buku yang akan di-generate barcode');
+            showWarningAlert('Pilih buku yang akan di-generate barcode');
             return;
         }
 
@@ -396,16 +393,16 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             hideLoading();
             if (data.success) {
-                alert('Barcode berhasil di-generate untuk ' + data.count + ' buku');
+                showSuccessAlert('Barcode berhasil di-generate untuk ' + data.count + ' buku');
                 location.reload();
             } else {
-                alert('Gagal generate barcode: ' + data.message);
+                showErrorAlert('Gagal generate barcode: ' + data.message);
             }
         })
         .catch(error => {
             hideLoading();
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat generate barcode');
+            showErrorAlert('Terjadi kesalahan saat generate barcode');
         });
     };
 
@@ -413,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.printBarcodeSelected = function() {
         const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
         if (selectedIds.length === 0) {
-            alert('Pilih buku yang akan dicetak barcode');
+            showWarningAlert('Pilih buku yang akan dicetak barcode');
             return;
         }
 
@@ -445,68 +442,40 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteSelected = function() {
         const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
         if (selectedIds.length === 0) {
-            alert('Pilih buku yang akan dihapus');
+            showWarningAlert('Pilih buku yang akan dihapus');
             return;
         }
 
-        if (!confirm(`Yakin ingin menghapus ${selectedIds.length} buku yang dipilih?`)) {
-            return;
-        }
-
-        showLoading();
-        fetch('{{ route("buku.destroy-multiple") }}', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ buku_ids: selectedIds })
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert('Berhasil menghapus ' + data.count + ' buku');
-                location.reload();
-            } else {
-                alert('Gagal menghapus buku: ' + data.message);
+        showConfirmDialog(
+            `Yakin ingin menghapus ${selectedIds.length} buku yang dipilih?`,
+            'Konfirmasi Hapus Buku',
+            function() {
+                showLoading();
+                fetch('{{ route("buku.destroy-multiple") }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ buku_ids: selectedIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showSuccessAlert('Berhasil menghapus ' + data.count + ' buku');
+                        location.reload();
+                    } else {
+                        showErrorAlert('Gagal menghapus buku: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menghapus buku');
+                });
             }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus buku');
-        });
-    };
-
-    // Delete single book
-    window.deleteBuku = function(id) {
-        if (!confirm('Yakin ingin menghapus buku ini?')) {
-            return;
-        }
-
-        showLoading();
-        fetch(`/admin/buku/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert('Buku berhasil dihapus');
-                location.reload();
-            } else {
-                alert('Gagal menghapus buku: ' + data.message);
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus buku');
-        });
+        );
     };
 
     // Import modal functionality
@@ -538,15 +507,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(html => {
             // Check if response contains error
             if (html.includes('error')) {
-                alert('Gagal import data. Silakan cek file dan coba lagi.');
+                showErrorAlert('Gagal import data. Silakan cek file dan coba lagi.');
             } else {
-                alert('Import berhasil!');
+                showSuccessAlert('Import berhasil!');
                 location.reload();
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat import');
+            showErrorAlert('Terjadi kesalahan saat import');
         })
         .finally(() => {
             submitBtn.innerHTML = originalText;
@@ -555,6 +524,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// SweetAlert2 Functions for Book Management
+function confirmDeleteBuku(id) {
+    showConfirmDialog(
+        'Yakin ingin menghapus buku ini?',
+        'Konfirmasi Hapus Buku',
+        function() {
+            showLoading();
+            fetch(`/admin/buku/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showSuccessAlert('Buku berhasil dihapus');
+                    location.reload();
+                } else {
+                    showErrorAlert('Gagal menghapus buku: ' + data.message);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                showErrorAlert('Terjadi kesalahan saat menghapus buku');
+            });
+        }
+    );
+}
+
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+}
 </script>
 
 <!-- Import Modal -->

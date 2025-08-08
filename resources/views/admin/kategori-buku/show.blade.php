@@ -206,32 +206,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Delete kategori function
     window.deleteKategori = function() {
-        if (!confirm('Yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.')) {
-            return;
-        }
-
-        showLoading();
-        fetch('{{ route("kategori-buku.destroy", $kategoriBuku->id) }}', {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        showConfirmDialog(
+            'Yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.',
+            'Konfirmasi Hapus Kategori',
+            function() {
+                showLoading();
+                fetch('{{ route("kategori-buku.destroy", $kategoriBuku->id) }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showSuccessAlert('Kategori berhasil dihapus');
+                        window.location.href = '{{ route("kategori-buku.index") }}';
+                    } else {
+                        showErrorAlert('Gagal menghapus kategori: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menghapus kategori');
+                });
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert('Kategori berhasil dihapus');
-                window.location.href = '{{ route("kategori-buku.index") }}';
-            } else {
-                alert('Gagal menghapus kategori: ' + data.message);
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus kategori');
-        });
+        );
     };
 });
 </script>

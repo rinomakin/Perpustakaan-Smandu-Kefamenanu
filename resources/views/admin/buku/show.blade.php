@@ -322,66 +322,70 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate barcode function
     window.generateBarcode = function() {
-        if (!confirm('Apakah Anda yakin ingin generate barcode untuk buku ini?')) {
-            return;
-        }
-
-        showLoading();
-        fetch('{{ route("buku.generate-barcode") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                buku_id: {{ $buku->id }}
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert('Barcode berhasil di-generate: ' + data.barcode);
-                location.reload();
-            } else {
-                alert('Gagal generate barcode: ' + data.message);
+        showConfirmDialog(
+            'Apakah Anda yakin ingin generate barcode untuk buku ini?',
+            'Konfirmasi Generate Barcode',
+            function() {
+                showLoading();
+                fetch('{{ route("buku.generate-barcode") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        buku_id: {{ $buku->id }}
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showSuccessAlert('Barcode berhasil di-generate: ' + data.barcode);
+                        location.reload();
+                    } else {
+                        showErrorAlert('Gagal generate barcode: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat generate barcode');
+                });
             }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat generate barcode');
-        });
+        );
     };
 
     // Delete buku function
     window.deleteBuku = function() {
-        if (!confirm('Apakah Anda yakin ingin menghapus buku ini? Tindakan ini tidak dapat dibatalkan.')) {
-            return;
-        }
-
-        showLoading();
-        fetch('{{ route("buku.destroy", $buku->id) }}', {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        showConfirmDialog(
+            'Apakah Anda yakin ingin menghapus buku ini? Tindakan ini tidak dapat dibatalkan.',
+            'Konfirmasi Hapus Buku',
+            function() {
+                showLoading();
+                fetch('{{ route("buku.destroy", $buku->id) }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showSuccessAlert('Buku berhasil dihapus');
+                        window.location.href = '{{ route("buku.index") }}';
+                    } else {
+                        showErrorAlert('Gagal menghapus buku: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menghapus buku');
+                });
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert('Buku berhasil dihapus');
-                window.location.href = '{{ route("buku.index") }}';
-            } else {
-                alert('Gagal menghapus buku: ' + data.message);
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus buku');
-        });
+        );
     };
 });
 </script>

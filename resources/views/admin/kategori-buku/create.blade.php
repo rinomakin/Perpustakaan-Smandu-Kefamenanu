@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!isValid) {
             e.preventDefault();
-            alert('Mohon lengkapi semua field yang wajib diisi');
+            showWarningAlert('Mohon lengkapi semua field yang wajib diisi');
         }
     });
 

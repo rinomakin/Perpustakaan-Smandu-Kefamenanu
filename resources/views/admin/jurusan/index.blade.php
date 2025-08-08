@@ -202,11 +202,15 @@ function openEditModal(id, kode, nama, deskripsi, status) {
 }
 
 function deleteJurusan(id) {
-    if (confirm('Apakah Anda yakin ingin menghapus data jurusan ini?')) {
-        const form = document.getElementById('deleteForm');
-        form.action = `{{ route('jurusan.index') }}/${id}`;
-        form.submit();
-    }
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus data jurusan ini?',
+        'Konfirmasi Hapus Jurusan',
+        function() {
+            const form = document.getElementById('deleteForm');
+            form.action = `{{ route('jurusan.index') }}/${id}`;
+            form.submit();
+        }
+    );
 }
 
 // Close modal when clicking outside

@@ -228,28 +228,19 @@
                         </h3>
                         
                         <div class="space-y-3">
-                            <form action="{{ route('user.reset-password', $user->id) }}" 
-                                  method="POST" 
-                                  onsubmit="return confirm('Reset password user ini menjadi password123?')">
-                                @csrf
-                                <button type="submit" 
-                                        class="w-full inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
-                                    <i class="fas fa-key mr-2"></i>
-                                    Reset Password
-                                </button>
-                            </form>
+                            <button type="button" 
+                                    onclick="confirmResetPassword({{ $user->id }})"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                                <i class="fas fa-key mr-2"></i>
+                                Reset Password
+                            </button>
                             
-                            <form action="{{ route('user.destroy', $user->id) }}" 
-                                  method="POST" 
-                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" 
-                                        class="w-full inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
-                                    <i class="fas fa-trash mr-2"></i>
-                                    Hapus User
-                                </button>
-                            </form>
+                            <button type="button" 
+                                    onclick="confirmDeleteUser({{ $user->id }})"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                                <i class="fas fa-trash mr-2"></i>
+                                Hapus User
+                            </button>
                         </div>
                     </div>
                 @else
@@ -288,34 +279,76 @@
                 
                 @if($user->id !== auth()->id())
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <form action="{{ route('user.reset-password', $user->id) }}" 
-                              method="POST" 
-                              onsubmit="return confirm('Reset password user ini menjadi password123?')"
-                              class="flex-shrink-0">
-                            @csrf
-                            <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200">
-                                <i class="fas fa-key mr-2"></i>
-                                Reset Password
-                            </button>
-                        </form>
+                        <button type="button" 
+                                onclick="confirmResetPassword({{ $user->id }})"
+                                class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200">
+                            <i class="fas fa-key mr-2"></i>
+                            Reset Password
+                        </button>
                         
-                        <form action="{{ route('user.destroy', $user->id) }}" 
-                              method="POST" 
-                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')"
-                              class="flex-shrink-0">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200">
-                                <i class="fas fa-trash mr-2"></i>
-                                Hapus User
-                            </button>
-                        </form>
+                        <button type="button" 
+                                onclick="confirmDeleteUser({{ $user->id }})"
+                                class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200">
+                            <i class="fas fa-trash mr-2"></i>
+                            Hapus User
+                        </button>
                     </div>
                 @endif
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// SweetAlert2 Functions for User Management
+function confirmDeleteUser(userId) {
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.',
+        'Konfirmasi Hapus User',
+        function() {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/user/${userId}`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
+            
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+function confirmResetPassword(userId) {
+    showConfirmDialog(
+        'Reset password user ini menjadi password123?',
+        'Konfirmasi Reset Password',
+        function() {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/user/${userId}/reset-password`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            form.appendChild(csrfToken);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+</script>
 @endsection

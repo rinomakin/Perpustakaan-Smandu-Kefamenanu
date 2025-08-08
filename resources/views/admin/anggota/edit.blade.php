@@ -344,7 +344,7 @@ function startCamera() {
         })
         .catch(function(error) {
             console.error('Error accessing camera:', error);
-            alert('Tidak dapat mengakses kamera. Pastikan izin kamera sudah diberikan.');
+            showErrorAlert('Tidak dapat mengakses kamera. Pastikan izin kamera sudah diberikan.');
         });
 }
 

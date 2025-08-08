@@ -236,68 +236,72 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteSelected = function() {
         const selectedIds = Array.from(document.querySelectorAll('.kategori-checkbox:checked')).map(cb => cb.value);
         if (selectedIds.length === 0) {
-            alert('Pilih kategori yang akan dihapus');
+            showWarningAlert('Pilih kategori yang akan dihapus');
             return;
         }
 
-        if (!confirm(`Yakin ingin menghapus ${selectedIds.length} kategori yang dipilih?`)) {
-            return;
-        }
-
-        showLoading();
-        fetch('{{ route("kategori-buku.destroy-multiple") }}', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ kategori_ids: selectedIds })
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert('Gagal menghapus kategori: ' + data.message);
+        showConfirmDialog(
+            `Yakin ingin menghapus ${selectedIds.length} kategori yang dipilih?`,
+            'Konfirmasi Hapus Kategori',
+            function() {
+                showLoading();
+                fetch('{{ route("kategori-buku.destroy-multiple") }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ kategori_ids: selectedIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showSuccessAlert(data.message);
+                        location.reload();
+                    } else {
+                        showErrorAlert('Gagal menghapus kategori: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menghapus kategori');
+                });
             }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus kategori');
-        });
+        );
     };
 
     // Delete single category
     window.deleteKategori = function(id) {
-        if (!confirm('Yakin ingin menghapus kategori ini?')) {
-            return;
-        }
-
-        showLoading();
-        fetch(`/admin/kategori-buku/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        showConfirmDialog(
+            'Yakin ingin menghapus kategori ini?',
+            'Konfirmasi Hapus Kategori',
+            function() {
+                showLoading();
+                fetch(`/admin/kategori-buku/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showSuccessAlert('Kategori berhasil dihapus');
+                        location.reload();
+                    } else {
+                        showErrorAlert('Gagal menghapus kategori: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menghapus kategori');
+                });
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                alert('Kategori berhasil dihapus');
-                location.reload();
-            } else {
-                alert('Gagal menghapus kategori: ' + data.message);
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus kategori');
-        });
+        );
     };
 });
 </script>

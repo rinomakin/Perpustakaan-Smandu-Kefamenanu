@@ -19,33 +19,6 @@
         </div>
     </div>
 
-    <!-- Alert Messages -->
-    @if(session('success'))
-        <div class="mx-6 mt-4 bg-green-50 border-l-4 border-green-400 p-4 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-check-circle text-green-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-green-700">{{ session('success') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mx-6 mt-4 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">{{ session('error') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <!-- Search and Filter Section -->
     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
         <div class="flex flex-col sm:flex-row gap-4">
@@ -155,18 +128,12 @@
                                    title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('role.destroy', $role->id) }}" 
-                                      method="POST" 
-                                      class="inline"
-                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus role ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors" 
-                                            title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button" 
+                                        onclick="confirmDeleteRole({{ $role->id }})"
+                                        class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors" 
+                                        title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -225,5 +192,34 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', filterTable);
     statusFilter.addEventListener('change', filterTable);
 });
+
+// SweetAlert2 Functions for Role Management
+function confirmDeleteRole(roleId) {
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus role ini? Tindakan ini tidak dapat dibatalkan.',
+        'Konfirmasi Hapus Role',
+        function() {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/role/${roleId}`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
+            
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
 </script>
 @endsection

@@ -262,11 +262,15 @@ function openEditModal(id, kode, nama, jurusan_id, tahun_ajaran, status) {
 }
 
 function deleteKelas(id) {
-    if (confirm('Apakah Anda yakin ingin menghapus data kelas ini?')) {
-        const form = document.getElementById('deleteForm');
-        form.action = `{{ route('kelas.index') }}/${id}`;
-        form.submit();
-    }
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus data kelas ini?',
+        'Konfirmasi Hapus Kelas',
+        function() {
+            const form = document.getElementById('deleteForm');
+            form.action = `{{ route('kelas.index') }}/${id}`;
+            form.submit();
+        }
+    );
 }
 
 // Generate kode kelas otomatis
@@ -278,7 +282,7 @@ function generateKodeKelas() {
         // Validasi format tahun ajaran
         const tahunPattern = /^\d{4}\/\d{4}$/;
         if (!tahunPattern.test(tahunAjaran)) {
-            alert('Format tahun ajaran harus YYYY/YYYY (contoh: 2024/2025)');
+            showWarningAlert('Format tahun ajaran harus YYYY/YYYY (contoh: 2024/2025)');
             document.getElementById('tahun_ajaran').focus();
             return;
         }
@@ -296,7 +300,7 @@ function generateKodeKelas() {
                 document.getElementById('kode_kelas').value = response.kode;
             },
             error: function() {
-                alert('Terjadi kesalahan saat generate kode kelas');
+                showErrorAlert('Terjadi kesalahan saat generate kode kelas');
             }
         });
     }

@@ -53,7 +53,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-gray-900">{{ $loan->anggota->nama_lengkap }}</div>
-                                    <div class="text-gray-500 text-xs">{{ $loan->anggota->nisn }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $loan->anggota->nomor_anggota }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
@@ -84,26 +84,18 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('peminjaman.detail', $loan->id) }}" 
-                                           class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">
-                                            <i class="fas fa-book mr-1"></i>Detail
-                                        </a>
                                         <a href="{{ route('peminjaman.show', $loan->id) }}" 
                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
-                                            <i class="fas fa-eye mr-1"></i>Lihat
+                                            <i class="fas fa-eye mr-1"></i>Detail
                                         </a>
                                         <a href="{{ route('peminjaman.edit', $loan->id) }}" 
                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">
                                             <i class="fas fa-edit mr-1"></i>Edit
                                         </a>
-                                        <form action="{{ route('peminjaman.destroy', $loan->id) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus peminjaman ini?')" 
-                                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
-                                                <i class="fas fa-trash mr-1"></i>Hapus
-                                            </button>
-                                        </form>
+                                        <button type="button" onclick="confirmDelete({{ $loan->id }})" 
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                            <i class="fas fa-trash mr-1"></i>Hapus
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -129,36 +121,35 @@
     </div>
 </div>
 
-<!-- Success/Error Messages -->
-@if(session('success'))
-<div id="success-message" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center">
-    <i class="fas fa-check-circle mr-2"></i>
-    {{ session('success') }}
-</div>
-@endif
-
-@if(session('error'))
-<div id="error-message" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center">
-    <i class="fas fa-exclamation-circle mr-2"></i>
-    {{ session('error') }}
-</div>
-@endif
+<!-- SweetAlert2 notifications are handled by layout -->
 
 <script>
-// Auto hide messages after 5 seconds
-setTimeout(function() {
-    const successMessage = document.getElementById('success-message');
-    const errorMessage = document.getElementById('error-message');
-    
-    if (successMessage) {
-        successMessage.style.opacity = '0';
-        setTimeout(() => successMessage.remove(), 500);
-    }
-    
-    if (errorMessage) {
-        errorMessage.style.opacity = '0';
-        setTimeout(() => errorMessage.remove(), 500);
-    }
-}, 5000);
+function confirmDelete(peminjamanId) {
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus peminjaman ini? Tindakan ini tidak dapat dibatalkan.',
+        'Konfirmasi Hapus',
+        function() {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/peminjaman/${peminjamanId}`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
+            
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
 </script>
 @endsection 

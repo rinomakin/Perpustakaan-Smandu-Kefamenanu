@@ -112,18 +112,10 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Scan Barcode</label>
-                        <button type="button" onclick="toggleCamera()"
+                        <button type="button" id="scanBarcodeBtn"
                                 class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
-                            <i class="fas fa-camera mr-1"></i>Buka Kamera
+                            <i class="fas fa-barcode mr-1"></i>Scan Barcode
                         </button>
-                        <div id="cameraContainer" class="camera-container mt-2 hidden">
-                            <video id="video" autoplay></video>
-                            <div class="camera-overlay"></div>
-                            <button type="button" onclick="closeCamera()"
-                                    class="mt-2 w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
-                                <i class="fas fa-times mr-1"></i>Tutup Kamera
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -252,6 +244,69 @@
     </div>
 </div>
 
+<!-- Barcode Scanner Modal -->
+<div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Scan Barcode Anggota</h3>
+                    <button type="button" id="closeScannerBtn" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-4">Arahkan kamera ke barcode anggota untuk scan</p>
+                    <div id="scannerContainer" class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
+                        <div id="scannerPlaceholder" class="text-center">
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
+                        </div>
+                        <div id="scannerVideo" class="w-full h-full hidden">
+                            <video id="scannerVideoElement" class="w-full h-full object-cover"></video>
+                            <div id="scannerOverlay" class="absolute inset-0 flex items-center justify-center">
+                                <div class="border-2 border-white border-dashed w-64 h-32 rounded-lg flex items-center justify-center">
+                                    <div class="text-white text-center">
+                                        <i class="fas fa-barcode text-2xl mb-2"></i>
+                                        <p class="text-sm">Arahkan barcode ke dalam kotak</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="scannerLoading" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+                            <div class="text-center text-white">
+                                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                <p>Memulai kamera...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        <span id="scannerStatus">Siap untuk scan</span>
+                    </div>
+                    <div class="flex space-x-3" id="scannerControls">
+                        <button type="button" id="startScanBtn" 
+                                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold">
+                            <i class="fas fa-play mr-2"></i>Mulai Scan
+                        </button>
+                        <button type="button" id="stopScanBtn" 
+                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold hidden">
+                            <i class="fas fa-stop mr-2"></i>Stop Scan
+                        </button>
+                        <button type="button" id="cancelScan" 
+                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let stream = null;
 
@@ -286,39 +341,678 @@ function generateBarcode() {
     });
 }
 
-function toggleCamera() {
-    const container = document.getElementById('cameraContainer');
-    const video = document.getElementById('video');
-    
-    if (container.classList.contains('hidden')) {
-        container.classList.remove('hidden');
-        startCamera();
-    } else {
-        closeCamera();
-    }
+    // Scanner functionality
+    let quaggaInitialized = false;
+
+    // Scan barcode button
+    document.getElementById('scanBarcodeBtn').addEventListener('click', function() {
+        document.getElementById('scannerModal').classList.remove('hidden');
+        initializeScanner();
+    });
+
+    // Close scanner modal
+    document.getElementById('closeScannerBtn').addEventListener('click', function() {
+        closeScanner();
+    });
+
+    // Start scanning
+    document.getElementById('startScanBtn').addEventListener('click', function() {
+        startScanning();
+    });
+
+    // Stop scanning
+    document.getElementById('stopScanBtn').addEventListener('click', function() {
+        stopScanning();
+    });
+
+    // Cancel scan
+    document.getElementById('cancelScan').addEventListener('click', function() {
+        closeScanner();
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('scannerModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeScanner();
+        }
+    });
+
+// Load ZXing library for better barcode detection
+function loadZXingLibrary() {
+    return new Promise((resolve, reject) => {
+        if (window.ZXing) {
+            resolve(window.ZXing);
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
+        script.onload = () => {
+            console.log('ZXing library loaded successfully');
+            resolve(window.ZXing);
+        };
+        script.onerror = () => {
+            console.error('Failed to load ZXing library');
+            reject(new Error('Failed to load ZXing library'));
+        };
+        document.head.appendChild(script);
+    });
 }
 
-function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(mediaStream) {
-            stream = mediaStream;
-            document.getElementById('video').srcObject = mediaStream;
-        })
-        .catch(function(error) {
-            console.error('Error accessing camera:', error);
-            alert('Tidak dapat mengakses kamera. Pastikan izin kamera sudah diberikan.');
+// Modern barcode scanner using ZXing
+async function setupModernScanner() {
+    const videoElement = document.getElementById('scannerVideoElement');
+    const scannerLoading = document.getElementById('scannerLoading');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    
+    console.log('Setting up modern camera scanner...');
+    
+    try {
+        // Load ZXing library
+        const ZXing = await loadZXingLibrary();
+        
+        // Show loading
+        scannerLoading.classList.remove('hidden');
+        scannerPlaceholder.classList.add('hidden');
+        scannerVideo.classList.remove('hidden');
+        
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: "environment"
+            }
         });
-}
-
-function closeCamera() {
-    const container = document.getElementById('cameraContainer');
-    container.classList.add('hidden');
-    
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
+        
+        console.log('Camera access granted for modern scanner!');
+        
+        // Set the video stream
+        videoElement.srcObject = stream;
+        await videoElement.play();
+        
+        // Hide loading and show video
+        scannerLoading.classList.add('hidden');
+        scannerVideo.classList.remove('hidden');
+        
+        // Initialize ZXing reader
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        
+        // Configure ZXing for better barcode detection
+        const hints = new Map();
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+        hints.set(ZXing.DecodeHintType.PURE_BARCODE, true);
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXing.BarcodeFormat.CODE_128,
+            ZXing.BarcodeFormat.CODE_39,
+            ZXing.BarcodeFormat.EAN_13,
+            ZXing.BarcodeFormat.EAN_8,
+            ZXing.BarcodeFormat.UPC_A,
+            ZXing.BarcodeFormat.UPC_E,
+            ZXing.BarcodeFormat.QR_CODE,
+            ZXing.BarcodeFormat.CODABAR,
+            ZXing.BarcodeFormat.ITF,
+            ZXing.BarcodeFormat.PDF_417,
+            ZXing.BarcodeFormat.AZTEC
+        ]);
+        
+        // Set additional hints for better detection
+        hints.set(ZXing.DecodeHintType.NEED_RESULT_POINT_CALLBACK, true);
+        hints.set(ZXing.DecodeHintType.CHARACTER_SET, 'UTF-8');
+        
+        // Start continuous scanning with better configuration
+        await codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
+            if (result) {
+                console.log('🎉 Barcode detected successfully!');
+                console.log('📋 Barcode text:', result.text);
+                console.log('📊 Barcode format:', result.format);
+                console.log('📍 Barcode bounds:', result.resultPoints);
+                
+                // Validate barcode format
+                const barcodeText = result.text.trim();
+                if (barcodeText && barcodeText.length > 0) {
+                    console.log('✅ Valid barcode detected, processing...');
+                    stopModernScanner();
+                    processScannedBarcode(barcodeText);
+                } else {
+                    console.log('❌ Invalid barcode detected, ignoring...');
+                }
+            }
+            if (error) {
+                if (error.name !== 'NotFoundException') {
+                    console.log('⚠️ Scanning error:', error.name, error.message);
+                }
+            }
+        });
+        
+        // Store reference for stopping
+        window.currentCodeReader = codeReader;
+        
+        showNotification('Scanner modern siap. Arahkan kamera ke barcode.', 'success');
+        
+        // Add test barcode button for debugging
+        addTestBarcodeButton();
+        
+    } catch (error) {
+        console.error('Modern scanner setup error:', error);
+        scannerLoading.classList.add('hidden');
+        scannerPlaceholder.classList.remove('hidden');
+        scannerVideo.classList.add('hidden');
+        
+        if (error.name === 'NotAllowedError') {
+            showNotification('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+        } else if (error.name === 'NotFoundError') {
+            showNotification('Tidak ada kamera yang ditemukan.', 'error');
+        } else {
+            showNotification('Gagal mengakses kamera: ' + error.message, 'error');
+        }
     }
 }
+
+function stopModernScanner() {
+    if (window.currentCodeReader) {
+        try {
+            window.currentCodeReader.reset();
+        } catch (error) {
+            console.error('Error stopping modern scanner:', error);
+        }
+    }
+}
+
+// Alternative simple barcode scanner
+function setupSimpleScanner() {
+    const videoElement = document.getElementById('scannerVideoElement');
+    const scannerLoading = document.getElementById('scannerLoading');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    
+    console.log('Setting up simple camera scanner...');
+    
+    // Show loading
+    scannerLoading.classList.remove('hidden');
+    scannerPlaceholder.classList.add('hidden');
+    scannerVideo.classList.remove('hidden');
+    
+    // Request camera access
+    navigator.mediaDevices.getUserMedia({
+        video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: "environment"
+        }
+    })
+    .then(stream => {
+        console.log('Camera access granted for simple scanner!');
+        
+        // Set the video stream
+        videoElement.srcObject = stream;
+        videoElement.play();
+        
+        // Hide loading and show video
+        scannerLoading.classList.add('hidden');
+        scannerVideo.classList.remove('hidden');
+        
+        // Add manual scan button
+        const manualScanBtn = document.createElement('button');
+        manualScanBtn.textContent = 'Scan Manual';
+        manualScanBtn.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2';
+        manualScanBtn.onclick = () => captureAndProcess();
+        
+        const scannerControls = document.getElementById('scannerControls');
+        if (scannerControls) {
+            scannerControls.appendChild(manualScanBtn);
+        }
+        
+        showNotification('Kamera siap. Gunakan tombol "Scan Manual" untuk mengambil gambar dan mendeteksi barcode.', 'info');
+    })
+    .catch(error => {
+        console.error('Camera access error:', error);
+        scannerLoading.classList.add('hidden');
+        scannerPlaceholder.classList.remove('hidden');
+        scannerVideo.classList.add('hidden');
+        
+        if (error.name === 'NotAllowedError') {
+            showNotification('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+        } else if (error.name === 'NotFoundError') {
+            showNotification('Tidak ada kamera yang ditemukan.', 'error');
+        } else {
+            showNotification('Gagal mengakses kamera: ' + error.message, 'error');
+        }
+    });
+}
+
+function captureAndProcess() {
+    const videoElement = document.getElementById('scannerVideoElement');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    // Set canvas size to video size
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    
+    // Draw video frame to canvas
+    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    
+    // Get image data
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // For now, we'll simulate barcode detection
+    // In a real implementation, you would use a barcode detection library
+    console.log('Captured image for barcode detection');
+    
+    // Simulate barcode detection (replace with actual barcode detection)
+    const simulatedBarcode = prompt('Masukkan kode barcode secara manual:');
+    if (simulatedBarcode) {
+        processScannedBarcode(simulatedBarcode);
+    }
+}
+
+// Simple and reliable camera scanner
+function setupReliableScanner() {
+    const videoElement = document.getElementById('scannerVideoElement');
+    const scannerLoading = document.getElementById('scannerLoading');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    
+    console.log('Setting up reliable camera scanner...');
+    
+    // Show loading
+    scannerLoading.classList.remove('hidden');
+    scannerPlaceholder.classList.add('hidden');
+    scannerVideo.classList.remove('hidden');
+    
+    // Check if getUserMedia is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('getUserMedia not supported');
+        showNotification('Browser tidak mendukung akses kamera', 'error');
+        setupManualInput();
+        return;
+    }
+    
+    // Request camera access with multiple fallback options
+    const constraints = {
+        video: {
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 },
+            facingMode: "environment"
+        }
+    };
+    
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(stream => {
+        console.log('Camera access granted!');
+        
+        // Set the video stream
+        videoElement.srcObject = stream;
+        videoElement.play();
+        
+        // Hide loading and show video
+        scannerLoading.classList.add('hidden');
+        scannerVideo.classList.remove('hidden');
+        
+        // Add manual input option
+        addManualInputOption();
+        
+        showNotification('Kamera siap. Gunakan tombol "Input Manual" untuk memasukkan kode barcode.', 'success');
+        
+        // Start periodic capture for barcode detection
+        startPeriodicCapture();
+    })
+    .catch(error => {
+        console.error('Camera access error:', error);
+        scannerLoading.classList.add('hidden');
+        scannerPlaceholder.classList.remove('hidden');
+        scannerVideo.classList.add('hidden');
+        
+        if (error.name === 'NotAllowedError') {
+            showNotification('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+        } else if (error.name === 'NotFoundError') {
+            showNotification('Tidak ada kamera yang ditemukan.', 'error');
+        } else {
+            showNotification('Gagal mengakses kamera: ' + error.message, 'error');
+        }
+        
+        // Fallback to manual input
+        setupManualInput();
+    });
+}
+
+function addManualInputOption() {
+    const scannerControls = document.getElementById('scannerControls');
+    if (scannerControls) {
+        // Remove existing manual input button if any
+        const existingBtn = scannerControls.querySelector('#manualInputBtn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
+        
+        // Add manual input button
+        const manualInputBtn = document.createElement('button');
+        manualInputBtn.id = 'manualInputBtn';
+        manualInputBtn.textContent = 'Input Manual';
+        manualInputBtn.className = 'px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold';
+        manualInputBtn.onclick = () => showManualInputDialog();
+        
+        scannerControls.appendChild(manualInputBtn);
+    }
+}
+
+function showManualInputDialog() {
+    const barcodeInput = prompt('Masukkan kode barcode:');
+    if (barcodeInput && barcodeInput.trim()) {
+        processScannedBarcode(barcodeInput.trim());
+    }
+}
+
+function setupManualInput() {
+    console.log('Setting up manual input fallback...');
+    
+    const scannerContainer = document.getElementById('scannerContainer');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerLoading = document.getElementById('scannerLoading');
+    
+    // Hide video and show manual input
+    scannerVideo.classList.add('hidden');
+    scannerLoading.classList.add('hidden');
+    scannerPlaceholder.classList.remove('hidden');
+    
+    // Update placeholder content
+    scannerPlaceholder.innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-keyboard text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
+            <button type="button" onclick="showManualInputDialog()" 
+                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">
+                Input Manual
+            </button>
+        </div>
+    `;
+    
+    showNotification('Gunakan tombol "Input Manual" untuk memasukkan kode barcode.', 'info');
+}
+
+function startPeriodicCapture() {
+    const videoElement = document.getElementById('scannerVideoElement');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    // Set up periodic capture for potential barcode detection
+    const captureInterval = setInterval(() => {
+        if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
+            try {
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                
+                // Here you could add actual barcode detection logic
+                // For now, we'll just capture the image data
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // You could send this to a barcode detection service or use a library
+                // For now, we'll just log that we're capturing
+                console.log('Capturing frame for potential barcode detection');
+                
+            } catch (error) {
+                console.log('Frame capture error (non-critical):', error);
+            }
+        }
+    }, 1000); // Capture every second
+    
+    // Store interval for cleanup
+    window.captureInterval = captureInterval;
+}
+
+function stopPeriodicCapture() {
+    if (window.captureInterval) {
+        clearInterval(window.captureInterval);
+        window.captureInterval = null;
+    }
+}
+
+// Try multiple scanner methods with reliable fallback
+async function initializeScanner() {
+    console.log('Initializing scanner with reliable method...');
+    
+    try {
+        // First try reliable scanner (most stable)
+        console.log('Trying reliable scanner...');
+        setupReliableScanner();
+    } catch (error) {
+        console.log('Reliable scanner failed, trying ZXing...');
+        
+        try {
+            await setupModernScanner();
+        } catch (zxingError) {
+            console.log('ZXing failed, trying QuaggaJS...');
+            
+            // Fallback to QuaggaJS
+            if (typeof Quagga !== 'undefined') {
+                try {
+                    setupQuagga();
+                } catch (quaggaError) {
+                    console.log('All scanners failed, using manual input...');
+                    setupManualInput();
+                }
+            } else {
+                console.log('QuaggaJS not available, using manual input...');
+                setupManualInput();
+            }
+        }
+    }
+}
+
+    function startScanning() {
+        if (!quaggaInitialized) {
+            showNotification('Scanner belum siap. Silakan tunggu.', 'warning');
+            return;
+        }
+        
+        try {
+            Quagga.start();
+            document.getElementById('startScanBtn').classList.add('hidden');
+            document.getElementById('stopScanBtn').classList.remove('hidden');
+            document.getElementById('scannerStatus').textContent = 'Scanning...';
+            
+            // Listen for scan events
+            Quagga.onDetected(function(result) {
+                const code = result.codeResult.code;
+                console.log('Barcode detected:', code);
+                
+                // Stop scanning
+                stopScanning();
+                
+                // Process the scanned barcode
+                processScannedBarcode(code);
+            });
+            
+            // Listen for processing events
+            Quagga.onProcessed(function(result) {
+                try {
+                    const drawingCanvas = Quagga.canvas.ctx.overlay;
+                    if (drawingCanvas && drawingCanvas.getContext) {
+                        const drawingCtx = drawingCanvas.getContext('2d');
+                        
+                        if (result) {
+                            if (result.boxes) {
+                                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.style.width), parseInt(drawingCanvas.style.height));
+                                result.boxes.filter(function(box) {
+                                    return box !== result.box;
+                                }).forEach(function(box) {
+                                    Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "green", lineWidth: 2 });
+                                });
+                            }
+                            
+                            if (result.box) {
+                                Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "blue", lineWidth: 2 });
+                            }
+                            
+                            if (result.codeResult && result.codeResult.code) {
+                                Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, drawingCtx, { color: 'red', lineWidth: 3 });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('Canvas processing error (non-critical):', error);
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error starting scanner:', error);
+            showNotification('Gagal memulai scanner. Silakan coba lagi.', 'error');
+        }
+    }
+
+    function stopScanning() {
+        try {
+            Quagga.stop();
+            document.getElementById('startScanBtn').classList.remove('hidden');
+            document.getElementById('stopScanBtn').classList.add('hidden');
+            document.getElementById('scannerStatus').textContent = 'Scanner dihentikan';
+        } catch (error) {
+            console.error('Error stopping scanner:', error);
+        }
+    }
+
+    function closeScanner() {
+        try {
+            // Stop Quagga if running
+            if (typeof Quagga !== 'undefined') {
+                Quagga.stop();
+            }
+            
+            // Stop modern scanner if running
+            if (window.currentCodeReader) {
+                window.currentCodeReader.reset();
+            }
+            
+            // Stop periodic capture
+            stopPeriodicCapture();
+            
+            // Stop video stream
+            const videoElement = document.getElementById('scannerVideoElement');
+            if (videoElement.srcObject) {
+                const tracks = videoElement.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+            
+        } catch (error) {
+            console.error('Error stopping scanner:', error);
+        }
+        
+        document.getElementById('scannerModal').classList.add('hidden');
+        document.getElementById('startScanBtn').classList.remove('hidden');
+        document.getElementById('stopScanBtn').classList.add('hidden');
+        document.getElementById('scannerStatus').textContent = 'Siap untuk scan';
+        
+        // Reset scanner container
+        const scannerContainer = document.getElementById('scannerContainer');
+        const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+        const scannerVideo = document.getElementById('scannerVideo');
+        const scannerLoading = document.getElementById('scannerLoading');
+        
+        scannerLoading.classList.add('hidden');
+        scannerPlaceholder.classList.remove('hidden');
+        scannerVideo.classList.add('hidden');
+        
+        // Remove manual input button if exists
+        const manualInputBtn = document.getElementById('manualInputBtn');
+        if (manualInputBtn) {
+            manualInputBtn.remove();
+        }
+    }
+
+    // Function to add test barcode button for debugging
+    function addTestBarcodeButton() {
+        const scannerControls = document.getElementById('scannerControls');
+        if (scannerControls) {
+            const testBtn = document.createElement('button');
+            testBtn.textContent = 'Test Barcode';
+            testBtn.className = 'bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-2';
+            testBtn.onclick = () => {
+                const testBarcode = prompt('Masukkan kode barcode untuk testing:');
+                if (testBarcode) {
+                    console.log('🧪 Testing with barcode:', testBarcode);
+                    processScannedBarcode(testBarcode);
+                }
+            };
+            scannerControls.appendChild(testBtn);
+            
+            // Add debug info button
+            const debugBtn = document.createElement('button');
+            debugBtn.textContent = 'Debug Info';
+            debugBtn.className = 'bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded ml-2';
+            debugBtn.onclick = () => {
+                console.log('🔍 Debug Info:');
+                console.log('📱 User Agent:', navigator.userAgent);
+                console.log('📹 Media Devices:', navigator.mediaDevices);
+                console.log('🎥 Video Element:', document.getElementById('scannerVideoElement'));
+                console.log('🔧 ZXing Library:', typeof window.ZXing);
+                console.log('📊 Current Scanner:', window.currentCodeReader);
+            };
+            scannerControls.appendChild(debugBtn);
+        }
+    }
+
+    function processScannedBarcode(barcode) {
+        console.log('🔍 Processing scanned barcode:', barcode);
+        
+        // Clean the barcode text (remove any whitespace or special characters)
+        const cleanBarcode = barcode.trim();
+        console.log('🧹 Cleaned barcode:', cleanBarcode);
+        
+        // Show loading in status
+        document.getElementById('scannerStatus').textContent = 'Memproses barcode...';
+        
+        // Set the barcode value to the input field
+        document.getElementById('barcode_anggota').value = cleanBarcode;
+        
+        // Close scanner
+        closeScanner();
+        
+        // Show success notification
+        showNotification('Barcode berhasil di-scan: ' + cleanBarcode, 'success');
+    }
+
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+        
+        if (type === 'success') {
+            notification.className += ' bg-green-500 text-white';
+        } else if (type === 'error') {
+            notification.className += ' bg-red-500 text-white';
+        } else if (type === 'warning') {
+            notification.className += ' bg-yellow-500 text-white';
+        } else {
+            notification.className += ' bg-blue-500 text-white';
+        }
+        
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
 
 // Auto generate barcode on page load
 document.addEventListener('DOMContentLoaded', function() {

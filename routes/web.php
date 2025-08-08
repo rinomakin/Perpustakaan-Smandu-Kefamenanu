@@ -53,8 +53,7 @@ Route::middleware(['auth', 'role:petugas'])->prefix('frontend')->group(function 
 
 // API Routes untuk AJAX (tanpa middleware admin)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
-    Route::get('/peminjaman/search-buku', [PeminjamanController::class, 'searchBuku'])->name('peminjaman.search-buku');
+    // Routes ini akan dipindah ke admin group
 });
 
 // Admin Routes
@@ -62,6 +61,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/pengaturan-website', [AdminController::class, 'pengaturanWebsite'])->name('admin.pengaturan');
     Route::post('/pengaturan-website', [AdminController::class, 'updatePengaturanWebsite'])->name('admin.pengaturan.update');
+    
+    // API Routes untuk AJAX pencarian
+    Route::get('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
+    Route::get('/peminjaman/search-buku', [PeminjamanController::class, 'searchBuku'])->name('peminjaman.search-buku');
+    
+    // Route test untuk debugging
+    Route::get('/test-search', function() {
+        return response()->json(['success' => true, 'message' => 'Route test berhasil']);
+    })->name('test.search');
     
     // CRUD Anggota
     Route::get('/anggota/export', [AnggotaController::class, 'export'])->name('anggota.export');

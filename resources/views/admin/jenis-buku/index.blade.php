@@ -385,7 +385,7 @@ window.openEditModal = function(id, nama_jenis, kode_jenis, deskripsi, status) {
         window.openModal('editModal');
     } catch (error) {
         console.error('Error in openEditModal:', error);
-        alert('Terjadi kesalahan saat membuka modal edit');
+        showErrorAlert('Terjadi kesalahan saat membuka modal edit');
     }
 }
 
@@ -412,7 +412,7 @@ window.openEditModalFromData = function(button) {
         window.openModal('editModal');
     } catch (error) {
         console.error('Error in openEditModalFromData:', error);
-        alert('Terjadi kesalahan saat membuka modal edit');
+        showErrorAlert('Terjadi kesalahan saat membuka modal edit');
     }
 }
 
@@ -447,13 +447,14 @@ window.openEditModalFromData = function(button) {
         const ids = Array.from(checkedBoxes).map(cb => cb.value);
         
         if (ids.length === 0) {
-            alert('Pilih data yang akan dihapus');
+            showWarningAlert('Pilih data yang akan dihapus');
             return;
         }
         
-        if (!confirm(`Apakah Anda yakin ingin menghapus ${ids.length} data jenis buku?`)) {
-            return;
-        }
+        showConfirmDialog(
+            `Apakah Anda yakin ingin menghapus ${ids.length} data jenis buku?`,
+            'Konfirmasi Hapus Jenis Buku',
+            function() {
         
         // Get CSRF token safely
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
@@ -471,16 +472,17 @@ window.openEditModalFromData = function(button) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                showSuccessAlert(data.message);
                 location.reload();
             } else {
-                alert('Error: ' + data.error);
+                showErrorAlert('Error: ' + data.error);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus data');
+            showErrorAlert('Terjadi kesalahan saat menghapus data');
         });
+    });
     }
 
     function exportData() {

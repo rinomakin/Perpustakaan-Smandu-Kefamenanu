@@ -19,33 +19,6 @@
         </div>
     </div>
 
-    <!-- Alert Messages -->
-    @if(session('success'))
-        <div class="mx-6 mt-4 bg-green-50 border-l-4 border-green-400 p-4 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-check-circle text-green-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-green-700">{{ session('success') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mx-6 mt-4 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">{{ session('error') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <!-- Search and Filter Section -->
     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
         <div class="flex flex-col sm:flex-row gap-4">
@@ -177,30 +150,19 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 @if($user->id !== auth()->id())
-                                    <form action="{{ route('user.destroy', $user->id) }}" 
-                                          method="POST" 
-                                          class="inline"
-                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors" 
-                                                title="Hapus">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                                <form action="{{ route('user.reset-password', $user->id) }}" 
-                                      method="POST" 
-                                      class="inline"
-                                      onsubmit="return confirm('Reset password user ini menjadi password123?')">
-                                    @csrf
-                                    <button type="submit" 
-                                            class="text-purple-600 hover:text-purple-900 p-1 rounded hover:bg-purple-50 transition-colors" 
-                                            title="Reset Password">
-                                        <i class="fas fa-key"></i>
+                                    <button type="button" 
+                                            onclick="confirmDeleteUser({{ $user->id }})"
+                                            class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors" 
+                                            title="Hapus">
+                                        <i class="fas fa-trash"></i>
                                     </button>
-                                </form>
+                                @endif
+                                <button type="button" 
+                                        onclick="confirmResetPassword({{ $user->id }})"
+                                        class="text-purple-600 hover:text-purple-900 p-1 rounded hover:bg-purple-50 transition-colors" 
+                                        title="Reset Password">
+                                    <i class="fas fa-key"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -264,5 +226,56 @@ document.addEventListener('DOMContentLoaded', function() {
     roleFilter.addEventListener('change', filterTable);
     statusFilter.addEventListener('change', filterTable);
 });
+
+// SweetAlert2 Functions for User Management
+function confirmDeleteUser(userId) {
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.',
+        'Konfirmasi Hapus User',
+        function() {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/user/${userId}`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
+            
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+function confirmResetPassword(userId) {
+    showConfirmDialog(
+        'Reset password user ini menjadi password123?',
+        'Konfirmasi Reset Password',
+        function() {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/user/${userId}/reset-password`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            form.appendChild(csrfToken);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
 </script>
 @endsection

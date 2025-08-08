@@ -67,32 +67,34 @@
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 function removeBook(detailId) {
-    if (!confirm('Apakah Anda yakin ingin menghapus buku ini dari peminjaman?')) {
-        return;
-    }
-
-    fetch('{{ route("peminjaman.remove-book") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-        },
-        body: JSON.stringify({
-            detail_id: detailId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.message);
+    showConfirmDialog(
+        'Apakah Anda yakin ingin menghapus buku ini dari peminjaman?',
+        'Konfirmasi Hapus Buku',
+        function() {
+            fetch('{{ route("peminjaman.remove-book") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({
+                    detail_id: detailId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessAlert(data.message);
+                    location.reload();
+                } else {
+                    showErrorAlert(data.message);
+                }
+            })
+            .catch(error => {
+                showErrorAlert('Terjadi kesalahan: ' + error.message);
+            });
         }
-    })
-    .catch(error => {
-        alert('Terjadi kesalahan: ' + error.message);
-    });
+    );
 }
 </script>
 @endsection 

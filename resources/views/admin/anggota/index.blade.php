@@ -433,14 +433,15 @@ function bulkDelete() {
     const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
     const ids = Array.from(checkedBoxes).map(cb => cb.value);
     
-    if (ids.length === 0) {
-        alert('Pilih data yang akan dihapus');
-        return;
-    }
-    
-    if (!confirm(`Apakah Anda yakin ingin menghapus ${ids.length} data anggota?`)) {
-        return;
-    }
+            if (ids.length === 0) {
+            showWarningAlert('Pilih data yang akan dihapus');
+            return;
+        }
+        
+        showConfirmDialog(
+            `Apakah Anda yakin ingin menghapus ${ids.length} data anggota?`,
+            'Konfirmasi Hapus Anggota',
+            function() {
     
     // Get CSRF token safely
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
@@ -456,17 +457,18 @@ function bulkDelete() {
         body: JSON.stringify({ ids: ids })
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert('Error: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan saat menghapus data');
+            .then(data => {
+            if (data.success) {
+                showSuccessAlert(data.message);
+                location.reload();
+            } else {
+                showErrorAlert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorAlert('Terjadi kesalahan saat menghapus data');
+        });
     });
 }
 
@@ -475,7 +477,7 @@ function bulkPrintKartu() {
     const ids = Array.from(checkedBoxes).map(cb => cb.value);
     
     if (ids.length === 0) {
-        alert('Pilih data yang akan dicetak kartunya');
+        showWarningAlert('Pilih data yang akan dicetak kartunya');
         return;
     }
     

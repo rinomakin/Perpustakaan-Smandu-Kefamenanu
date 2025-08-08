@@ -3,20 +3,63 @@
 @section('title', 'Tambah Peminjaman')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Tambah Peminjaman</h1>
-                    <p class="text-gray-600 mt-1">Form peminjaman buku dengan auto-deteksi</p>
-                </div>
-                <a href="{{ route('peminjaman.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold">
-                    <i class="fas fa-arrow-left mr-2"></i>Kembali
-                </a>
-            </div>
-        </div>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<!-- Include HTML5-QRCode -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<style>
+/* Custom styles untuk dropdown */
+.dropdown-item {
+    transition: all 0.15s ease-in-out;
+}
+
+.dropdown-item:hover {
+    background-color: #eff6ff;
+    transform: translateX(2px);
+}
+
+.dropdown-item.selected {
+    background-color: #dbeafe;
+    border-left: 3px solid #3b82f6;
+}
+
+/* Loading spinner */
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Notification animations */
+.notification-enter {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.notification-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 0.3s ease-out;
+}
+
+/* Focus styles */
+.search-input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Hover effects */
+.book-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<div class="min-h-screen bg-gradient-to-br  py-8">
+    <div class=" px-4 sm:px-6 lg:px-8">
 
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
@@ -36,8 +79,8 @@
                         <div class="flex space-x-2">
                             <div class="flex-1 relative">
                                 <input type="text" id="anggota_search" 
-                                       placeholder="Ketik nama anggota, NISN, atau nomor anggota..." 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                       placeholder="Ketik nama anggota atau nomor anggota..." 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 search-input">
                                 <input type="hidden" name="anggota_id" id="anggota_id" required>
                                 
                                 <!-- Dropdown hasil pencarian -->
@@ -62,7 +105,7 @@
                                     <p id="anggotaNomor" class="text-sm text-gray-600"></p>
                                     <p id="anggotaKelas" class="text-xs text-gray-500"></p>
                                 </div>
-                                <button type="button" id="clearAnggota" class="text-red-500 hover:text-red-700">
+                                <button type="button" id="clearAnggota" class="text-red-500 hover:text-red-700 transition-colors duration-150">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -159,7 +202,7 @@
                         <div class="relative">
                             <input type="text" id="buku_search" 
                                    placeholder="Ketik judul buku, penulis, atau ISBN..." 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 search-input">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                                 <i class="fas fa-search text-gray-400"></i>
                             </div>
@@ -184,12 +227,9 @@
                         </div>
                     </div>
 
-                    <!-- Daftar Semua Buku (Tersembunyi) -->
-                    <div class="hidden">
-                        @foreach($buku as $book)
-                        <input type="hidden" name="buku_ids[]" value="{{ $book->id }}" class="book-input">
-                        @endforeach
-                    </div>
+                    <!-- Hidden inputs untuk buku yang dipilih akan ditambahkan secara dinamis -->
+                    <!-- Default hidden input untuk memastikan field selalu ada -->
+                    <input type="hidden" name="buku_ids[]" value="" class="book-input">
                     
                     @error('buku_ids')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -212,25 +252,12 @@
     </div>
 </div>
 
-<!-- Success/Error Messages -->
-@if(session('success'))
-<div id="success-message" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center">
-    <i class="fas fa-check-circle mr-2"></i>
-    {{ session('success') }}
-</div>
-@endif
-
-@if(session('error'))
-<div id="error-message" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center">
-    <i class="fas fa-exclamation-circle mr-2"></i>
-    {{ session('error') }}
-</div>
-@endif
+<!-- SweetAlert2 notifications are handled by layout -->
 
 <!-- Barcode Scanner Modal -->
 <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-white" id="scannerTitle">Scan Barcode</h3>
@@ -242,18 +269,40 @@
             <div class="p-6">
                 <div class="mb-4">
                     <p class="text-gray-600 mb-4" id="scannerDescription">Arahkan kamera ke barcode untuk scan</p>
-                    <div id="scannerContainer" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div id="scannerContainer" class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
                         <div id="scannerPlaceholder" class="text-center">
                             <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
                             <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
                         </div>
+                        <div id="scannerVideo" class="w-full h-full hidden">
+                            <div id="reader" class="w-full h-full"></div>
+                        </div>
+                        <div id="scannerLoading" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+                            <div class="text-center text-white">
+                                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                <p>Memulai kamera...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" id="cancelScan" 
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
-                        Batal
-                    </button>
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        <span id="scannerStatus">Siap untuk scan</span>
+                    </div>
+                    <div class="flex space-x-3" id="scannerControls">
+                        <button type="button" id="startScanBtn" 
+                                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold">
+                            <i class="fas fa-play mr-2"></i>Mulai Scan
+                        </button>
+                        <button type="button" id="stopScanBtn" 
+                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold hidden">
+                            <i class="fas fa-stop mr-2"></i>Stop Scan
+                        </button>
+                        <button type="button" id="cancelScan" 
+                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                            Batal
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -261,42 +310,415 @@
 </div>
 
 <script>
+// Debounce function untuk mengoptimalkan performa pencarian
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
-// Fungsi untuk pencarian anggota
-document.getElementById('anggota_search').addEventListener('input', function() {
-    const query = this.value.trim();
+// Variabel untuk keyboard navigation
+let selectedIndex = -1;
+let currentDropdown = null;
+
+// Setup CSRF token untuk AJAX requests
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                  document.querySelector('input[name="_token"]')?.value;
+
+console.log('CSRF Token:', csrfToken);
+
+// HTML5-QRCode Scanner
+let html5QrcodeScanner = null;
+let currentScanType = null; // 'anggota' or 'buku'
+
+// Scanner functionality dengan HTML5-QRCode
+document.getElementById('scanAnggotaBtn').addEventListener('click', function() {
+    currentScanType = 'anggota';
+    document.getElementById('scannerTitle').textContent = 'Scan Barcode Anggota';
+    document.getElementById('scannerDescription').textContent = 'Arahkan kamera ke barcode anggota';
+    document.getElementById('scannerModal').classList.remove('hidden');
+    initializeHTML5QRCodeScanner();
+});
+
+document.getElementById('scanBukuBtn').addEventListener('click', function() {
+    currentScanType = 'buku';
+    document.getElementById('scannerTitle').textContent = 'Scan Barcode Buku';
+    document.getElementById('scannerDescription').textContent = 'Arahkan kamera ke barcode buku';
+    document.getElementById('scannerModal').classList.remove('hidden');
+    initializeHTML5QRCodeScanner();
+});
+
+document.getElementById('closeScanner').addEventListener('click', function() {
+    closeScanner();
+});
+
+document.getElementById('cancelScan').addEventListener('click', function() {
+    closeScanner();
+});
+
+document.getElementById('startScanBtn').addEventListener('click', function() {
+    startScanning();
+});
+
+document.getElementById('stopScanBtn').addEventListener('click', function() {
+    stopScanning();
+});
+
+// Close modal when clicking outside
+document.getElementById('scannerModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeScanner();
+    }
+});
+
+// Initialize HTML5-QRCode Scanner
+function initializeHTML5QRCodeScanner() {
+    console.log('🚀 Initializing HTML5-QRCode scanner...');
+    
+    const scannerContainer = document.getElementById('scannerContainer');
+    const scannerLoading = document.getElementById('scannerLoading');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    
+    // Show loading
+    scannerLoading.classList.remove('hidden');
+    scannerPlaceholder.classList.add('hidden');
+    scannerVideo.classList.remove('hidden');
+    
+    try {
+        // Create HTML5-QRCode scanner
+        html5QrcodeScanner = new Html5Qrcode("reader");
+        
+        // Configure scanner
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            supportedScanTypes: [
+                Html5QrcodeScanType.SCAN_TYPE_CAMERA
+            ]
+        };
+        
+        // Start scanning
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            config,
+            onScanSuccess,
+            onScanFailure
+        ).then(() => {
+            console.log('📹 Scanner started successfully');
+            scannerLoading.classList.add('hidden');
+            scannerVideo.classList.remove('hidden');
+            document.getElementById('scannerStatus').textContent = 'Scanner aktif';
+            document.getElementById('startScanBtn').classList.add('hidden');
+            document.getElementById('stopScanBtn').classList.remove('hidden');
+            showNotification('Scanner HTML5-QRCode siap. Arahkan kamera ke barcode.', 'success');
+        }).catch((err) => {
+            console.error('❌ Scanner initialization error:', err);
+            scannerLoading.classList.add('hidden');
+            scannerPlaceholder.classList.remove('hidden');
+            scannerVideo.classList.add('hidden');
+            
+            if (err.name === 'NotAllowedError') {
+                showNotification('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+            } else if (err.name === 'NotFoundError') {
+                showNotification('Tidak ada kamera yang ditemukan.', 'error');
+            } else {
+                showNotification('Gagal menginisialisasi scanner: ' + err.message, 'error');
+            }
+            
+            // Fallback to manual input
+            setupManualInput();
+        });
+        
+    } catch (error) {
+        console.error('❌ HTML5-QRCode initialization error:', error);
+        scannerLoading.classList.add('hidden');
+        scannerPlaceholder.classList.remove('hidden');
+        scannerVideo.classList.add('hidden');
+        showNotification('Gagal menginisialisasi scanner: ' + error.message, 'error');
+        setupManualInput();
+    }
+}
+
+// Scan success callback
+function onScanSuccess(decodedText, decodedResult) {
+    console.log('🎉 Barcode detected:', decodedText);
+    processScannedBarcode(decodedText);
+}
+
+// Scan failure callback
+function onScanFailure(error) {
+    // Handle scan failure silently
+    console.log('⚠️ Scan failure:', error);
+}
+
+function startScanning() {
+    if (!html5QrcodeScanner) {
+        showNotification('Scanner belum siap. Silakan tunggu.', 'warning');
+        return;
+    }
+    
+    try {
+        document.getElementById('scannerStatus').textContent = 'Scanning...';
+    } catch (error) {
+        console.error('Error starting scanner:', error);
+        showNotification('Gagal memulai scanner. Silakan coba lagi.', 'error');
+    }
+}
+
+function stopScanning() {
+    if (html5QrcodeScanner) {
+        try {
+            html5QrcodeScanner.stop();
+            document.getElementById('scannerStatus').textContent = 'Scanner dihentikan';
+        } catch (error) {
+            console.error('Error stopping scanner:', error);
+        }
+    }
+}
+
+function closeScanner() {
+    try {
+        // Stop scanner if running
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop();
+        }
+        
+    } catch (error) {
+        console.error('Error stopping scanner:', error);
+    }
+    
+    document.getElementById('scannerModal').classList.add('hidden');
+    document.getElementById('startScanBtn').classList.remove('hidden');
+    document.getElementById('stopScanBtn').classList.add('hidden');
+    document.getElementById('scannerStatus').textContent = 'Siap untuk scan';
+    
+    // Reset scanner container
+    const scannerContainer = document.getElementById('scannerContainer');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerLoading = document.getElementById('scannerLoading');
+    
+    scannerLoading.classList.add('hidden');
+    scannerPlaceholder.classList.remove('hidden');
+    scannerVideo.classList.add('hidden');
+    
+    // Remove manual input button if exists
+    const manualInputBtn = document.getElementById('manualInputBtn');
+    if (manualInputBtn) {
+        manualInputBtn.remove();
+    }
+}
+
+// Manual input fallback
+function setupManualInput() {
+    console.log('Setting up manual input fallback...');
+    
+    const scannerContainer = document.getElementById('scannerContainer');
+    const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+    const scannerVideo = document.getElementById('scannerVideo');
+    const scannerLoading = document.getElementById('scannerLoading');
+    
+    // Hide video and show manual input
+    scannerVideo.classList.add('hidden');
+    scannerLoading.classList.add('hidden');
+    scannerPlaceholder.classList.remove('hidden');
+    
+    // Update placeholder content
+    scannerPlaceholder.innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-keyboard text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
+            <button type="button" onclick="showManualInputDialog()" 
+                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">
+                Input Manual
+            </button>
+        </div>
+    `;
+    
+    showNotification('Gunakan tombol "Input Manual" untuk memasukkan kode barcode.', 'info');
+}
+
+function showManualInputDialog() {
+    const barcodeInput = prompt('Masukkan kode barcode:');
+    if (barcodeInput && barcodeInput.trim()) {
+        processScannedBarcode(barcodeInput.trim());
+    }
+}
+
+// Process scanned barcode
+function processScannedBarcode(barcode) {
+    if (!currentScanType) {
+        showNotification('Tipe scan tidak valid.', 'error');
+        return;
+    }
+    
+    // Show loading in status
+    document.getElementById('scannerStatus').textContent = 'Memproses barcode...';
+    
+    if (currentScanType === 'anggota') {
+        // Search for anggota by barcode
+        fetch(`/admin/anggota/scan-barcode`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ barcode: barcode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const anggota = data.data;
+                selectAnggota({
+                    id: anggota.id,
+                    nama_lengkap: anggota.nama_lengkap,
+                    nomor_anggota: anggota.nomor_anggota,
+                    barcode_anggota: anggota.barcode_anggota,
+                    kelas: anggota.kelas ? anggota.kelas.nama_kelas : 'N/A',
+                    jenis_anggota: anggota.jenis_anggota
+                });
+                closeScanner();
+                showNotification(`Anggota ditemukan: ${anggota.nama_lengkap}`, 'success');
+            } else {
+                showNotification(data.message || 'Anggota tidak ditemukan', 'error');
+                document.getElementById('scannerStatus').textContent = 'Scan gagal - coba lagi';
+            }
+        })
+        .catch(error => {
+            console.error('Error scanning anggota:', error);
+            showNotification('Terjadi kesalahan saat scan anggota', 'error');
+            document.getElementById('scannerStatus').textContent = 'Error - coba lagi';
+        });
+        
+    } else if (currentScanType === 'buku') {
+        // Search for buku by barcode
+        fetch(`/admin/buku/scan-barcode`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ barcode: barcode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const buku = data.data;
+                selectBook({
+                    id: buku.id,
+                    judul_buku: buku.judul_buku,
+                    penulis: buku.penulis,
+                    isbn: buku.isbn,
+                    stok_tersedia: buku.stok_tersedia,
+                    kategori: buku.kategori ? buku.kategori.nama_kategori : 'N/A'
+                });
+                closeScanner();
+                showNotification(`Buku ditemukan: ${buku.judul_buku}`, 'success');
+            } else {
+                showNotification(data.message || 'Buku tidak ditemukan', 'error');
+                document.getElementById('scannerStatus').textContent = 'Scan gagal - coba lagi';
+            }
+        })
+        .catch(error => {
+            console.error('Error scanning buku:', error);
+            showNotification('Terjadi kesalahan saat scan buku', 'error');
+            document.getElementById('scannerStatus').textContent = 'Error - coba lagi';
+        });
+    }
+}
+
+// Fungsi untuk pencarian anggota dengan debounce
+const searchAnggota = debounce(function(query) {
     const dropdown = document.getElementById('anggotaDropdown');
+    currentDropdown = dropdown;
+    selectedIndex = -1;
     
     if (query.length < 2) {
         dropdown.classList.add('hidden');
         return;
     }
     
+    console.log('Searching anggota with query:', query);
+    
+    // Tampilkan loading
+    dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari...</div>';
+    dropdown.classList.remove('hidden');
+    
     // Fetch anggota dari server
-    fetch(`/peminjaman/search-anggota?query=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.data.length > 0) {
-                dropdown.innerHTML = '';
-                data.data.forEach(anggota => {
-                    const item = document.createElement('div');
-                    item.className = 'px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100';
-                    item.innerHTML = `
-                        <div class="font-medium text-gray-900">${anggota.nama_lengkap}</div>
-                        <div class="text-sm text-gray-600">${anggota.nomor_anggota} - ${anggota.kelas}</div>
-                    `;
-                    item.addEventListener('click', () => selectAnggota(anggota));
-                    dropdown.appendChild(item);
+    fetch(`/admin/peminjaman/search-anggota?query=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.data.length > 0) {
+            dropdown.innerHTML = '';
+            data.data.forEach((anggota, index) => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 transition-colors duration-150 dropdown-item';
+                item.setAttribute('data-index', index);
+                item.innerHTML = `
+                    <div class="font-medium text-gray-900">${anggota.nama_lengkap}</div>
+                    <div class="text-sm text-gray-600">${anggota.nomor_anggota} - ${anggota.kelas}</div>
+                    <div class="text-xs text-gray-500">Barcode: ${anggota.barcode_anggota || 'N/A'}</div>
+                `;
+                item.addEventListener('click', () => selectAnggota(anggota));
+                item.addEventListener('mouseenter', () => {
+                    selectedIndex = index;
+                    updateSelectedItem();
                 });
-                dropdown.classList.remove('hidden');
-            } else {
-                dropdown.classList.add('hidden');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            dropdown.classList.add('hidden');
-        });
+                dropdown.appendChild(item);
+            });
+            dropdown.classList.remove('hidden');
+        } else {
+            dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">Tidak ada anggota ditemukan</div>';
+            dropdown.classList.remove('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error searching anggota:', error);
+        dropdown.innerHTML = `<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan: ${error.message}</div>`;
+        dropdown.classList.remove('hidden');
+    });
+});
+
+// Fungsi untuk update selected item
+function updateSelectedItem() {
+    if (!currentDropdown) return;
+    
+    const items = currentDropdown.querySelectorAll('[data-index]');
+    items.forEach((item, index) => {
+        if (index === selectedIndex) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+// Event listener untuk pencarian anggota
+document.getElementById('anggota_search').addEventListener('input', function() {
+    const query = this.value.trim();
+    searchAnggota(query);
 });
 
 // Fungsi untuk memilih anggota
@@ -308,6 +730,13 @@ function selectAnggota(anggota) {
     document.getElementById('anggotaInfo').classList.remove('hidden');
     document.getElementById('anggota_search').value = anggota.nama_lengkap;
     document.getElementById('anggotaDropdown').classList.add('hidden');
+    selectedIndex = -1;
+    
+    // Update submit button
+    updateSubmitButton();
+    
+    // Tampilkan notifikasi
+    showNotification(`Anggota ${anggota.nama_lengkap} dipilih!`, 'success');
 }
 
 // Fungsi untuk clear anggota
@@ -315,44 +744,79 @@ document.getElementById('clearAnggota').addEventListener('click', function() {
     document.getElementById('anggota_id').value = '';
     document.getElementById('anggotaInfo').classList.add('hidden');
     document.getElementById('anggota_search').value = '';
+    document.getElementById('anggotaDropdown').classList.add('hidden');
+    selectedIndex = -1;
+    updateSubmitButton();
 });
 
-// Fungsi untuk pencarian buku
-document.getElementById('buku_search').addEventListener('input', function() {
-    const query = this.value.trim();
+// Fungsi untuk pencarian buku dengan debounce
+const searchBuku = debounce(function(query) {
     const dropdown = document.getElementById('bukuDropdown');
+    currentDropdown = dropdown;
+    selectedIndex = -1;
     
     if (query.length < 2) {
         dropdown.classList.add('hidden');
         return;
     }
     
+    console.log('Searching buku with query:', query);
+    
+    // Tampilkan loading
+    dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari...</div>';
+    dropdown.classList.remove('hidden');
+    
     // Fetch buku dari server
-    fetch(`/peminjaman/search-buku?query=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.data.length > 0) {
-                dropdown.innerHTML = '';
-                data.data.forEach(book => {
-                    const item = document.createElement('div');
-                    item.className = 'px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100';
-                    item.innerHTML = `
-                        <div class="font-medium text-gray-900">${book.judul_buku}</div>
-                        <div class="text-sm text-gray-600">${book.penulis || 'N/A'} - Stok: ${book.stok_tersedia}</div>
-                        <div class="text-xs text-gray-500">ISBN: ${book.isbn || 'N/A'} | Barcode: ${book.barcode_buku || 'N/A'}</div>
-                    `;
-                    item.addEventListener('click', () => selectBook(book));
-                    dropdown.appendChild(item);
+    fetch(`/admin/peminjaman/search-buku?query=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.data.length > 0) {
+            dropdown.innerHTML = '';
+            data.data.forEach((book, index) => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 transition-colors duration-150 dropdown-item';
+                item.setAttribute('data-index', index);
+                item.innerHTML = `
+                    <div class="font-medium text-gray-900">${book.judul_buku}</div>
+                    <div class="text-sm text-gray-600">${book.penulis || 'N/A'} - Stok: ${book.stok_tersedia}</div>
+                    <div class="text-xs text-gray-500">ISBN: ${book.isbn || 'N/A'} | Kategori: ${book.kategori}</div>
+                `;
+                item.addEventListener('click', () => selectBook(book));
+                item.addEventListener('mouseenter', () => {
+                    selectedIndex = index;
+                    updateSelectedItem();
                 });
-                dropdown.classList.remove('hidden');
-            } else {
-                dropdown.classList.add('hidden');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            dropdown.classList.add('hidden');
-        });
+                dropdown.appendChild(item);
+            });
+            dropdown.classList.remove('hidden');
+        } else {
+            dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">Tidak ada buku ditemukan</div>';
+            dropdown.classList.remove('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error searching buku:', error);
+        dropdown.innerHTML = `<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan: ${error.message}</div>`;
+        dropdown.classList.remove('hidden');
+    });
+});
+
+// Event listener untuk pencarian buku
+document.getElementById('buku_search').addEventListener('input', function() {
+    const query = this.value.trim();
+    searchBuku(query);
 });
 
 // Fungsi untuk memilih buku
@@ -363,24 +827,25 @@ function selectBook(book) {
     // Cek apakah buku sudah dipilih
     const existingBook = document.querySelector(`[data-book-id="${book.id}"]`);
     if (existingBook) {
-        return; // Buku sudah dipilih
+        showNotification('Buku ini sudah dipilih!', 'warning');
+        return;
     }
     
     // Cek stok
     if (book.stok_tersedia <= 0) {
-        alert('Buku tidak tersedia untuk dipinjam!');
+        showNotification('Buku tidak tersedia untuk dipinjam!', 'error');
         return;
     }
     
     // Tambah buku ke daftar yang dipilih dengan field jumlah
     const bookItem = document.createElement('div');
-    bookItem.className = 'flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200';
+    bookItem.className = 'flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors duration-150 book-item';
     bookItem.setAttribute('data-book-id', book.id);
     bookItem.innerHTML = `
         <div class="flex-1">
             <h5 class="font-semibold text-sm text-gray-900">${book.judul_buku}</h5>
             <p class="text-xs text-gray-600">${book.penulis || 'N/A'} - Stok Tersedia: ${book.stok_tersedia}</p>
-            <p class="text-xs text-gray-500">ISBN: ${book.isbn || 'N/A'}</p>
+            <p class="text-xs text-gray-500">ISBN: ${book.isbn || 'N/A'} | Kategori: ${book.kategori}</p>
         </div>
         <div class="flex items-center space-x-3">
             <div class="flex items-center space-x-2">
@@ -393,13 +858,19 @@ function selectBook(book) {
                        class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        onchange="updateTotalJumlah()">
             </div>
-            <button type="button" class="text-red-500 hover:text-red-700 ml-2" onclick="removeBook(${book.id})">
+            <button type="button" class="text-red-500 hover:text-red-700 ml-2 transition-colors duration-150" onclick="removeBook(${book.id})">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     `;
     
     selectedBooksList.appendChild(bookItem);
+    
+    // Remove default empty input if this is the first book
+    const defaultInput = document.querySelector('input[name="buku_ids[]"][value=""]');
+    if (defaultInput) {
+        defaultInput.remove();
+    }
     
     // Update input hidden
     const bookInput = document.createElement('input');
@@ -416,10 +887,14 @@ function selectBook(book) {
     // Clear search
     document.getElementById('buku_search').value = '';
     document.getElementById('bukuDropdown').classList.add('hidden');
+    selectedIndex = -1;
     
     // Update submit button
     updateSubmitButton();
     updateTotalJumlah();
+    
+    // Tampilkan notifikasi sukses
+    showNotification('Buku berhasil ditambahkan!', 'success');
 }
 
 // Fungsi untuk menghapus buku
@@ -445,9 +920,22 @@ function removeBook(bookId) {
         const currentCount = parseInt(selectedCount.textContent);
         selectedCount.textContent = currentCount - 1;
         
+        // Add back default input if no books are selected
+        if (currentCount - 1 === 0) {
+            const defaultInput = document.createElement('input');
+            defaultInput.type = 'hidden';
+            defaultInput.name = 'buku_ids[]';
+            defaultInput.value = '';
+            defaultInput.className = 'book-input';
+            document.querySelector('form').appendChild(defaultInput);
+        }
+        
         // Update submit button and total
         updateSubmitButton();
         updateTotalJumlah();
+        
+        // Tampilkan notifikasi
+        showNotification('Buku berhasil dihapus!', 'success');
     }
 }
 
@@ -471,36 +959,48 @@ function updateSubmitButton() {
     
     if (selectedCount > 0 && anggotaId) {
         submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     } else {
         submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
     }
 }
 
-// Event listeners untuk update submit button
-document.getElementById('anggota_id').addEventListener('change', updateSubmitButton);
-document.getElementById('selectedCount').addEventListener('DOMSubtreeModified', updateSubmitButton);
+// Fungsi untuk menampilkan notifikasi dengan SweetAlert2
+function showNotification(message, type = 'info') {
+    switch(type) {
+        case 'success':
+            showSuccessAlert(message);
+            break;
+        case 'error':
+            showErrorAlert(message);
+            break;
+        case 'warning':
+            showWarningAlert(message);
+            break;
+        case 'info':
+        default:
+            showInfoAlert(message);
+            break;
+    }
+}
 
-// Scanner functionality
-document.getElementById('scanAnggotaBtn').addEventListener('click', function() {
-    document.getElementById('scannerTitle').textContent = 'Scan Barcode Anggota';
-    document.getElementById('scannerDescription').textContent = 'Arahkan kamera ke barcode anggota';
-    document.getElementById('scannerModal').classList.remove('hidden');
-    // Implementasi scanner untuk anggota
-});
-
-document.getElementById('scanBukuBtn').addEventListener('click', function() {
-    document.getElementById('scannerTitle').textContent = 'Scan Barcode Buku';
-    document.getElementById('scannerDescription').textContent = 'Arahkan kamera ke barcode buku';
-    document.getElementById('scannerModal').classList.remove('hidden');
-    // Implementasi scanner untuk buku
-});
-
-document.getElementById('closeScanner').addEventListener('click', function() {
-    document.getElementById('scannerModal').classList.add('hidden');
-});
-
-document.getElementById('cancelScan').addEventListener('click', function() {
-    document.getElementById('scannerModal').classList.add('hidden');
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    const anggotaSearch = document.getElementById('anggota_search');
+    const anggotaDropdown = document.getElementById('anggotaDropdown');
+    const bukuSearch = document.getElementById('buku_search');
+    const bukuDropdown = document.getElementById('bukuDropdown');
+    
+    if (!anggotaSearch.contains(event.target) && !anggotaDropdown.contains(event.target)) {
+        anggotaDropdown.classList.add('hidden');
+        selectedIndex = -1;
+    }
+    
+    if (!bukuSearch.contains(event.target) && !bukuDropdown.contains(event.target)) {
+        bukuDropdown.classList.add('hidden');
+        selectedIndex = -1;
+    }
 });
 
 // Auto hide messages

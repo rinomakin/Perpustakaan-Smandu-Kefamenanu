@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
             generateKode();
         } else {
             // Show alert if nama peran is empty
-            alert('Silakan masukkan nama role terlebih dahulu!');
+            showWarningAlert('Silakan masukkan nama role terlebih dahulu!');
         }
     });
 

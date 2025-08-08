@@ -252,15 +252,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Rak buku berhasil dihapus');
+                showSuccessAlert('Rak buku berhasil dihapus');
                 window.location.href = '{{ route("rak-buku.index") }}';
             } else {
-                alert('Gagal menghapus rak buku: ' + data.message);
+                showErrorAlert('Gagal menghapus rak buku: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus rak buku');
+            showErrorAlert('Terjadi kesalahan saat menghapus rak buku');
         });
     };
 });

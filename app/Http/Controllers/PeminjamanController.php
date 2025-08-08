@@ -31,9 +31,16 @@ class PeminjamanController extends Controller
 
     public function store(Request $request)
     {
+        // Filter out empty values from buku_ids
+        $bukuIds = array_filter($request->buku_ids ?? [], function($id) {
+            return !empty($id);
+        });
+        
+        $request->merge(['buku_ids' => $bukuIds]);
+        
         $request->validate([
             'anggota_id' => 'required|exists:anggota,id',
-            'buku_ids' => 'required|array',
+            'buku_ids' => 'required|array|min:1',
             'buku_ids.*' => 'exists:buku,id',
             'jumlah_buku' => 'required|array',
             'jumlah_buku.*' => 'required|integer|min:1',
@@ -74,7 +81,11 @@ class PeminjamanController extends Controller
 
             // Create detail peminjaman for each book with quantity
             foreach ($request->buku_ids as $index => $buku_id) {
+                if (empty($buku_id)) continue; // Skip empty values
+                
                 $buku = Buku::find($buku_id);
+                if (!$buku) continue; // Skip if book not found
+                
                 $jumlah = $request->jumlah_buku[$buku_id] ?? 1;
                 
                 // Check if book is available
@@ -130,6 +141,8 @@ class PeminjamanController extends Controller
             'jam_kembali' => 'nullable|date_format:H:i',
             'status' => 'required|in:dipinjam,dikembalikan,terlambat',
             'catatan' => 'nullable|string',
+            'jumlah_buku' => 'nullable|array',
+            'jumlah_buku.*' => 'nullable|integer|min:1',
         ]);
 
         // Jika status diubah menjadi dikembalikan, set jam_kembali otomatis
@@ -137,10 +150,45 @@ class PeminjamanController extends Controller
             $request->merge(['jam_kembali' => now()->format('H:i')]);
         }
 
-        $peminjaman->update($request->all());
-        
-        return redirect()->route('peminjaman.index')
-            ->with('success', 'Data peminjaman berhasil diperbarui.');
+        DB::beginTransaction();
+        try {
+            // Update informasi peminjaman
+            $peminjaman->update($request->except(['jumlah_buku']));
+
+            // Handle perubahan buku yang dipinjam
+            if ($request->has('jumlah_buku')) {
+                $totalBooks = 0;
+                
+                // Update jumlah untuk buku yang ada
+                foreach ($request->jumlah_buku as $bukuId => $jumlah) {
+                    $detail = $peminjaman->detailPeminjaman()->where('buku_id', $bukuId)->first();
+                    if ($detail) {
+                        $oldJumlah = $detail->jumlah ?? 1;
+                        $newJumlah = (int) $jumlah;
+                        
+                        // Update stok buku
+                        $buku = $detail->buku;
+                        $buku->increment('stok_tersedia', $oldJumlah); // Kembalikan stok lama
+                        $buku->decrement('stok_tersedia', $newJumlah); // Kurangi stok baru
+                        
+                        // Update detail peminjaman
+                        $detail->update(['jumlah' => $newJumlah]);
+                        $totalBooks += $newJumlah;
+                    }
+                }
+                
+                // Update total jumlah buku
+                $peminjaman->update(['jumlah_buku' => $totalBooks]);
+            }
+
+            DB::commit();
+            return redirect()->route('peminjaman.show', $peminjaman->id)
+                ->with('success', 'Data peminjaman berhasil diperbarui.');
+                
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
@@ -398,17 +446,17 @@ class PeminjamanController extends Controller
             'barcode' => 'required|string'
         ]);
 
-        $buku = Buku::where('barcode_buku', $request->barcode)
+        $buku = Buku::where('barcode', $request->barcode)
                     ->where('stok_tersedia', '>', 0)
-                    ->with('kategoriBuku', 'jenisBuku')
+                    ->with('kategori', 'jenis')
                     ->first();
 
         if (!$buku) {
             // Get some example barcodes for better error message
             $exampleBarcodes = Buku::where('stok_tersedia', '>', 0)
-                                   ->whereNotNull('barcode_buku')
+                                   ->whereNotNull('barcode')
                                    ->take(3)
-                                   ->pluck('barcode_buku')
+                                   ->pluck('barcode')
                                    ->toArray();
             
             $message = 'Buku dengan barcode "' . $request->barcode . '" tidak ditemukan atau stok habis.';
@@ -427,12 +475,12 @@ class PeminjamanController extends Controller
             'data' => [
                 'id' => $buku->id,
                 'judul_buku' => $buku->judul_buku,
-                'barcode_buku' => $buku->barcode_buku,
+                'barcode_buku' => $buku->barcode,
                 'isbn' => $buku->isbn,
                 'stok_tersedia' => $buku->stok_tersedia,
                 'penulis' => $buku->penulis ?? 'N/A',
                 'penerbit' => $buku->penerbit ?? 'N/A',
-                'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
+                'kategori' => $buku->kategori ? $buku->kategori->nama_kategori : 'N/A'
             ]
         ]);
     }
@@ -451,21 +499,21 @@ class PeminjamanController extends Controller
         $errors = [];
 
         foreach ($request->barcodes as $barcode) {
-            $buku = Buku::where('barcode_buku', $barcode)
+            $buku = Buku::where('barcode', $barcode)
                         ->where('stok_tersedia', '>', 0)
-                        ->with('kategoriBuku', 'jenisBuku')
+                        ->with('kategori', 'jenis')
                         ->first();
 
             if ($buku) {
                 $bukuList[] = [
                     'id' => $buku->id,
                     'judul_buku' => $buku->judul_buku,
-                    'barcode_buku' => $buku->barcode_buku,
+                    'barcode_buku' => $buku->barcode,
                     'isbn' => $buku->isbn,
                     'stok_tersedia' => $buku->stok_tersedia,
                     'penulis' => $buku->penulis ?? 'N/A',
                     'penerbit' => $buku->penerbit ?? 'N/A',
-                    'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
+                    'kategori' => $buku->kategori ? $buku->kategori->nama_kategori : 'N/A'
                 ];
             } else {
                 $errors[] = "Buku dengan barcode {$barcode} tidak ditemukan atau stok habis";
@@ -484,38 +532,44 @@ class PeminjamanController extends Controller
      */
     public function searchAnggota(Request $request)
     {
-        $request->validate([
-            'query' => 'required|string|min:2'
-        ]);
+        try {
+            $request->validate([
+                'query' => 'required|string|min:2'
+            ]);
 
-        $query = $request->query;
-        
-        $anggota = Anggota::where('status', 'aktif')
-                          ->where(function($q) use ($query) {
-                              $q->where('nama_lengkap', 'LIKE', "%{$query}%")
-                                ->orWhere('nomor_anggota', 'LIKE', "%{$query}%")
-                                ->orWhere('nisn', 'LIKE', "%{$query}%")
-                                ->orWhere('barcode_anggota', 'LIKE', "%{$query}%");
-                          })
-                          ->with('kelas')
-                          ->take(10)
-                          ->get()
-                          ->map(function($anggota) {
-                              return [
-                                  'id' => $anggota->id,
-                                  'nama_lengkap' => $anggota->nama_lengkap,
-                                  'nomor_anggota' => $anggota->nomor_anggota,
-                                  'nisn' => $anggota->nisn,
-                                  'barcode_anggota' => $anggota->barcode_anggota,
-                                  'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
-                                  'jenis_anggota' => $anggota->jenis_anggota
-                              ];
-                          });
+            $query = $request->get('query');
+            
+            $anggota = Anggota::where('status', 'aktif')
+                              ->where(function($q) use ($query) {
+                                  $q->where('nama_lengkap', 'LIKE', "%{$query}%")
+                                    ->orWhere('nomor_anggota', 'LIKE', "%{$query}%")
+                                    ->orWhere('barcode_anggota', 'LIKE', "%{$query}%");
+                              })
+                              ->with('kelas')
+                              ->take(10)
+                              ->get()
+                              ->map(function($anggota) {
+                                  return [
+                                      'id' => $anggota->id,
+                                      'nama_lengkap' => $anggota->nama_lengkap,
+                                      'nomor_anggota' => $anggota->nomor_anggota,
+                                      'barcode_anggota' => $anggota->barcode_anggota,
+                                      'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
+                                      'jenis_anggota' => $anggota->jenis_anggota
+                                  ];
+                              });
 
-        return response()->json([
-            'success' => true,
-            'data' => $anggota
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $anggota
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in searchAnggota: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mencari anggota: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -523,38 +577,46 @@ class PeminjamanController extends Controller
      */
     public function searchBuku(Request $request)
     {
-        $request->validate([
-            'query' => 'required|string|min:2'
-        ]);
+        try {
+            $request->validate([
+                'query' => 'required|string|min:2'
+            ]);
 
-        $query = $request->query;
-        
-        $buku = Buku::where('stok_tersedia', '>', 0)
-                    ->where(function($q) use ($query) {
-                        $q->where('judul_buku', 'LIKE', "%{$query}%")
-                          ->orWhere('penulis', 'LIKE', "%{$query}%")
-                          ->orWhere('isbn', 'LIKE', "%{$query}%")
-                          ->orWhere('barcode_buku', 'LIKE', "%{$query}%");
-                    })
-                    ->with('kategoriBuku', 'jenisBuku')
-                    ->take(10)
-                    ->get()
-                    ->map(function($buku) {
-                        return [
-                            'id' => $buku->id,
-                            'judul_buku' => $buku->judul_buku,
-                            'penulis' => $buku->penulis ?? 'N/A',
-                            'penerbit' => $buku->penerbit ?? 'N/A',
-                            'isbn' => $buku->isbn ?? 'N/A',
-                            'barcode_buku' => $buku->barcode_buku ?? 'N/A',
-                            'stok_tersedia' => $buku->stok_tersedia,
-                            'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
-                        ];
-                    });
+            $query = $request->get('query');
+            
+            $buku = Buku::where('stok_tersedia', '>', 0)
+                        ->where(function($q) use ($query) {
+                            $q->where('judul_buku', 'LIKE', "%{$query}%")
+                              ->orWhere('penulis', 'LIKE', "%{$query}%")
+                              ->orWhere('isbn', 'LIKE', "%{$query}%")
+                              ->orWhere('barcode', 'LIKE', "%{$query}%");
+                        })
+                        ->with('kategori', 'jenis')
+                        ->take(10)
+                        ->get()
+                        ->map(function($buku) {
+                            return [
+                                'id' => $buku->id,
+                                'judul_buku' => $buku->judul_buku,
+                                'penulis' => $buku->penulis ?? 'N/A',
+                                'penerbit' => $buku->penerbit ?? 'N/A',
+                                'isbn' => $buku->isbn ?? 'N/A',
+                                'barcode_buku' => $buku->barcode ?? 'N/A',
+                                'stok_tersedia' => $buku->stok_tersedia,
+                                'kategori' => $buku->kategori ? $buku->kategori->nama_kategori : 'N/A'
+                            ];
+                        });
 
-        return response()->json([
-            'success' => true,
-            'data' => $buku
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $buku
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in searchBuku: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mencari buku: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

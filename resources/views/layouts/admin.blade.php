@@ -15,6 +15,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Navbar and dropdown styles */
         .group:hover .group-hover\:opacity-100 {
@@ -220,6 +222,11 @@
                                     <i class="fas fa-undo w-5"></i>
                                     <span>Pengembalian</span>
                                 </a>
+                                <a href="" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                    <i class="fas fa-undo w-5"></i>
+                                    <span>Riwayat Transaksi</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -384,6 +391,11 @@
                         <i class="fas fa-undo w-5"></i>
                         <span>Pengembalian</span>
                     </a>
+                    <a href=""
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-undo w-5"></i>
+                        <span>Riwayat Transaksi</span>
+                    </a>
                 </div>
                 
                 <!-- Mobile Laporan -->
@@ -440,24 +452,106 @@
         <!-- Page Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {{ session('error') }}
-                </div>
-            @endif
+            <!-- Session notifications will be handled by SweetAlert2 -->
 
             @yield('content')
         </div>
     </div>
 
-    <!-- JavaScript untuk navbar dan mobile menu -->
+    <!-- SweetAlert2 Helper Functions -->
     <script>
+        // SweetAlert2 Helper Functions
+        function showSuccessAlert(message, title = 'Berhasil!') {
+            Swal.fire({
+                icon: 'success',
+                title: title,
+                text: message,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showErrorAlert(message, title = 'Error!') {
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: message,
+                timer: 4000,
+                timerProgressBar: true,
+                showConfirmButton: true
+            });
+        }
+
+        function showWarningAlert(message, title = 'Peringatan!') {
+            Swal.fire({
+                icon: 'warning',
+                title: title,
+                text: message,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showInfoAlert(message, title = 'Informasi!') {
+            Swal.fire({
+                icon: 'info',
+                title: title,
+                text: message,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showConfirmDialog(message, title = 'Konfirmasi', callback) {
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed && callback) {
+                    callback();
+                }
+            });
+        }
+
+        // Session notifications handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle session success messages
+            @if(session('success'))
+                showSuccessAlert('{{ session('success') }}');
+            @endif
+
+            // Handle session error messages
+            @if(session('error'))
+                showErrorAlert('{{ session('error') }}');
+            @endif
+
+            // Handle session warning messages
+            @if(session('warning'))
+                showWarningAlert('{{ session('warning') }}');
+            @endif
+
+            // Handle session info messages
+            @if(session('info'))
+                showInfoAlert('{{ session('info') }}');
+            @endif
+        });
+
+        // JavaScript untuk navbar dan mobile menu
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');

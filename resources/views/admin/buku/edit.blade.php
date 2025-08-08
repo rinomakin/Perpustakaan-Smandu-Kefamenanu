@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!isValid) {
             e.preventDefault();
-            alert('Mohon lengkapi semua field yang wajib diisi');
+            showWarningAlert('Mohon lengkapi semua field yang wajib diisi');
         }
     });
 
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Reload page to show updated barcode
                     window.location.reload();
                 } else {
-                    alert('Gagal generate barcode: ' + data.message);
+                    showErrorAlert('Gagal generate barcode: ' + data.message);
                     // Reset button
                     this.innerHTML = '<i class="fas fa-magic mr-1"></i>Generate';
                     this.disabled = false;
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Terjadi kesalahan saat generate barcode');
+                showErrorAlert('Terjadi kesalahan saat generate barcode');
                 // Reset button
                 this.innerHTML = '<i class="fas fa-magic mr-1"></i>Generate';
                 this.disabled = false;
