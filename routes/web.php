@@ -87,18 +87,20 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::get('/anggota/import-stats', [AnggotaController::class, 'getImportStats'])->name('anggota.import-stats');
     Route::resource('anggota', AnggotaController::class);
     
-    // CRUD Buku
-    Route::resource('buku', BukuController::class);
-    Route::post('/buku/generate-barcode', [BukuController::class, 'generateBarcode'])->name('buku.generate-barcode');
-    Route::post('/buku/generate-multiple-barcode', [BukuController::class, 'generateMultipleBarcode'])->name('buku.generate-multiple-barcode');
-    Route::get('/buku/{id}/print-barcode', [BukuController::class, 'printBarcode'])->name('buku.print-barcode');
-Route::get('/buku/{id}/cetak-barcode', [BukuController::class, 'cetakBarcode'])->name('buku.cetak-barcode');
-    Route::post('/buku/print-multiple-barcode', [BukuController::class, 'printMultipleBarcode'])->name('buku.print-multiple-barcode');
+    // CRUD Buku - Routes khusus harus ditempatkan sebelum resource route
     Route::get('/buku/export', [BukuController::class, 'export'])->name('buku.export');
     Route::get('/buku/download-template', [BukuController::class, 'downloadTemplate'])->name('buku.download-template');
     Route::post('/buku/import', [BukuController::class, 'import'])->name('buku.import');
+    Route::post('/buku/generate-barcode', [BukuController::class, 'generateBarcode'])->name('buku.generate-barcode');
+    Route::post('/buku/generate-multiple-barcode', [BukuController::class, 'generateMultipleBarcode'])->name('buku.generate-multiple-barcode');
+    Route::get('/buku/{id}/print-barcode', [BukuController::class, 'printBarcode'])->name('buku.print-barcode');
+    Route::get('/buku/{id}/cetak-barcode', [BukuController::class, 'cetakBarcode'])->name('buku.cetak-barcode');
+    Route::post('/buku/print-multiple-barcode', [BukuController::class, 'printMultipleBarcode'])->name('buku.print-multiple-barcode');
     Route::post('/buku/scan-barcode', [BukuController::class, 'scanBarcode'])->name('buku.scan-barcode');
     Route::delete('/buku/destroy-multiple', [BukuController::class, 'destroyMultiple'])->name('buku.destroy-multiple');
+    
+    // Resource route harus di bawah routes khusus
+    Route::resource('buku', BukuController::class);
     
     // CRUD Jurusan
     Route::resource('jurusan', JurusanController::class);
@@ -109,6 +111,7 @@ Route::get('/buku/{id}/cetak-barcode', [BukuController::class, 'cetakBarcode'])-
     
     // CRUD Kategori Buku
     Route::resource('kategori-buku', KategoriBukuController::class);
+    Route::post('/kategori-buku/generate-kode', [KategoriBukuController::class, 'generateKode'])->name('kategori-buku.generate-kode');
     Route::delete('/kategori-buku/destroy-multiple', [KategoriBukuController::class, 'destroyMultiple'])->name('kategori-buku.destroy-multiple');
     
     // CRUD Jenis Buku
@@ -117,6 +120,8 @@ Route::get('/buku/{id}/cetak-barcode', [BukuController::class, 'cetakBarcode'])-
     Route::post('/jenis-buku/bulk-delete', [JenisBukuController::class, 'bulkDelete'])->name('jenis-buku.bulk-delete');
     
     // CRUD Sumber Buku
+    Route::post('/sumber-buku/generate-kode', [SumberBukuController::class, 'generateKode'])->name('sumber-buku.generate-kode');
+    Route::delete('/sumber-buku/destroy-multiple', [SumberBukuController::class, 'destroyMultiple'])->name('sumber-buku.destroy-multiple');
     Route::resource('sumber-buku', SumberBukuController::class);
     
     // CRUD Rak Buku
@@ -136,6 +141,12 @@ Route::get('/buku/{id}/cetak-barcode', [BukuController::class, 'cetakBarcode'])-
     Route::post('/peminjaman/scan-anggota', [PeminjamanController::class, 'scanAnggota'])->name('peminjaman.scan-anggota');
     Route::post('/peminjaman/scan-buku', [PeminjamanController::class, 'scanBuku'])->name('peminjaman.scan-buku');
     Route::post('/peminjaman/scan-multiple-buku', [PeminjamanController::class, 'scanMultipleBuku'])->name('peminjaman.scan-multiple-buku');
+    
+    // CRUD Pengembalian
+    Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
+    Route::get('/pengembalian/search-anggota', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])->name('pengembalian.search-anggota');
+    Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
+    Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
     
     // CRUD Denda
     Route::resource('denda', DendaController::class);

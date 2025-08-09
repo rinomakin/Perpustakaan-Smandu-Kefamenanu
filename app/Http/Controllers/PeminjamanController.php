@@ -31,17 +31,11 @@ class PeminjamanController extends Controller
 
     public function store(Request $request)
     {
-        // Filter out empty values from buku_ids
-        $bukuIds = array_filter($request->buku_ids ?? [], function($id) {
-            return !empty($id);
-        });
-        
-        $request->merge(['buku_ids' => $bukuIds]);
-        
+        // Validate all fields including books
         $request->validate([
             'anggota_id' => 'required|exists:anggota,id',
             'buku_ids' => 'required|array|min:1',
-            'buku_ids.*' => 'exists:buku,id',
+            'buku_ids.*' => 'required|exists:buku,id',
             'jumlah_buku' => 'required|array',
             'jumlah_buku.*' => 'required|integer|min:1',
             'tanggal_peminjaman' => 'required|date',
@@ -49,6 +43,11 @@ class PeminjamanController extends Controller
             'tanggal_harus_kembali' => 'required|date|after:tanggal_peminjaman',
             'jam_kembali' => 'nullable|date_format:H:i',
             'catatan' => 'nullable|string',
+        ], [
+            'buku_ids.required' => 'Pilih minimal 1 buku untuk dipinjam.',
+            'buku_ids.min' => 'Pilih minimal 1 buku untuk dipinjam.',
+            'buku_ids.*.required' => 'ID buku tidak boleh kosong.',
+            'buku_ids.*.exists' => 'Buku yang dipilih tidak valid.',
         ]);
 
         // Custom validation for jam_kembali

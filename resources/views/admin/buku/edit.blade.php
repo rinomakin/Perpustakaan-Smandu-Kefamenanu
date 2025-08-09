@@ -119,10 +119,10 @@
                             <label for="rak_id" class="block text-sm font-medium text-gray-700 mb-2">Rak Buku</label>
                             <select id="rak_id" name="rak_id"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('rak_id') border-red-500 @enderror">
-                                <option value="">Pilih Rak Buku (Opsional)</option>
+                                <option value="">Pilih Rak Buku </option>
                                 @foreach($rakBuku as $rak)
                                     <option value="{{ $rak->id }}" {{ old('rak_id', $buku->rak_id) == $rak->id ? 'selected' : '' }}>
-                                        {{ $rak->nama_rak }} ({{ $rak->kode_rak }}) - {{ $rak->lokasi ?? 'Lokasi tidak ditentukan' }}
+                                        {{ $rak->nama_rak }}  - {{ $rak->lokasi ?? 'Lokasi tidak ditentukan' }}
                                     </option>
                                 @endforeach
                             </select>

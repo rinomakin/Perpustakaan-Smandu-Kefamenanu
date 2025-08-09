@@ -3,6 +3,7 @@
 @section('title', 'Data Buku')
 
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
     .line-clamp-2 {
         display: -webkit-box;
@@ -441,6 +442,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Delete selected books
     window.deleteSelected = function() {
         const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
+        console.log('Selected IDs for deletion:', selectedIds);
+        
         if (selectedIds.length === 0) {
             showWarningAlert('Pilih buku yang akan dihapus');
             return;
@@ -450,29 +453,54 @@ document.addEventListener('DOMContentLoaded', function() {
             `Yakin ingin menghapus ${selectedIds.length} buku yang dipilih?`,
             'Konfirmasi Hapus Buku',
             function() {
+                console.log('Bulk delete confirmed for IDs:', selectedIds);
                 showLoading();
+                
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (!csrfToken) {
+                    hideLoading();
+                    showErrorAlert('CSRF token tidak ditemukan');
+                    return;
+                }
+                
                 fetch('{{ route("buku.destroy-multiple") }}', {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ buku_ids: selectedIds })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Bulk delete response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     hideLoading();
+                    console.log('Bulk delete response:', data);
+                    
                     if (data.success) {
-                        showSuccessAlert('Berhasil menghapus ' + data.count + ' buku');
-                        location.reload();
+                        let message = `Berhasil menghapus ${data.count} buku`;
+                        if (data.errors && data.errors.length > 0) {
+                            message += `\n\nBeberapa buku tidak dapat dihapus:\n${data.errors.slice(0, 3).join('\n')}`;
+                            if (data.errors.length > 3) {
+                                message += `\n... dan ${data.errors.length - 3} error lainnya`;
+                            }
+                        }
+                        showSuccessAlert(message);
+                        setTimeout(() => location.reload(), 2000);
                     } else {
-                        showErrorAlert('Gagal menghapus buku: ' + data.message);
+                        showErrorAlert('Gagal menghapus buku: ' + (data.message || 'Unknown error'));
                     }
                 })
                 .catch(error => {
                     hideLoading();
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menghapus buku');
+                    console.error('Bulk delete error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menghapus buku: ' + error.message);
                 });
             }
         );
@@ -527,31 +555,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // SweetAlert2 Functions for Book Management
 function confirmDeleteBuku(id) {
+    console.log('Attempting to delete book with ID:', id);
+    
+    if (!id) {
+        showErrorAlert('ID buku tidak valid');
+        return;
+    }
+    
     showConfirmDialog(
         'Yakin ingin menghapus buku ini?',
         'Konfirmasi Hapus Buku',
         function() {
+            console.log('Delete confirmed for book ID:', id);
             showLoading();
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (!csrfToken) {
+                hideLoading();
+                showErrorAlert('CSRF token tidak ditemukan');
+                return;
+            }
+            
             fetch(`/admin/buku/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 hideLoading();
+                console.log('Delete response:', data);
                 if (data.success) {
                     showSuccessAlert('Buku berhasil dihapus');
-                    location.reload();
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    showErrorAlert('Gagal menghapus buku: ' + data.message);
+                    showErrorAlert('Gagal menghapus buku: ' + (data.message || 'Unknown error'));
                 }
             })
             .catch(error => {
                 hideLoading();
-                console.error('Error:', error);
-                showErrorAlert('Terjadi kesalahan saat menghapus buku');
+                console.error('Delete error:', error);
+                showErrorAlert('Terjadi kesalahan saat menghapus buku: ' + error.message);
             });
         }
     );

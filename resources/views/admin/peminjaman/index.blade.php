@@ -5,18 +5,7 @@
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Peminjaman Buku</h1>
-                    <p class="text-gray-600 mt-1">Kelola data peminjaman buku</p>
-                </div>
-                <a href="{{ route('peminjaman.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold">
-                    <i class="fas fa-plus mr-2"></i>Tambah Peminjaman
-                </a>
-            </div>
-        </div>
+
 
         <!-- Content -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">

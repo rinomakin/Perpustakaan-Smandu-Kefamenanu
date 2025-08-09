@@ -152,25 +152,25 @@
                                 
                                 <a href="{{ route('jenis-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('jenis-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-list w-5"></i>
+                                    <i class="fas fa-book w-5"></i>
                                     <span>Jenis Buku</span>
                                 </a>
                                 
                                 <a href="{{ route('kategori-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('kategori-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-tags w-5"></i>
+                                    <i class="fas fa-book w-5"></i>
                                     <span>Kategori Buku</span>
                                 </a>
 
                                 <a href="{{ route('rak-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('rak-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-bookshelf w-5"></i>
+                                    <i class="fas fa-book w-5"></i>
                                     <span>Rak Buku</span>
                                 </a>
                                 
                                 <a href="{{ route('sumber-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('sumber-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-source w-5"></i>
+                                    <i class="fas fa-book w-5"></i>
                                     <span>Sumber Buku</span>
                                 </a>
                                 
@@ -217,8 +217,8 @@
                                     <span>Peminjaman</span>
                                 </a>
                                 
-                                <a href="" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                <a href="{{ route('pengembalian.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-undo w-5"></i>
                                     <span>Pengembalian</span>
                                 </a>

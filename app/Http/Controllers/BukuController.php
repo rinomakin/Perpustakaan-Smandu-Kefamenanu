@@ -427,11 +427,33 @@ class BukuController extends Controller
 
     public function destroy($id)
     {
-        $buku = Buku::findOrFail($id);
-        $buku->delete();
-        
-        return redirect()->route('buku.index')
-            ->with('success', 'Data buku berhasil dihapus.');
+        try {
+            $buku = Buku::findOrFail($id);
+            
+            // Check if book is being borrowed
+            $isBeingBorrowed = \App\Models\DetailPeminjaman::whereHas('peminjaman', function($query) {
+                $query->where('status', 'dipinjam');
+            })->where('buku_id', $id)->exists();
+            
+            if ($isBeingBorrowed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Buku tidak dapat dihapus karena sedang dipinjam'
+                ]);
+            }
+            
+            $buku->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data buku berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function destroyMultiple(Request $request)
@@ -452,10 +474,19 @@ class BukuController extends Controller
                 
                 if ($buku) {
                     try {
-                        $buku->delete();
-                        $deletedCount++;
+                        // Check if book is being borrowed
+                        $isBeingBorrowed = \App\Models\DetailPeminjaman::whereHas('peminjaman', function($query) {
+                            $query->where('status', 'dipinjam');
+                        })->where('buku_id', $bukuId)->exists();
+                        
+                        if ($isBeingBorrowed) {
+                            $errors[] = "Buku '{$buku->judul_buku}' sedang dipinjam dan tidak dapat dihapus";
+                        } else {
+                            $buku->delete();
+                            $deletedCount++;
+                        }
                     } catch (\Exception $e) {
-                        $errors[] = "Gagal menghapus buku: {$buku->judul_buku}";
+                        $errors[] = "Gagal menghapus buku '{$buku->judul_buku}': " . $e->getMessage();
                     }
                 }
             }

@@ -66,7 +66,7 @@
                 <h3 class="text-lg font-semibold text-white">Form Peminjaman Buku</h3>
             </div>
             
-            <form action="{{ route('peminjaman.store') }}" method="POST" class="p-6">
+            <form action="{{ route('peminjaman.store') }}" method="POST" class="p-6" onsubmit="return validateForm()">
                 @csrf
                 
                 <!-- Informasi Peminjaman -->
@@ -227,9 +227,20 @@
                         </div>
                     </div>
 
-                    <!-- Hidden inputs untuk buku yang dipilih akan ditambahkan secara dinamis -->
-                    <!-- Default hidden input untuk memastikan field selalu ada -->
-                    <input type="hidden" name="buku_ids[]" value="" class="book-input">
+                    <!-- Hidden inputs untuk buku yang dipilih -->
+                    <div id="hiddenBookInputs">
+                        <!-- Input hidden akan ditambahkan di sini oleh JavaScript -->
+                    </div>
+                    
+                    <!-- Fallback: manual input for testing -->
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" id="manualBookInput" style="display: none;">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Debug: Manual Book Input</h4>
+                        <div class="flex space-x-2">
+                            <input type="number" id="manual_book_id" placeholder="Book ID" class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            <button type="button" onclick="addManualBook()" class="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">Add</button>
+                            <button type="button" onclick="toggleManualInput()" class="px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Toggle Debug</button>
+                        </div>
+                    </div>
                     
                     @error('buku_ids')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -866,11 +877,7 @@ function selectBook(book) {
     
     selectedBooksList.appendChild(bookItem);
     
-    // Remove default empty input if this is the first book
-    const defaultInput = document.querySelector('input[name="buku_ids[]"][value=""]');
-    if (defaultInput) {
-        defaultInput.remove();
-    }
+    // No need to remove default input since it doesn't exist anymore
     
     // Update input hidden
     const bookInput = document.createElement('input');
@@ -878,7 +885,18 @@ function selectBook(book) {
     bookInput.name = 'buku_ids[]';
     bookInput.value = book.id;
     bookInput.className = 'book-input';
-    document.querySelector('form').appendChild(bookInput);
+    bookInput.setAttribute('data-book-id', book.id);
+    
+    // Add to specific container
+    const hiddenContainer = document.getElementById('hiddenBookInputs');
+    hiddenContainer.appendChild(bookInput);
+    
+    console.log('Book input created:', {
+        id: book.id,
+        name: bookInput.name,
+        value: bookInput.value,
+        totalInputs: document.querySelectorAll('input[name="buku_ids[]"]').length
+    });
     
     // Update counter
     const currentCount = parseInt(selectedCount.textContent);
@@ -904,9 +922,15 @@ function removeBook(bookId) {
         bookItem.remove();
         
         // Remove input hidden
-        const bookInput = document.querySelector(`input[name="buku_ids[]"][value="${bookId}"]`);
+        const bookInput = document.querySelector(`input[data-book-id="${bookId}"]`);
         if (bookInput) {
             bookInput.remove();
+            console.log('Book input removed:', {
+                bookId: bookId,
+                remainingInputs: document.querySelectorAll('input[name="buku_ids[]"]').length
+            });
+        } else {
+            console.warn('Book input not found for removal:', bookId);
         }
         
         // Remove jumlah input
@@ -920,15 +944,7 @@ function removeBook(bookId) {
         const currentCount = parseInt(selectedCount.textContent);
         selectedCount.textContent = currentCount - 1;
         
-        // Add back default input if no books are selected
-        if (currentCount - 1 === 0) {
-            const defaultInput = document.createElement('input');
-            defaultInput.type = 'hidden';
-            defaultInput.name = 'buku_ids[]';
-            defaultInput.value = '';
-            defaultInput.className = 'book-input';
-            document.querySelector('form').appendChild(defaultInput);
-        }
+        // No need to add back default input
         
         // Update submit button and total
         updateSubmitButton();
@@ -1021,5 +1037,95 @@ setTimeout(function() {
 
 // Initialize submit button state
 updateSubmitButton();
+
+// Form validation before submit
+function validateForm() {
+    const anggotaId = document.getElementById('anggota_id').value;
+    const selectedCount = parseInt(document.getElementById('selectedCount').textContent);
+    const bookInputs = document.querySelectorAll('#hiddenBookInputs input[name="buku_ids[]"]');
+    
+    console.log('Form Validation:', {
+        anggotaId: anggotaId,
+        selectedCount: selectedCount,
+        bookInputsLength: bookInputs.length,
+        bookInputsValues: Array.from(bookInputs).map(input => input.value)
+    });
+    
+    // Validate anggota
+    if (!anggotaId || anggotaId === '') {
+        alert('Pilih anggota terlebih dahulu!');
+        return false;
+    }
+    
+    // Validate books - check actual hidden inputs
+    if (bookInputs.length === 0) {
+        alert('Pilih minimal 1 buku untuk dipinjam!');
+        return false;
+    }
+    
+    // Check if all book inputs have valid values
+    const validBookInputs = Array.from(bookInputs).filter(input => 
+        input.value && input.value !== '' && input.value !== null && !isNaN(input.value)
+    );
+    
+    if (validBookInputs.length === 0) {
+        alert('Tidak ada buku yang valid dipilih!');
+        return false;
+    }
+    
+    console.log('Form validation passed!', validBookInputs.length, 'valid books');
+    return true;
+}
+
+// Debug functions
+function toggleManualInput() {
+    const manualInput = document.getElementById('manualBookInput');
+    if (manualInput.style.display === 'none') {
+        manualInput.style.display = 'block';
+    } else {
+        manualInput.style.display = 'none';
+    }
+}
+
+function addManualBook() {
+    const bookId = document.getElementById('manual_book_id').value;
+    if (bookId && !isNaN(bookId)) {
+        const hiddenContainer = document.getElementById('hiddenBookInputs');
+        
+        // Check if already exists
+        const existing = document.querySelector(`input[data-book-id="${bookId}"]`);
+        if (existing) {
+            alert('Book ID ' + bookId + ' already added');
+            return;
+        }
+        
+        // Create hidden input
+        const bookInput = document.createElement('input');
+        bookInput.type = 'hidden';
+        bookInput.name = 'buku_ids[]';
+        bookInput.value = bookId;
+        bookInput.setAttribute('data-book-id', bookId);
+        hiddenContainer.appendChild(bookInput);
+        
+        // Create quantity input
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'hidden';
+        qtyInput.name = 'jumlah_buku[' + bookId + ']';
+        qtyInput.value = '1';
+        hiddenContainer.appendChild(qtyInput);
+        
+        // Update display
+        const selectedCount = document.getElementById('selectedCount');
+        selectedCount.textContent = parseInt(selectedCount.textContent) + 1;
+        
+        // Clear input
+        document.getElementById('manual_book_id').value = '';
+        
+        console.log('Manual book added:', bookId);
+        alert('Book ID ' + bookId + ' added successfully');
+    } else {
+        alert('Please enter a valid book ID');
+    }
+}
 </script>
 @endsection 

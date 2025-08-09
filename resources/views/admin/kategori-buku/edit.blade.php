@@ -46,6 +46,27 @@
                     @enderror
                 </div>
 
+                <!-- Category Code -->
+                <div>
+                    <label for="kode_kategori" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kode Kategori
+                        <span class="text-gray-500 text-sm">(Opsional)</span>
+                    </label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="kode_kategori" name="kode_kategori" value="{{ old('kode_kategori', $kategoriBuku->kode_kategori) }}" maxlength="10"
+                               class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('kode_kategori') border-red-500 @enderror"
+                               placeholder="Contoh: FIK, NFIK, PEND">
+                        <button type="button" onclick="generateKode()" 
+                                class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-all duration-200">
+                            <i class="fas fa-magic"></i>
+                        </button>
+                    </div>
+                    @error('kode_kategori')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-1 text-xs text-gray-500">Kode kategori untuk identifikasi singkat</p>
+                </div>
+
                 <!-- Description -->
                 <div>
                     <label for="deskripsi" class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
@@ -147,5 +168,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Generate kode kategori
+function generateKode() {
+    const namaKategori = document.getElementById('nama_kategori').value;
+    const kodeInput = document.getElementById('kode_kategori');
+    
+    if (!namaKategori.trim()) {
+        showWarningAlert('Masukkan nama kategori terlebih dahulu');
+        return;
+    }
+    
+    // Show loading state
+    const button = event.target;
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+    
+    fetch('{{ route("kategori-buku.generate-kode") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            nama_kategori: namaKategori
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            kodeInput.value = data.kode_kategori;
+            showSuccessAlert('Kode kategori berhasil digenerate: ' + data.kode_kategori);
+        } else {
+            showErrorAlert('Gagal generate kode kategori');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorAlert('Terjadi kesalahan saat generate kode');
+    })
+    .finally(() => {
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+    });
+}
 </script>
 @endsection 
