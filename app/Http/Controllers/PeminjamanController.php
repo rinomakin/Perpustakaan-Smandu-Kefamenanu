@@ -40,14 +40,16 @@ class PeminjamanController extends Controller
             'jumlah_buku.*' => 'required|integer|min:1',
             'tanggal_peminjaman' => 'required|date',
             'jam_peminjaman' => 'nullable|date_format:H:i',
-            'tanggal_harus_kembali' => 'required|date|after:tanggal_peminjaman',
-            'jam_kembali' => 'nullable|date_format:H:i',
+            'tanggal_harus_kembali' => 'required|date|after_or_equal:tanggal_peminjaman',
+            'jam_kembali' => 'required|date_format:H:i',
             'catatan' => 'nullable|string',
         ], [
             'buku_ids.required' => 'Pilih minimal 1 buku untuk dipinjam.',
             'buku_ids.min' => 'Pilih minimal 1 buku untuk dipinjam.',
             'buku_ids.*.required' => 'ID buku tidak boleh kosong.',
             'buku_ids.*.exists' => 'Buku yang dipilih tidak valid.',
+            'tanggal_harus_kembali.after_or_equal' => 'Tanggal kembali tidak boleh kurang dari tanggal pinjam.',
+            'jam_kembali.required' => 'Jam kembali wajib diisi.',
         ]);
 
         // Custom validation for jam_kembali
@@ -136,12 +138,15 @@ class PeminjamanController extends Controller
             'anggota_id' => 'required|exists:anggota,id',
             'tanggal_peminjaman' => 'required|date',
             'jam_peminjaman' => 'nullable|date_format:H:i',
-            'tanggal_harus_kembali' => 'required|date|after:tanggal_peminjaman',
-            'jam_kembali' => 'nullable|date_format:H:i',
+            'tanggal_harus_kembali' => 'required|date|after_or_equal:tanggal_peminjaman',
+            'jam_kembali' => 'required|date_format:H:i',
             'status' => 'required|in:dipinjam,dikembalikan,terlambat',
             'catatan' => 'nullable|string',
             'jumlah_buku' => 'nullable|array',
             'jumlah_buku.*' => 'nullable|integer|min:1',
+        ], [
+            'tanggal_harus_kembali.after_or_equal' => 'Tanggal kembali tidak boleh kurang dari tanggal pinjam.',
+            'jam_kembali.required' => 'Jam kembali wajib diisi.',
         ]);
 
         // Jika status diubah menjadi dikembalikan, set jam_kembali otomatis
@@ -586,23 +591,23 @@ class PeminjamanController extends Controller
             $buku = Buku::where('stok_tersedia', '>', 0)
                         ->where(function($q) use ($query) {
                             $q->where('judul_buku', 'LIKE', "%{$query}%")
-                              ->orWhere('penulis', 'LIKE', "%{$query}%")
+                              ->orWhere('pengarang', 'LIKE', "%{$query}%")
                               ->orWhere('isbn', 'LIKE', "%{$query}%")
                               ->orWhere('barcode', 'LIKE', "%{$query}%");
                         })
-                        ->with('kategori', 'jenis')
+                        ->with('kategoriBuku', 'jenisBuku')
                         ->take(10)
                         ->get()
                         ->map(function($buku) {
                             return [
                                 'id' => $buku->id,
                                 'judul_buku' => $buku->judul_buku,
-                                'penulis' => $buku->penulis ?? 'N/A',
+                                'penulis' => $buku->pengarang ?? 'N/A',
                                 'penerbit' => $buku->penerbit ?? 'N/A',
                                 'isbn' => $buku->isbn ?? 'N/A',
                                 'barcode_buku' => $buku->barcode ?? 'N/A',
                                 'stok_tersedia' => $buku->stok_tersedia,
-                                'kategori' => $buku->kategori ? $buku->kategori->nama_kategori : 'N/A'
+                                'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A'
                             ];
                         });
 

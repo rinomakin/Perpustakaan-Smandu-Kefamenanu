@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Data Pengembalian')
+@section('title', 'Riwayat Pengembalian')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br py-8">
@@ -8,13 +8,13 @@
         <!-- Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Data Pengembalian Hari Ini</h1>
-                <p class="text-gray-600 mt-2">Riwayat pengembalian buku perpustakaan untuk hari ini ({{ date('d/m/Y') }})</p>
+                <h1 class="text-3xl font-bold text-gray-900">Riwayat Pengembalian</h1>
+                <p class="text-gray-600 mt-2">Semua riwayat pengembalian buku perpustakaan</p>
             </div>
             <div class="flex space-x-3">
-                <a href="{{ route('pengembalian.history') }}" 
-                   class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <i class="fas fa-history mr-2"></i>Semua Riwayat
+                <a href="{{ route('pengembalian.index') }}" 
+                   class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-calendar-day mr-2"></i>Hari Ini
                 </a>
                 <a href="{{ route('pengembalian.create') }}" 
                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
@@ -76,8 +76,8 @@
 
         <!-- Main Content -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
-                <h3 class="text-lg font-semibold text-white">Riwayat Pengembalian</h3>
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
+                <h3 class="text-lg font-semibold text-white">Semua Riwayat Pengembalian</h3>
             </div>
             
             <div class="p-6">
@@ -107,42 +107,44 @@
                                         <div class="text-sm text-gray-500">{{ $item->anggota->nomor_anggota }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $item->tanggal_peminjaman->format('d/m/Y') }}</div>
-                                        <div class="text-sm text-gray-500">{{ $item->jam_peminjaman ? $item->jam_peminjaman->format('H:i') : '-' }}</div>
+                                        <div class="text-sm text-gray-900">{{ $item->tanggal_peminjaman ? $item->tanggal_peminjaman->format('d/m/Y') : 'N/A' }}</div>
+                                        @if($item->jam_peminjaman)
+                                        <div class="text-sm text-gray-500">{{ $item->jam_peminjaman->format('H:i') }}</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $item->tanggal_kembali ? $item->tanggal_kembali->format('d/m/Y') : '-' }}</div>
-                                        <div class="text-sm text-gray-500">{{ $item->jam_kembali ? $item->jam_kembali->format('H:i') : '-' }}</div>
+                                        <div class="text-sm text-gray-900">{{ $item->tanggal_kembali ? $item->tanggal_kembali->format('d/m/Y') : 'N/A' }}</div>
+                                        @if($item->jam_kembali)
+                                        <div class="text-sm text-gray-500">{{ $item->jam_kembali->format('H:i') }}</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($item->status === 'dikembalikan')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <i class="fas fa-check-circle mr-1"></i>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                 Dikembalikan
                                             </span>
                                         @elseif($item->status === 'terlambat')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                <i class="fas fa-clock mr-1"></i>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                                 Terlambat
+                                            </span>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                {{ ucfirst($item->status) }}
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($item->denda)
                                             <div class="text-sm font-medium text-red-600">Rp {{ number_format($item->denda->jumlah_denda, 0, ',', '.') }}</div>
-                                            <div class="text-xs text-gray-500">{{ $item->denda->status === 'sudah_bayar' ? 'Lunas' : 'Belum Bayar' }}</div>
+                                            <div class="text-xs text-gray-500">{{ $item->denda->status === 'belum_bayar' ? 'Belum Bayar' : 'Sudah Bayar' }}</div>
                                         @else
                                             <span class="text-sm text-gray-500">-</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button type="button" onclick="viewDetail({{ $item->id }})" 
-                                                class="text-blue-600 hover:text-blue-900 mr-3">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <a href="{{ route('peminjaman.show', $item->id) }}" 
-                                           class="text-green-600 hover:text-green-900">
-                                            <i class="fas fa-receipt"></i>
+                                        <a href="{{ route('pengembalian.show', $item->id) }}" 
+                                           class="text-blue-600 hover:text-blue-900 mr-3">
+                                            <i class="fas fa-eye"></i> Detail
                                         </a>
                                     </td>
                                 </tr>
@@ -158,23 +160,12 @@
                 @else
                     <div class="text-center py-12">
                         <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Data Pengembalian</h3>
-                        <p class="text-gray-600 mb-6">Mulai proses pengembalian buku untuk melihat data di sini.</p>
-                        <a href="{{ route('pengembalian.create') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all duration-200">
-                            <i class="fas fa-plus mr-2"></i>Proses Pengembalian
-                        </a>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data pengembalian</h3>
+                        <p class="text-gray-500">Data pengembalian akan muncul di sini setelah ada proses pengembalian</p>
                     </div>
                 @endif
             </div>
         </div>
     </div>
 </div>
-
-<script>
-function viewDetail(id) {
-    // Implementation for viewing detail can be added here
-    console.log('View detail for ID:', id);
-}
-</script>
 @endsection

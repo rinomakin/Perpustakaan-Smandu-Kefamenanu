@@ -63,7 +63,13 @@
 
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
-                <h3 class="text-lg font-semibold text-white">Form Peminjaman Buku</h3>
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-white">Form Peminjaman Buku</h3>
+                    <div class="text-white text-sm">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span id="realTimeClock">--:--:--</span>
+                    </div>
+                </div>
             </div>
             
             <form action="{{ route('peminjaman.store') }}" method="POST" class="p-6" onsubmit="return validateForm()">
@@ -121,8 +127,9 @@
                             <i class="fas fa-calendar mr-2"></i>Tanggal Pinjam
                         </label>
                         <input type="date" name="tanggal_peminjaman" id="tanggal_peminjaman" 
-                               value="{{ old('tanggal_peminjaman', date('Y-m-d')) }}" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                               value="{{ old('tanggal_peminjaman', date('Y-m-d')) }}" required readonly
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50">
+                        <p class="text-xs text-gray-500 mt-1">Otomatis terisi dengan tanggal hari ini</p>
                         @error('tanggal_peminjaman')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -134,8 +141,9 @@
                             <i class="fas fa-clock mr-2"></i>Jam Pinjam
                         </label>
                         <input type="time" name="jam_peminjaman" id="jam_peminjaman" 
-                               value="{{ old('jam_peminjaman', date('H:i')) }}"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                               value="{{ old('jam_peminjaman', date('H:i')) }}" required readonly
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50">
+                        <p class="text-xs text-gray-500 mt-1">Otomatis terisi dengan jam saat ini</p>
                         @error('jam_peminjaman')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -144,11 +152,12 @@
                     <!-- Tanggal Harus Kembali -->
                     <div>
                         <label for="tanggal_harus_kembali" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-calendar-check mr-2"></i>Batas Kembali
+                            <i class="fas fa-calendar-check mr-2"></i>Tanggal Kembali <span class="text-red-500">*</span>
                         </label>
                         <input type="date" name="tanggal_harus_kembali" id="tanggal_harus_kembali" 
-                               value="{{ old('tanggal_harus_kembali') }}" required
+                               value="{{ old('tanggal_harus_kembali', date('Y-m-d')) }}" required
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                        <p class="text-xs text-gray-500 mt-1">Minimal sama dengan tanggal pinjam</p>
                         @error('tanggal_harus_kembali')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -157,12 +166,12 @@
                     <!-- Jam Pengembalian -->
                     <div>
                         <label for="jam_kembali" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-clock mr-2"></i>Jam Kembali
+                            <i class="fas fa-clock mr-2"></i>Jam Kembali <span class="text-red-500">*</span>
                         </label>
                         <input type="time" name="jam_kembali" id="jam_kembali" 
-                               value="{{ old('jam_kembali') }}"
+                               value="{{ old('jam_kembali') }}" required
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        <p class="text-xs text-gray-500 mt-1">Opsional - akan diisi otomatis saat pengembalian</p>
+                        <p class="text-xs text-gray-500 mt-1">Wajib diisi - jam pengembalian buku</p>
                         @error('jam_kembali')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -348,6 +357,114 @@ console.log('CSRF Token:', csrfToken);
 let html5QrcodeScanner = null;
 let currentScanType = null; // 'anggota' or 'buku'
 
+// Fungsi untuk mengatur tanggal dan jam secara real-time
+function updateDateTime() {
+    const now = new Date();
+    
+    // Format tanggal untuk input date (YYYY-MM-DD)
+    const dateString = now.toISOString().split('T')[0];
+    
+    // Format jam untuk input time (HH:MM)
+    const timeString = now.toTimeString().slice(0, 5);
+    
+    // Format jam untuk display real-time (HH:MM:SS)
+    const timeDisplayString = now.toTimeString().slice(0, 8);
+    
+    // Update field tanggal dan jam
+    const tanggalPinjam = document.getElementById('tanggal_peminjaman');
+    const jamPinjam = document.getElementById('jam_peminjaman');
+    const realTimeClock = document.getElementById('realTimeClock');
+    
+    if (tanggalPinjam) {
+        tanggalPinjam.value = dateString;
+    }
+    
+    if (jamPinjam) {
+        jamPinjam.value = timeString;
+    }
+    
+    if (realTimeClock) {
+        realTimeClock.textContent = timeDisplayString;
+    }
+}
+
+// Update waktu setiap detik untuk jam yang real-time
+function startRealTimeUpdate() {
+    updateDateTime(); // Update sekali di awal
+    setInterval(updateDateTime, 1000); // Update setiap detik
+}
+
+// Jalankan update waktu saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    startRealTimeUpdate();
+    
+    // Set jam kembali default ke jam saat ini + 1 jam
+    const jamKembali = document.getElementById('jam_kembali');
+    if (jamKembali) {
+        const now = new Date();
+        now.setHours(now.getHours() + 1); // Tambah 1 jam dari sekarang
+        const defaultTime = now.toTimeString().slice(0, 5);
+        if (!jamKembali.value) {
+            jamKembali.value = defaultTime;
+        }
+    }
+    
+    // Set tanggal kembali default ke tanggal pinjam
+    const tanggalPinjam = document.getElementById('tanggal_peminjaman');
+    const tanggalKembali = document.getElementById('tanggal_harus_kembali');
+    if (tanggalPinjam && tanggalKembali) {
+        if (!tanggalKembali.value) {
+            tanggalKembali.value = tanggalPinjam.value;
+        }
+    }
+    
+    // Tambahkan event listener untuk tombol "Tambah Peminjaman"
+    const form = document.querySelector('form[action*="peminjaman"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Update waktu terakhir sebelum submit
+            updateDateTime();
+        });
+    }
+    
+    // Tambahkan event listener untuk field jam kembali
+    if (jamKembali) {
+        jamKembali.addEventListener('change', function() {
+            // Validasi jam kembali tidak boleh kosong
+            if (!this.value) {
+                alert('Jam kembali wajib diisi!');
+                this.focus();
+            }
+        });
+    }
+    
+    // Tambahkan event listener untuk field tanggal kembali
+    if (tanggalKembali) {
+        tanggalKembali.addEventListener('change', function() {
+            validateTanggalKembali();
+        });
+    }
+});
+
+// Fungsi validasi tanggal kembali
+function validateTanggalKembali() {
+    const tanggalPinjam = document.getElementById('tanggal_peminjaman').value;
+    const tanggalKembali = document.getElementById('tanggal_harus_kembali').value;
+    
+    if (tanggalPinjam && tanggalKembali) {
+        const tanggalPinjamDate = new Date(tanggalPinjam);
+        const tanggalKembaliDate = new Date(tanggalKembali);
+        
+        if (tanggalKembaliDate < tanggalPinjamDate) {
+            alert('Tanggal kembali tidak boleh kurang dari tanggal pinjam!');
+            document.getElementById('tanggal_harus_kembali').value = tanggalPinjam;
+            document.getElementById('tanggal_harus_kembali').focus();
+            return false;
+        }
+    }
+    return true;
+}
+
 // Scanner functionality dengan HTML5-QRCode
 document.getElementById('scanAnggotaBtn').addEventListener('click', function() {
     currentScanType = 'anggota';
@@ -499,7 +616,11 @@ function closeScanner() {
     try {
         // Stop scanner if running
         if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop();
+            html5QrcodeScanner.stop().then(() => {
+                console.log('Scanner stopped successfully');
+            }).catch((error) => {
+                console.error('Error stopping scanner:', error);
+            });
         }
         
     } catch (error) {
@@ -571,12 +692,15 @@ function processScannedBarcode(barcode) {
         return;
     }
     
+    console.log('🎯 Processing barcode:', barcode, 'for type:', currentScanType);
+    
     // Show loading in status
     document.getElementById('scannerStatus').textContent = 'Memproses barcode...';
     
     if (currentScanType === 'anggota') {
+        console.log('👤 Scanning anggota barcode:', barcode);
         // Search for anggota by barcode
-        fetch(`/admin/anggota/scan-barcode`, {
+        fetch(`{{ route('anggota.scan-barcode') }}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -585,8 +709,15 @@ function processScannedBarcode(barcode) {
             },
             body: JSON.stringify({ barcode: barcode })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('📡 Anggota scan response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('📦 Anggota scan response data:', data);
             if (data.success) {
                 const anggota = data.data;
                 selectAnggota({
@@ -605,14 +736,15 @@ function processScannedBarcode(barcode) {
             }
         })
         .catch(error => {
-            console.error('Error scanning anggota:', error);
-            showNotification('Terjadi kesalahan saat scan anggota', 'error');
+            console.error('❌ Error scanning anggota:', error);
+            showNotification('Terjadi kesalahan saat scan anggota: ' + error.message, 'error');
             document.getElementById('scannerStatus').textContent = 'Error - coba lagi';
         });
         
     } else if (currentScanType === 'buku') {
+        console.log('📚 Scanning buku barcode:', barcode);
         // Search for buku by barcode
-        fetch(`/admin/buku/scan-barcode`, {
+        fetch(`{{ route('buku.scan-barcode') }}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -621,8 +753,15 @@ function processScannedBarcode(barcode) {
             },
             body: JSON.stringify({ barcode: barcode })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('📡 Buku scan response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('📦 Buku scan response data:', data);
             if (data.success) {
                 const buku = data.data;
                 selectBook({
@@ -631,7 +770,7 @@ function processScannedBarcode(barcode) {
                     penulis: buku.penulis,
                     isbn: buku.isbn,
                     stok_tersedia: buku.stok_tersedia,
-                    kategori: buku.kategori ? buku.kategori.nama_kategori : 'N/A'
+                    kategori: buku.kategori
                 });
                 closeScanner();
                 showNotification(`Buku ditemukan: ${buku.judul_buku}`, 'success');
@@ -641,8 +780,8 @@ function processScannedBarcode(barcode) {
             }
         })
         .catch(error => {
-            console.error('Error scanning buku:', error);
-            showNotification('Terjadi kesalahan saat scan buku', 'error');
+            console.error('❌ Error scanning buku:', error);
+            showNotification('Terjadi kesalahan saat scan buku: ' + error.message, 'error');
             document.getElementById('scannerStatus').textContent = 'Error - coba lagi';
         });
     }
@@ -659,14 +798,14 @@ const searchAnggota = debounce(function(query) {
         return;
     }
     
-    console.log('Searching anggota with query:', query);
+    console.log('🔍 Searching anggota with query:', query);
     
     // Tampilkan loading
     dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari...</div>';
     dropdown.classList.remove('hidden');
     
     // Fetch anggota dari server
-    fetch(`/admin/peminjaman/search-anggota?query=${encodeURIComponent(query)}`, {
+    fetch(`{{ route('peminjaman.search-anggota') }}?query=${encodeURIComponent(query)}`, {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -675,12 +814,14 @@ const searchAnggota = debounce(function(query) {
         }
     })
     .then(response => {
+        console.log('📡 Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log('📦 Response data:', data);
         if (data.success && data.data.length > 0) {
             dropdown.innerHTML = '';
             data.data.forEach((anggota, index) => {
@@ -706,7 +847,7 @@ const searchAnggota = debounce(function(query) {
         }
     })
     .catch(error => {
-        console.error('Error searching anggota:', error);
+        console.error('❌ Error searching anggota:', error);
         dropdown.innerHTML = `<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan: ${error.message}</div>`;
         dropdown.classList.remove('hidden');
     });
@@ -771,14 +912,14 @@ const searchBuku = debounce(function(query) {
         return;
     }
     
-    console.log('Searching buku with query:', query);
+    console.log('🔍 Searching buku with query:', query);
     
     // Tampilkan loading
     dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari...</div>';
     dropdown.classList.remove('hidden');
     
     // Fetch buku dari server
-    fetch(`/admin/peminjaman/search-buku?query=${encodeURIComponent(query)}`, {
+    fetch(`{{ route('peminjaman.search-buku') }}?query=${encodeURIComponent(query)}`, {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -787,12 +928,14 @@ const searchBuku = debounce(function(query) {
         }
     })
     .then(response => {
+        console.log('📡 Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log('📦 Response data:', data);
         if (data.success && data.data.length > 0) {
             dropdown.innerHTML = '';
             data.data.forEach((book, index) => {
@@ -818,7 +961,7 @@ const searchBuku = debounce(function(query) {
         }
     })
     .catch(error => {
-        console.error('Error searching buku:', error);
+        console.error('❌ Error searching buku:', error);
         dropdown.innerHTML = `<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan: ${error.message}</div>`;
         dropdown.classList.remove('hidden');
     });
@@ -986,17 +1129,41 @@ function updateSubmitButton() {
 function showNotification(message, type = 'info') {
     switch(type) {
         case 'success':
-            showSuccessAlert(message);
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
             break;
         case 'error':
-            showErrorAlert(message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: message,
+                timer: 4000,
+                showConfirmButton: true
+            });
             break;
         case 'warning':
-            showWarningAlert(message);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Peringatan!',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
             break;
         case 'info':
         default:
-            showInfoAlert(message);
+            Swal.fire({
+                icon: 'info',
+                title: 'Informasi',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
             break;
     }
 }
@@ -1043,12 +1210,16 @@ function validateForm() {
     const anggotaId = document.getElementById('anggota_id').value;
     const selectedCount = parseInt(document.getElementById('selectedCount').textContent);
     const bookInputs = document.querySelectorAll('#hiddenBookInputs input[name="buku_ids[]"]');
+    const jamKembali = document.getElementById('jam_kembali').value;
+    const tanggalKembali = document.getElementById('tanggal_harus_kembali').value;
     
     console.log('Form Validation:', {
         anggotaId: anggotaId,
         selectedCount: selectedCount,
         bookInputsLength: bookInputs.length,
-        bookInputsValues: Array.from(bookInputs).map(input => input.value)
+        bookInputsValues: Array.from(bookInputs).map(input => input.value),
+        jamKembali: jamKembali,
+        tanggalKembali: tanggalKembali
     });
     
     // Validate anggota
@@ -1070,6 +1241,18 @@ function validateForm() {
     
     if (validBookInputs.length === 0) {
         alert('Tidak ada buku yang valid dipilih!');
+        return false;
+    }
+    
+    // Validate jam kembali (wajib diisi)
+    if (!jamKembali || jamKembali === '') {
+        alert('Jam kembali wajib diisi!');
+        document.getElementById('jam_kembali').focus();
+        return false;
+    }
+    
+    // Validate tanggal kembali
+    if (!validateTanggalKembali()) {
         return false;
     }
     

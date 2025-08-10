@@ -243,8 +243,8 @@
 @endsection
 
 @section('scripts')
-<!-- Include barcode scanning libraries -->
-<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<!-- Include ZXing barcode scanning library -->
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 
 <script>
 // Camera and Barcode Scanner functionality
@@ -252,6 +252,9 @@ class BarcodeScanner {
     constructor() {
         this.isScanning = false;
         this.stream = null;
+        this.codeReader = null;
+        this.lastScanTime = 0;
+        this.scanCooldown = 3000; // 3 seconds cooldown between scans
         this.init();
     }
 
@@ -272,33 +275,51 @@ class BarcodeScanner {
     }
 
     async startCamera() {
+        const videoElement = document.getElementById('camera-preview');
+        const scannerLoading = document.getElementById('scan-frame');
+        const scannerPlaceholder = document.getElementById('camera-placeholder');
+        
         try {
             this.setStatus('connecting');
+            console.log('Setting up reliable camera scanner...');
             
-            this.stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment' // Prefer back camera
-                } 
-            });
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.error('getUserMedia not supported');
+                this.showMessage('Browser tidak mendukung akses kamera', 'error');
+                this.setStatus('error');
+                return;
+            }
             
-            const video = document.getElementById('camera-preview');
-            video.srcObject = this.stream;
-            await video.play();
-
+            // Request camera access with multiple fallback options
+            const constraints = {
+                video: {
+                    width: { ideal: 1280, min: 640 },
+                    height: { ideal: 720, min: 480 },
+                    facingMode: "environment"
+                }
+            };
+            
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('Camera access granted!');
+            
+            // Set the video stream
+            videoElement.srcObject = this.stream;
+            await videoElement.play();
+            
             // Show camera elements
-            document.getElementById('camera-placeholder').classList.add('hidden');
-            document.getElementById('camera-preview').classList.remove('hidden');
-            document.getElementById('scan-frame').classList.remove('hidden');
+            scannerPlaceholder.classList.add('hidden');
+            videoElement.classList.remove('hidden');
+            scannerLoading.classList.remove('hidden');
             document.getElementById('start-camera').classList.add('hidden');
             document.getElementById('stop-camera').classList.remove('hidden');
 
             this.setStatus('connected');
-            this.startScanning();
+            await this.startZXingScanning();
 
         } catch (error) {
             console.error('Error accessing camera:', error);
-            this.showMessage('Gagal mengakses kamera: ' + error.message, 'error');
-            this.setStatus('error');
+            this.handleCameraError(error);
         }
     }
 
@@ -306,6 +327,11 @@ class BarcodeScanner {
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
+        }
+
+        if (this.codeReader) {
+            this.codeReader.reset();
+            this.codeReader = null;
         }
 
         // Hide camera elements
@@ -317,59 +343,64 @@ class BarcodeScanner {
 
         this.isScanning = false;
         this.setStatus('disconnected');
-        
-        if (typeof Quagga !== 'undefined') {
-            Quagga.stop();
+    }
+
+    async startZXingScanning() {
+        try {
+            // Load ZXing library
+            if (typeof ZXing === 'undefined') {
+                console.error('ZXing library not loaded');
+                this.showMessage('Library barcode scanner tidak tersedia', 'error');
+                return;
+            }
+
+            const videoElement = document.getElementById('camera-preview');
+            
+            // Initialize ZXing reader
+            this.codeReader = new ZXing.BrowserMultiFormatReader();
+            
+            console.log('ZXing scanner initialized, starting detection...');
+            this.isScanning = true;
+            
+            // Start continuous scanning with throttling
+            await this.codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
+                if (result && this.isScanning) {
+                    const currentTime = Date.now();
+                    if (currentTime - this.lastScanTime > this.scanCooldown) {
+                        console.log('🎉 Barcode detected:', result.text);
+                        this.lastScanTime = currentTime;
+                        this.processBarcode(result.text);
+                    }
+                }
+                
+                if (error && error.name !== 'NotFoundException') {
+                    console.warn('Scanner error:', error);
+                }
+            });
+            
+            console.log('ZXing scanner started successfully!');
+            
+        } catch (error) {
+            console.error('Error starting ZXing scanner:', error);
+            this.showMessage('Gagal memulai scanner: ' + error.message, 'error');
+            this.setStatus('error');
         }
     }
 
-    startScanning() {
-        const video = document.getElementById('camera-preview');
+    handleCameraError(error) {
+        console.error('Camera error details:', error);
         
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: video,
-                constraints: {
-                    width: 480,
-                    height: 320,
-                    facingMode: "environment"
-                }
-            },
-            decoder: {
-                readers: [
-                    "code_128_reader",
-                    "ean_reader",
-                    "ean_8_reader",
-                    "code_39_reader",
-                    "code_39_vin_reader",
-                    "codabar_reader",
-                    "upc_reader",
-                    "upc_e_reader"
-                ]
-            }
-        }, (err) => {
-            if (err) {
-                console.error('Quagga initialization error:', err);
-                this.showMessage('Error initializing scanner: ' + err, 'error');
-                return;
-            }
-            
-            console.log("Quagga initialization finished. Ready to start");
-            Quagga.start();
-            this.isScanning = true;
-        });
-
-        // Listen for barcode detection
-        Quagga.onDetected((data) => {
-            if (this.isScanning) {
-                const barcode = data.codeResult.code;
-                console.log('Barcode detected:', barcode);
-                this.processBarcode(barcode);
-            }
-        });
+        this.showDetailedError(error);
+        this.setStatus('error');
+        
+        // Show manual input hint
+        setTimeout(() => {
+            this.showMessage('Anda dapat menggunakan input manual di bawah untuk scan barcode', 'info');
+            document.getElementById('manual-barcode').focus();
+        }, 2000);
     }
+
+
 
     async processBarcode(barcode) {
         if (!barcode) return;
@@ -573,7 +604,21 @@ class BarcodeScanner {
 
     showMessage(message, type) {
         const container = document.getElementById('message-container');
-        const alertClass = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+        let alertClass;
+        
+        switch (type) {
+            case 'success':
+                alertClass = 'bg-green-500';
+                break;
+            case 'info':
+                alertClass = 'bg-blue-500';
+                break;
+            case 'warning':
+                alertClass = 'bg-yellow-500';
+                break;
+            default:
+                alertClass = 'bg-red-500';
+        }
         
         const messageDiv = document.createElement('div');
         messageDiv.className = `${alertClass} text-white px-4 py-3 rounded-lg shadow-lg mb-2 transform transition-all duration-300`;
@@ -594,6 +639,73 @@ class BarcodeScanner {
                 messageDiv.remove();
             }
         }, 5000);
+    }
+
+    // Add permission request helper
+    async requestCameraPermission() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            return true;
+        } catch (error) {
+            console.error('Camera permission denied:', error);
+            return false;
+        }
+    }
+
+    // Add device detection
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Enhanced error handling
+    showDetailedError(error) {
+        let helpText = '';
+        
+        switch (error.name) {
+            case 'NotAllowedError':
+                helpText = `
+                    <div class="mt-2 text-sm">
+                        <p><strong>Cara mengatasi:</strong></p>
+                        <ol class="list-decimal list-inside mt-1 space-y-1">
+                            <li>Klik ikon kamera di address bar</li>
+                            <li>Pilih "Always allow" atau "Allow"</li>
+                            <li>Refresh halaman dan coba lagi</li>
+                        </ol>
+                    </div>
+                `;
+                break;
+            case 'NotFoundError':
+                helpText = `
+                    <div class="mt-2 text-sm">
+                        <p><strong>Solusi:</strong></p>
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                            <li>Pastikan kamera terhubung dengan baik</li>
+                            <li>Gunakan input manual barcode di bawah</li>
+                        </ul>
+                    </div>
+                `;
+                break;
+        }
+        
+        this.showMessage(this.getErrorMessage(error) + helpText, 'error');
+    }
+
+    getErrorMessage(error) {
+        switch (error.name) {
+            case 'NotAllowedError':
+                return 'Akses kamera ditolak. Mohon berikan izin akses kamera.';
+            case 'NotFoundError':
+                return 'Kamera tidak ditemukan pada device ini.';
+            case 'NotSupportedError':
+                return 'Browser tidak mendukung akses kamera.';
+            case 'NotReadableError':
+                return 'Kamera sedang digunakan oleh aplikasi lain.';
+            case 'OverconstrainedError':
+                return 'Kamera tidak mendukung resolusi yang diminta.';
+            default:
+                return 'Error: ' + error.message;
+        }
     }
 }
 

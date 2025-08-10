@@ -341,21 +341,49 @@ class AnggotaController extends Controller
 
     public function scanBarcode(Request $request)
     {
-        $barcode = $request->barcode;
-        $anggota = Anggota::where('barcode_anggota', $barcode)
-                          ->orWhere('nomor_anggota', $barcode)
-                          ->first();
-
-        if ($anggota) {
-            return response()->json([
-                'success' => true,
-                'data' => $anggota
+        try {
+            $request->validate([
+                'barcode' => 'required|string'
             ]);
-        } else {
+
+            $barcode = $request->barcode;
+            $anggota = Anggota::where('barcode_anggota', $barcode)
+                              ->orWhere('nomor_anggota', $barcode)
+                              ->with('kelas')
+                              ->first();
+
+            if ($anggota) {
+                if ($anggota->status !== 'aktif') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Status anggota tidak aktif'
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'id' => $anggota->id,
+                        'nama_lengkap' => $anggota->nama_lengkap,
+                        'nomor_anggota' => $anggota->nomor_anggota,
+                        'barcode_anggota' => $anggota->barcode_anggota,
+                        'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
+                        'jenis_anggota' => $anggota->jenis_anggota,
+                        'status' => $anggota->status
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anggota dengan barcode tersebut tidak ditemukan'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error in scanBarcode: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Anggota tidak ditemukan'
-            ]);
+                'message' => 'Terjadi kesalahan saat scan barcode: ' . $e->getMessage()
+            ], 500);
         }
     }
 

@@ -223,25 +223,54 @@ class BukuController extends Controller
     }
 
     /**
-     * Scan barcode untuk mencari buku
+     * Scan barcode buku
      */
     public function scanBarcode(Request $request)
     {
-        $barcode = $request->barcode;
-        $buku = Buku::with(['kategori', 'jenis', 'sumber'])
-                    ->where('barcode', $barcode)
-                    ->first();
-
-        if ($buku) {
-            return response()->json([
-                'success' => true,
-                'data' => $buku
+        try {
+            $request->validate([
+                'barcode' => 'required|string'
             ]);
-        } else {
+
+            $barcode = $request->barcode;
+            $buku = Buku::with(['kategoriBuku', 'jenisBuku', 'sumberBuku'])
+                        ->where('barcode', $barcode)
+                        ->first();
+
+            if ($buku) {
+                if ($buku->stok_tersedia <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Buku tidak tersedia untuk dipinjam (stok habis)'
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'id' => $buku->id,
+                        'judul_buku' => $buku->judul_buku,
+                        'penulis' => $buku->pengarang ?? 'N/A',
+                        'penerbit' => $buku->penerbit ?? 'N/A',
+                        'isbn' => $buku->isbn ?? 'N/A',
+                        'barcode' => $buku->barcode ?? 'N/A',
+                        'stok_tersedia' => $buku->stok_tersedia,
+                        'kategori' => $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : 'N/A',
+                        'jenis' => $buku->jenisBuku ? $buku->jenisBuku->nama_jenis : 'N/A'
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Buku dengan barcode tersebut tidak ditemukan'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error in scanBarcode: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Buku dengan barcode tersebut tidak ditemukan'
-            ]);
+                'message' => 'Terjadi kesalahan saat scan barcode: ' . $e->getMessage()
+            ], 500);
         }
     }
 

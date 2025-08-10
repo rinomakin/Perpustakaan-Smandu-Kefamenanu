@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Include HTML5-QRCode -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
@@ -56,18 +58,18 @@
                     <span class="font-medium">Scan QR Code Disini</span>
                 </div>
                 <div class="p-6">
-                    <div id="reader" class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-                        <div class="text-center">
-                            <i class="fas fa-camera text-gray-400 text-4xl mb-2"></i>
-                            <p class="text-gray-500">Kamera akan muncul di sini</p>
+                    <div class="text-center mb-4">
+                        <div class="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-camera text-gray-400 text-4xl"></i>
                         </div>
+                        <p class="text-gray-600 mb-4">Klik tombol di bawah untuk memulai scan QR Code</p>
                     </div>
                     <div class="flex space-x-4">
-                        <button id="startCamera" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
-                            <i class="fas fa-play mr-2"></i>Play Camera
+                        <button id="openScannerBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+                            <i class="fas fa-qrcode mr-2"></i>Buka Scanner
                         </button>
-                        <button id="stopCamera" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium">
-                            <i class="fas fa-stop mr-2"></i>Stop Camera
+                        <button id="manualInputBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
+                            <i class="fas fa-keyboard mr-2"></i>Input Manual
                         </button>
                     </div>
                 </div>
@@ -223,6 +225,61 @@
         </div>
     </footer>
 
+    <!-- QR Scanner Modal -->
+    <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white">Scan QR Code Absensi</h3>
+                        <button type="button" id="closeScanner" class="text-white hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <p class="text-gray-600 mb-4">Arahkan kamera ke QR Code untuk scan absensi</p>
+                        <div id="scannerContainer" class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
+                            <div id="scannerPlaceholder" class="text-center">
+                                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
+                            </div>
+                            <div id="scannerVideo" class="w-full h-full hidden">
+                                <div id="reader" class="w-full h-full"></div>
+                            </div>
+                            <div id="scannerLoading" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+                                <div class="text-center text-white">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                    <p>Memulai kamera...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-600">
+                            <span id="scannerStatus">Siap untuk scan</span>
+                        </div>
+                        <div class="flex space-x-3" id="scannerControls">
+                            <button type="button" id="startScanBtn" 
+                                    class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold">
+                                <i class="fas fa-play mr-2"></i>Mulai Scan
+                            </button>
+                            <button type="button" id="stopScanBtn" 
+                                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold hidden">
+                                <i class="fas fa-stop mr-2"></i>Stop Scan
+                            </button>
+                            <button type="button" id="cancelScan" 
+                                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                                Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function() {
@@ -238,6 +295,327 @@
                 }
             });
         });
+
+        // QR Code Scanner functionality
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        // Setup CSRF token untuk AJAX requests
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        // Check browser compatibility on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const openScannerBtn = document.getElementById('openScannerBtn');
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                openScannerBtn.disabled = true;
+                openScannerBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                openScannerBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Browser Tidak Mendukung';
+                showNotification('Browser Anda tidak mendukung akses kamera. Silakan gunakan browser modern.', 'warning');
+            } else {
+                console.log('✅ Browser supports camera access');
+            }
+        });
+
+        // Open Scanner button functionality
+        document.getElementById('openScannerBtn').addEventListener('click', function() {
+            document.getElementById('scannerModal').classList.remove('hidden');
+            initializeHTML5QRCodeScanner();
+        });
+
+        // Manual input button functionality
+        document.getElementById('manualInputBtn').addEventListener('click', function() {
+            showManualInputDialog();
+        });
+
+        // Modal control buttons
+        document.getElementById('closeScanner').addEventListener('click', function() {
+            closeScanner();
+        });
+
+        document.getElementById('cancelScan').addEventListener('click', function() {
+            closeScanner();
+        });
+
+        document.getElementById('startScanBtn').addEventListener('click', function() {
+            startScanning();
+        });
+
+        document.getElementById('stopScanBtn').addEventListener('click', function() {
+            stopScanning();
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('scannerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeScanner();
+            }
+        });
+
+        // Initialize HTML5-QRCode Scanner
+        function initializeHTML5QRCodeScanner() {
+            console.log('🚀 Initializing HTML5-QRCode scanner...');
+            
+            const scannerContainer = document.getElementById('scannerContainer');
+            const scannerLoading = document.getElementById('scannerLoading');
+            const scannerVideo = document.getElementById('scannerVideo');
+            const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+            
+            // Show loading
+            scannerLoading.classList.remove('hidden');
+            scannerPlaceholder.classList.add('hidden');
+            scannerVideo.classList.remove('hidden');
+            
+            try {
+                // Create HTML5-QRCode scanner
+                html5QrcodeScanner = new Html5Qrcode("reader");
+                
+                // Configure scanner
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
+                    supportedScanTypes: [
+                        Html5QrcodeScanType.SCAN_TYPE_CAMERA
+                    ]
+                };
+                
+                // Start scanning
+                html5QrcodeScanner.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                ).then(() => {
+                    console.log('📹 Scanner started successfully');
+                    scannerLoading.classList.add('hidden');
+                    scannerVideo.classList.remove('hidden');
+                    document.getElementById('scannerStatus').textContent = 'Scanner aktif';
+                    document.getElementById('startScanBtn').classList.add('hidden');
+                    document.getElementById('stopScanBtn').classList.remove('hidden');
+                    showNotification('Scanner HTML5-QRCode siap. Arahkan kamera ke QR Code.', 'success');
+                }).catch((err) => {
+                    console.error('❌ Scanner initialization error:', err);
+                    scannerLoading.classList.add('hidden');
+                    scannerPlaceholder.classList.remove('hidden');
+                    scannerVideo.classList.add('hidden');
+                    
+                    if (err.name === 'NotAllowedError') {
+                        showNotification('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+                    } else if (err.name === 'NotFoundError') {
+                        showNotification('Tidak ada kamera yang ditemukan.', 'error');
+                    } else {
+                        showNotification('Gagal menginisialisasi scanner: ' + err.message, 'error');
+                    }
+                    
+                    // Fallback to manual input
+                    setupManualInput();
+                });
+                
+            } catch (error) {
+                console.error('❌ HTML5-QRCode initialization error:', error);
+                scannerLoading.classList.add('hidden');
+                scannerPlaceholder.classList.remove('hidden');
+                scannerVideo.classList.add('hidden');
+                showNotification('Gagal menginisialisasi scanner: ' + error.message, 'error');
+                setupManualInput();
+            }
+        }
+
+        // Scan success callback
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('🎉 QR Code detected:', decodedText);
+            processScannedQRCode(decodedText);
+        }
+
+        // Scan failure callback
+        function onScanFailure(error) {
+            // Handle scan failure silently
+            console.log('⚠️ Scan failure:', error);
+        }
+
+        function startScanning() {
+            if (!html5QrcodeScanner) {
+                showNotification('Scanner belum siap. Silakan tunggu.', 'warning');
+                return;
+            }
+            
+            try {
+                document.getElementById('scannerStatus').textContent = 'Scanning...';
+            } catch (error) {
+                console.error('Error starting scanner:', error);
+                showNotification('Gagal memulai scanner. Silakan coba lagi.', 'error');
+            }
+        }
+
+        function stopScanning() {
+            if (html5QrcodeScanner) {
+                try {
+                    html5QrcodeScanner.stop();
+                    document.getElementById('scannerStatus').textContent = 'Scanner dihentikan';
+                } catch (error) {
+                    console.error('Error stopping scanner:', error);
+                }
+            }
+        }
+
+        function closeScanner() {
+            try {
+                // Stop scanner if running
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.stop();
+                }
+                
+            } catch (error) {
+                console.error('Error stopping scanner:', error);
+            }
+            
+            document.getElementById('scannerModal').classList.add('hidden');
+            document.getElementById('startScanBtn').classList.remove('hidden');
+            document.getElementById('stopScanBtn').classList.add('hidden');
+            document.getElementById('scannerStatus').textContent = 'Siap untuk scan';
+            
+            // Reset scanner container
+            const scannerContainer = document.getElementById('scannerContainer');
+            const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+            const scannerVideo = document.getElementById('scannerVideo');
+            const scannerLoading = document.getElementById('scannerLoading');
+            
+            scannerLoading.classList.add('hidden');
+            scannerPlaceholder.classList.remove('hidden');
+            scannerVideo.classList.add('hidden');
+            
+            // Reset placeholder content
+            scannerPlaceholder.innerHTML = `
+                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
+            `;
+            
+            // Remove manual input button if exists
+            const manualInputBtn = document.getElementById('manualInputBtn');
+            if (manualInputBtn) {
+                manualInputBtn.remove();
+            }
+        }
+
+        // Process scanned QR Code
+        function processScannedQRCode(qrData) {
+            const scannerStatus = document.getElementById('scannerStatus');
+            scannerStatus.textContent = 'Memproses QR Code...';
+            
+            // Send QR data to server for processing
+            fetch(`{{ route('petugas.absensi-pengunjung.scan-qr') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ qr_code: qrData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeScanner();
+                    // Reload page to show updated attendance list
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showNotification(data.message, 'error');
+                    scannerStatus.textContent = 'Scan gagal - coba lagi';
+                }
+            })
+            .catch(error => {
+                console.error('Error processing QR code:', error);
+                showNotification('Terjadi kesalahan saat memproses QR Code', 'error');
+                scannerStatus.textContent = 'Error - coba lagi';
+            });
+        }
+
+        // Manual input fallback
+        function setupManualInput() {
+            console.log('Setting up manual input fallback...');
+            
+            const scannerContainer = document.getElementById('scannerContainer');
+            const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+            const scannerVideo = document.getElementById('scannerVideo');
+            const scannerLoading = document.getElementById('scannerLoading');
+            
+            // Hide video and show manual input
+            scannerVideo.classList.add('hidden');
+            scannerLoading.classList.add('hidden');
+            scannerPlaceholder.classList.remove('hidden');
+            
+            // Update placeholder content
+            scannerPlaceholder.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-keyboard text-4xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
+                    <button type="button" onclick="showManualInputDialog()" 
+                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">
+                        Input Manual
+                    </button>
+                </div>
+            `;
+            
+            showNotification('Gunakan tombol "Input Manual" untuk memasukkan QR Code.', 'info');
+        }
+
+        function showManualInputDialog() {
+            const qrCodeInput = prompt('Masukkan QR Code atau nomor anggota:');
+            if (qrCodeInput && qrCodeInput.trim()) {
+                processScannedQRCode(qrCodeInput.trim());
+            }
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            // Set background color based on type
+            switch(type) {
+                case 'success':
+                    notification.classList.add('bg-green-500');
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500');
+                    break;
+                default:
+                    notification.classList.add('bg-blue-500');
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop();
+            }
+        });
     </script>
 </body>
-</html> 
+</html>

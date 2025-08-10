@@ -19,11 +19,13 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'nama_lengkap',
+        'nama_panggilan',
         'email',
         'password',
         'peran_id',
         'nomor_telepon',
         'alamat',
+        'foto',
         'status',
     ];
 
@@ -127,5 +129,69 @@ class User extends Authenticatable
     public function isPetugas()
     {
         return $this->role && $this->role->kode_peran === 'PETUGAS';
+    }
+
+    /**
+     * Get profile route based on user role
+     */
+    public function getProfileRoute()
+    {
+        if ($this->isAdmin()) {
+            return 'admin.profil';
+        } elseif ($this->isKepalaSekolah()) {
+            return 'kepsek.profil';
+        } elseif ($this->isPetugas()) {
+            return 'petugas.profil';
+        }
+        
+        return 'admin.profil'; // default fallback
+    }
+
+    /**
+     * Get profile update route based on user role
+     */
+    public function getProfileUpdateRoute()
+    {
+        if ($this->isAdmin()) {
+            return 'admin.profil.update';
+        } elseif ($this->isKepalaSekolah()) {
+            return 'kepsek.profil.update';
+        } elseif ($this->isPetugas()) {
+            return 'petugas.profil.update';
+        }
+        
+        return 'admin.profil.update'; // default fallback
+    }
+
+    /**
+     * Get profile password change route based on user role
+     */
+    public function getProfilePasswordRoute()
+    {
+        if ($this->isAdmin()) {
+            return 'admin.profil.ganti-password';
+        } elseif ($this->isKepalaSekolah()) {
+            return 'kepsek.profil.ganti-password';
+        } elseif ($this->isPetugas()) {
+            return 'petugas.profil.ganti-password';
+        }
+        
+        return 'admin.profil.ganti-password'; // default fallback
+    }
+
+    /**
+     * Get profile delete photo route based on user role
+     */
+    public function getProfileDeletePhotoRoute()
+    {
+        if ($this->isAdmin()) {
+            return 'admin.profil.hapus-foto';
+        } elseif ($this->isKepalaSekolah()) {
+            return 'kepsek.profil.hapus-foto';
+        } elseif ($this->isPetugas()) {
+            return 'petugas.profil.hapus-foto';
+        }
+        
+        return 'admin.profil.hapus-foto'; // default fallback
     }
 }

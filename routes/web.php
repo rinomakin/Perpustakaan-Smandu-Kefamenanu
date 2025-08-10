@@ -63,6 +63,12 @@ Route::middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH'])->prefix('admin')->group
     Route::get('/pengaturan-website', [AdminController::class, 'pengaturanWebsite'])->name('admin.pengaturan');
     Route::post('/pengaturan-website', [AdminController::class, 'updatePengaturanWebsite'])->name('admin.pengaturan.update');
     
+    // Profil untuk semua role (Admin, Kepala Sekolah, Petugas)
+    Route::get('/profil', [AdminController::class, 'profil'])->name('admin.profil');
+    Route::post('/profil/update', [AdminController::class, 'updateProfil'])->name('admin.profil.update');
+    Route::post('/profil/ganti-password', [AdminController::class, 'gantiPassword'])->name('admin.profil.ganti-password');
+    Route::delete('/profil/hapus-foto', [AdminController::class, 'hapusFoto'])->name('admin.profil.hapus-foto');
+    
     // API Routes untuk AJAX pencarian
     Route::get('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
     Route::get('/peminjaman/search-buku', [PeminjamanController::class, 'searchBuku'])->name('peminjaman.search-buku');
@@ -152,10 +158,12 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::post('/peminjaman/scan-multiple-buku', [PeminjamanController::class, 'scanMultipleBuku'])->name('peminjaman.scan-multiple-buku');
     
     // CRUD Pengembalian
-    Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
-    Route::get('/pengembalian/search-anggota', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])->name('pengembalian.search-anggota');
-    Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
-    Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
+Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
+Route::get('/pengembalian/search-anggota', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])->name('pengembalian.search-anggota');
+Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
+Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
+Route::post('/pengembalian/scan-barcode-anggota', [\App\Http\Controllers\PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
+Route::get('/pengembalian/history', [\App\Http\Controllers\PengembalianController::class, 'history'])->name('pengembalian.history');
     
     // CRUD Denda
     Route::resource('denda', DendaController::class);
@@ -190,6 +198,13 @@ Route::middleware(['auth', 'role:PETUGAS'])->prefix('petugas')->group(function (
     Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
     Route::get('/beranda', [PetugasController::class, 'beranda'])->name('petugas.beranda');
     Route::get('/tentang', [PetugasController::class, 'tentang'])->name('petugas.tentang');
+    
+    // Profil Petugas (menggunakan AdminController yang sudah ada)
+    Route::get('/profil', [AdminController::class, 'profil'])->name('petugas.profil');
+    Route::post('/profil/update', [AdminController::class, 'updateProfil'])->name('petugas.profil.update');
+    Route::post('/profil/ganti-password', [AdminController::class, 'gantiPassword'])->name('petugas.profil.ganti-password');
+    Route::delete('/profil/hapus-foto', [AdminController::class, 'hapusFoto'])->name('petugas.profil.hapus-foto');
+    
     Route::resource('absensi-pengunjung', AbsensiPengunjungController::class)->names([
         'index' => 'petugas.absensi-pengunjung.index',
         'create' => 'petugas.absensi-pengunjung.create',
@@ -206,6 +221,12 @@ Route::middleware(['auth', 'role:PETUGAS'])->prefix('petugas')->group(function (
 Route::middleware(['auth', 'role:KEPALA_SEKOLAH'])->prefix('kepsek')->group(function () {
     Route::get('/dashboard', [KepsekController::class, 'dashboard'])->name('kepsek.dashboard');
     Route::get('/laporan', [KepsekController::class, 'laporan'])->name('kepsek.laporan');
+    
+    // Profil Kepala Sekolah (menggunakan AdminController yang sudah ada)
+    Route::get('/profil', [AdminController::class, 'profil'])->name('kepsek.profil');
+    Route::post('/profil/update', [AdminController::class, 'updateProfil'])->name('kepsek.profil.update');
+    Route::post('/profil/ganti-password', [AdminController::class, 'gantiPassword'])->name('kepsek.profil.ganti-password');
+    Route::delete('/profil/hapus-foto', [AdminController::class, 'hapusFoto'])->name('kepsek.profil.hapus-foto');
     
     // Gunakan controller admin yang sudah ada
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('kepsek.riwayat-peminjaman');

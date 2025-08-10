@@ -90,10 +90,10 @@
                     <div class="space-y-4">
                         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                             <h5 class="font-semibold text-gray-900 mb-2">Pencarian Manual</h5>
-                            <p class="text-sm text-gray-600 mb-4">Ketik nama atau nomor anggota untuk pencarian manual</p>
+                            <p class="text-sm text-gray-600 mb-4">Ketik nama atau nomor anggota untuk pencarian manual. <span class="text-blue-600 font-medium">Hanya anggota dengan peminjaman aktif yang akan ditampilkan.</span></p>
                             <div class="relative">
                                 <input type="text" id="anggota_search" 
-                                       placeholder="Ketik nama anggota atau nomor anggota..." 
+                                       placeholder="Ketik nama anggota atau nomor anggota (hanya yang sedang meminjam)..." 
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                                 
                                 <!-- Dropdown hasil pencarian -->
@@ -141,7 +141,7 @@
             </div>
 
             <!-- Step 3: Form Pengembalian -->
-            <form id="pengembalianForm" action="{{ route('pengembalian.store') }}" method="POST" class="hidden">
+            <form id="pengembalianForm" action="{{ route('pengembalian.store') }}" method="POST" class="hidden" onsubmit="return validateForm()">
                 @csrf
                 <input type="hidden" name="peminjaman_id" id="selectedPeminjamanId">
                 
@@ -278,7 +278,37 @@ let selectedPeminjaman = null;
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
+    startRealTimeUpdate();
 });
+
+// Fungsi untuk mengatur tanggal dan jam secara real-time
+function updateDateTime() {
+    const now = new Date();
+    
+    // Format tanggal untuk input date (YYYY-MM-DD)
+    const dateString = now.toISOString().split('T')[0];
+    
+    // Format jam untuk input time (HH:MM)
+    const timeString = now.toTimeString().slice(0, 5);
+    
+    // Update field tanggal dan jam
+    const tanggalKembali = document.getElementById('tanggal_kembali');
+    const jamKembali = document.getElementById('jam_kembali');
+    
+    if (tanggalKembali) {
+        tanggalKembali.value = dateString;
+    }
+    
+    if (jamKembali) {
+        jamKembali.value = timeString;
+    }
+}
+
+// Update waktu setiap detik untuk jam yang real-time
+function startRealTimeUpdate() {
+    updateDateTime(); // Update sekali di awal
+    setInterval(updateDateTime, 1000); // Update setiap detik
+}
 
 function setupEventListeners() {
     // Scan button
@@ -312,6 +342,15 @@ function setupEventListeners() {
             dropdown.classList.add('hidden');
         }
     });
+    
+    // Form submit event
+    const form = document.querySelector('form[action*="pengembalian"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Update waktu terakhir sebelum submit
+            updateDateTime();
+        });
+    }
 }
 
 // Scanner functions
@@ -370,7 +409,7 @@ function onScanFailure(error) {
 function processScannedBarcode(barcode) {
     document.getElementById('scannerStatus').textContent = 'Memproses barcode...';
     
-    fetch(`/admin/pengembalian/scan-barcode`, {
+    fetch(`/admin/pengembalian/scan-barcode-anggota`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -379,7 +418,13 @@ function processScannedBarcode(barcode) {
         },
         body: JSON.stringify({ barcode: barcode })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📡 Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             selectAnggota(data.data.anggota);
@@ -392,8 +437,8 @@ function processScannedBarcode(barcode) {
         }
     })
     .catch(error => {
-        console.error('Error scanning:', error);
-        showNotification('Terjadi kesalahan saat scan', 'error');
+        console.error('❌ Error scanning:', error);
+        showNotification('Terjadi kesalahan saat scan: ' + error.message, 'error');
         document.getElementById('scannerStatus').textContent = 'Error - coba lagi';
     });
 }
@@ -442,15 +487,19 @@ function searchAnggota(query) {
                     <div class="font-medium text-gray-900">${anggota.nama_lengkap}</div>
                     <div class="text-sm text-gray-600">${anggota.nomor_anggota} - ${anggota.kelas}</div>
                     <div class="text-xs text-gray-500">Barcode: ${anggota.barcode_anggota || 'N/A'}</div>
+                    <div class="text-xs text-blue-600 font-medium mt-1">
+                        <i class="fas fa-book mr-1"></i>${anggota.jumlah_peminjaman_aktif} peminjaman aktif
+                    </div>
                 `;
                 item.addEventListener('click', () => {
                     selectAnggota(anggota);
                     getPeminjamanAktif(anggota.id);
+                    dropdown.classList.add('hidden');
                 });
                 dropdown.appendChild(item);
             });
         } else {
-            dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">Tidak ada anggota ditemukan</div>';
+            dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">Tidak ada anggota dengan peminjaman aktif ditemukan</div>';
         }
     })
     .catch(error => {
@@ -475,9 +524,10 @@ function clearAnggota() {
     selectedPeminjaman = null;
     
     document.getElementById('anggotaInfo').classList.add('hidden');
-    document.getElementById('anggota_search').value = '';
     document.getElementById('peminjamanSection').classList.add('hidden');
     document.getElementById('pengembalianForm').classList.add('hidden');
+    document.getElementById('anggota_search').value = '';
+    document.getElementById('selectedPeminjamanId').value = '';
 }
 
 function getPeminjamanAktif(anggotaId) {
@@ -514,6 +564,7 @@ function loadPeminjamanAktif(peminjamanData) {
     if (peminjamanData.length === 0) {
         noPeminjaman.classList.remove('hidden');
         peminjamanList.innerHTML = '';
+        showNotification('Tidak ada peminjaman aktif untuk anggota ini', 'info');
         return;
     }
     
@@ -524,6 +575,14 @@ function loadPeminjamanAktif(peminjamanData) {
         const peminjamanItem = createPeminjamanItem(peminjaman);
         peminjamanList.appendChild(peminjamanItem);
     });
+    
+    // Auto-select first peminjaman if only one
+    if (peminjamanData.length === 1) {
+        selectPeminjaman(peminjamanData[0]);
+    }
+    
+    // Show success message with peminjaman count
+    showNotification(`Ditemukan ${peminjamanData.length} peminjaman aktif untuk anggota ini`, 'success');
 }
 
 function createPeminjamanItem(peminjaman) {
@@ -531,6 +590,7 @@ function createPeminjamanItem(peminjaman) {
     div.className = `p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
         peminjaman.is_late ? 'late-warning border-red-300' : 'border-gray-200 hover:border-green-300'
     }`;
+    div.setAttribute('data-peminjaman-id', peminjaman.id);
     
     let lateWarning = '';
     if (peminjaman.is_late) {
@@ -597,7 +657,11 @@ function selectPeminjaman(peminjaman) {
     document.querySelectorAll('#peminjamanList > div').forEach(item => {
         item.classList.remove('ring-2', 'ring-green-500');
     });
-    event.currentTarget.classList.add('ring-2', 'ring-green-500');
+    // Find the clicked element and add highlight
+    const clickedElement = document.querySelector(`[data-peminjaman-id="${peminjaman.id}"]`);
+    if (clickedElement) {
+        clickedElement.classList.add('ring-2', 'ring-green-500');
+    }
     
     showNotification(`Peminjaman ${peminjaman.nomor_peminjaman} dipilih`, 'success');
 }
@@ -638,6 +702,33 @@ function showDendaInfo(daysLate) {
 
 function resetForm() {
     clearAnggota();
+}
+
+// Form validation
+function validateForm() {
+    const selectedPeminjamanId = document.getElementById('selectedPeminjamanId').value;
+    
+    if (!selectedPeminjamanId) {
+        showNotification('Pilih peminjaman terlebih dahulu!', 'error');
+        return false;
+    }
+    
+    // Validate kondisi buku
+    const kondisiInputs = document.querySelectorAll('select[name^="kondisi_kembali"]');
+    let isValid = true;
+    
+    kondisiInputs.forEach(input => {
+        if (!input.value) {
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) {
+        showNotification('Pilih kondisi untuk semua buku!', 'error');
+        return false;
+    }
+    
+    return true;
 }
 
 // Notification function

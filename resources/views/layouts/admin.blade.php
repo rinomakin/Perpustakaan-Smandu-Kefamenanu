@@ -358,10 +358,18 @@
                     <!-- User Dropdown -->
                     <div class="relative group">
                         <button class="flex items-center space-x-3 text-white hover:text-blue-100 transition-colors">
-                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-xs"></i>
+                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+                                @if(auth()->user()->foto && file_exists(public_path('storage/' . auth()->user()->foto)))
+                                    <img src="{{ asset('storage/' . auth()->user()->foto) }}" 
+                                         alt="Foto Profil" 
+                                         class="w-full h-full object-cover">
+                                @else
+                                    <i class="fas fa-user text-xs"></i>
+                                @endif
                             </div>
-                            <span class="hidden sm:block text-xs">{{ auth()->user()->nama_lengkap }}</span>
+                            <span class="hidden sm:block text-xs">
+                                {{ auth()->user()->nama_panggilan ?: auth()->user()->nama_lengkap }}
+                            </span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         
@@ -369,9 +377,18 @@
                         <div class="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
                                 <div class="px-4 py-2 border-b border-gray-100">
-                                    <p class="text-xs font-medium text-gray-900">{{ auth()->user()->nama_lengkap }}</p>
-                                    <p class="text-xs text-gray-500">Administrator</p>
+                                    <p class="text-xs font-medium text-gray-900">
+                                        {{ auth()->user()->nama_panggilan ?: auth()->user()->nama_lengkap }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ auth()->user()->role ? auth()->user()->role->nama_peran : 'Administrator' }}
+                                    </p>
                                 </div>
+                                <a href="{{ route('admin.profil') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                                    <i class="fas fa-user-circle w-5 text-xs"></i>
+                                    <span class="text-xs">Profil</span>
+                                </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" 
@@ -505,8 +522,13 @@
                 </a>
                 @endif
                 
-                <!-- Mobile Logout -->
+                <!-- Mobile User Menu -->
                 <div class="border-t border-gray-100 pt-2">
+                    <a href="{{ route('admin.profil') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors">
+                        <i class="fas fa-user-circle w-5"></i>
+                        <span>Profil</span>
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" 
