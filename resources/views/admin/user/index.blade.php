@@ -101,7 +101,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($user->role)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    @if($user->role->kode_peran === 'ADMIN') bg-red-100 text-red-800
+                                    @elseif($user->role->kode_peran === 'KEPALA_SEKOLAH') bg-blue-100 text-blue-800
+@elseif($user->role->kode_peran === 'PETUGAS') bg-green-100 text-green-800
+                                    @else bg-purple-100 text-purple-800 @endif">
                                     <i class="fas fa-user-shield mr-1"></i>
                                     {{ $user->role->nama_peran }}
                                 </span>

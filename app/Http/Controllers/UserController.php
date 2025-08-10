@@ -37,7 +37,7 @@ class UserController extends Controller
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'peran' => 'required|string|exists:peran,kode_peran',
+            'peran_id' => 'required|exists:peran,id',
             'nomor_telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string',
             'status' => 'required|in:aktif,nonaktif'
@@ -47,7 +47,7 @@ class UserController extends Controller
             'nama_lengkap' => $request->nama_lengkap,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'peran' => $request->peran,
+            'peran_id' => $request->peran_id,
             'nomor_telepon' => $request->nomor_telepon,
             'alamat' => $request->alamat,
             'status' => $request->status
@@ -83,7 +83,7 @@ class UserController extends Controller
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'peran' => 'required|string|exists:peran,kode_peran',
+            'peran_id' => 'required|exists:peran,id',
             'nomor_telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string',
             'status' => 'required|in:aktif,nonaktif'
@@ -92,7 +92,7 @@ class UserController extends Controller
         $data = [
             'nama_lengkap' => $request->nama_lengkap,
             'email' => $request->email,
-            'peran' => $request->peran,
+            'peran_id' => $request->peran_id,
             'nomor_telepon' => $request->nomor_telepon,
             'alamat' => $request->alamat,
             'status' => $request->status

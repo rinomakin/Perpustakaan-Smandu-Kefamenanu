@@ -18,7 +18,7 @@ class AnggotaController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin']);
+        $this->middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH']);
     }
 
     public function index(Request $request)

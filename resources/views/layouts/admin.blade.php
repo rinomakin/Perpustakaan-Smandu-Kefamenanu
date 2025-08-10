@@ -101,13 +101,13 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo dan Brand -->
-                 <a href="{{ route('admin.dashboard') }}">
+                 <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.dashboard') : route('admin.dashboard') }}">
                 <div class="flex items-center space-x-2">
                     <div class="flex items-center space-x-3">
                         <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
                         <div>
                             <h1 class="font-bold text-xs w-10 whitespace-nowrap">{{ $pengaturan->nama_website ?? 'SIPERPUS' }}</h1>
-                            <p class="text-blue-100  text-xs whitespace-nowrap">Admin Panel</p>
+                            <p class="text-blue-100  text-xs whitespace-nowrap">{{ Auth::user()->isKepalaSekolah() ? 'Kepala Sekolah' : 'Admin Panel' }}</p>
                         </div>
                     </div>
                 </div>
@@ -116,15 +116,25 @@
                 <!-- Navigation Menu -->
                 <div class="hidden md:flex items-center space-x-2 navbar-menu">
                     <!-- Dashboard -->
-                    <a href="{{ route('admin.dashboard') }}" 
-                       class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-white bg-opacity-20' : '' }}">
+                    @if(Auth::user()->hasPermission('dashboard.view') || Auth::user()->isAdmin() || Auth::user()->isKepalaSekolah())
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.dashboard') : route('admin.dashboard') }}" 
+                       class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ (request()->routeIs('admin.dashboard') || request()->routeIs('kepsek.dashboard')) ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
+                    @endif
 
                     <!-- Data Master Dropdown -->
+                    @php
+                        $hasMasterPermission = Auth::user()->hasAnyPermission([
+                            'role.manage', 'permissions.manage', 'jurusan.manage', 'kelas.manage', 
+                            'jenis-buku.manage', 'kategori-buku.manage', 'rak-buku.manage', 'sumber-buku.manage'
+                        ]) || Auth::user()->isAdmin();
+                    @endphp
+                    
+                    @if($hasMasterPermission)
                     <div class="relative group flex items-center">
-                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jurusan.*', 'kelas.*', 'jenis-buku.*', 'sumber-buku.*', 'penerbit.*', 'penulis.*', 'kategori-buku.*', 'rak-buku.*', 'role.*') ? 'bg-white bg-opacity-20' : '' }}">
+                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('jurusan.*', 'kelas.*', 'jenis-buku.*', 'sumber-buku.*', 'penerbit.*', 'penulis.*', 'kategori-buku.*', 'rak-buku.*', 'role.*', 'permissions.*') ? 'bg-white bg-opacity-20' : '' }}">
                             <i class="fas fa-database"></i>
                             <p class="whitespace-nowrap">Master</p>
                             <i class="fas fa-chevron-down text-xs"></i>
@@ -133,74 +143,117 @@
                         <!-- Dropdown Menu -->
                         <div class="absolute text-xs top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
-                            <a href="{{ route('role.index') }}" 
+                                @if(Auth::user()->hasPermission('role.manage') || Auth::user()->isAdmin())
+                                <a href="{{ route('role.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('role.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-user-shield w-5"></i>
                                     <span>Role</span>
-                                </a>   
-                            <a href="{{ route('jurusan.index') }}" 
+                                </a>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('permissions.manage') || Auth::user()->isAdmin())
+                                <a href="{{ route('permissions.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('permissions.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-shield-alt w-5"></i>
+                                    <span>Hak Akses</span>
+                                </a>
+                                @endif
+
+                                @if(Auth::user()->hasPermission('user.manage') || Auth::user()->isAdmin())
+                                <a href="{{ route('user.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('permissions.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                   <i class="fas fa-user-cog text-xs"></i>
+                                   <span class="whitespace-nowrap text-xs">User</span>
+                                </a>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('jurusan.manage') || Auth::user()->isAdmin())
+                                <a href="{{ route('jurusan.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('jurusan.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-graduation-cap w-5"></i>
                                     <span>Data Jurusan</span>
                                 </a>
+                                @endif
                                 
+                                @if(Auth::user()->hasPermission('kelas.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('kelas.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('kelas.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-chalkboard w-5"></i>
                                     <span>Data Kelas</span>
                                 </a>
+                                @endif
                                 
+                                @if(Auth::user()->hasPermission('jenis-buku.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('jenis-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('jenis-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-book w-5"></i>
                                     <span>Jenis Buku</span>
                                 </a>
+                                @endif
                                 
+                                @if(Auth::user()->hasPermission('kategori-buku.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('kategori-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('kategori-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-book w-5"></i>
+                                    <i class="fas fa-tags w-5"></i>
                                     <span>Kategori Buku</span>
                                 </a>
+                                @endif
 
+                                @if(Auth::user()->hasPermission('rak-buku.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('rak-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('rak-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-book w-5"></i>
+                                    <i class="fas fa-archive w-5"></i>
                                     <span>Rak Buku</span>
                                 </a>
+                                @endif
                                 
+                                @if(Auth::user()->hasPermission('sumber-buku.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('sumber-buku.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('sumber-buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-book w-5"></i>
+                                    <i class="fas fa-source w-5"></i>
                                     <span>Sumber Buku</span>
                                 </a>
-                                
-                                
+                                @endif
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <!-- Data Anggota -->
-                    <a href="{{ route('anggota.index') }}" 
+                    @if(Auth::user()->hasAnyPermission(['anggota.view', 'anggota.create', 'anggota.update', 'anggota.delete']) || Auth::user()->isAdmin())
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.data-anggota') : route('anggota.index') }}" 
                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('anggota.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-users text-xs"></i>
                         <span class="whitespace-nowrap text-xs">Data Anggota</span>
                     </a>
+                    @endif
 
-                    <!-- User Management -->
-                    <a href="{{ route('user.index') }}" 
-                       class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('user.*') ? 'bg-white bg-opacity-20' : '' }}">
-                        <i class="fas fa-user-cog text-xs"></i>
-                        <span class="whitespace-nowrap text-xs">User</span>
-                    </a>
+                                          <!-- Absensi Pengunjung -->
+                     @if(Auth::user()->hasAnyPermission(['absensi.manage', 'absensi.scan', 'absensi.history']) || Auth::user()->isAdmin())
+                     <a href="{{ route('absensi-pengunjung.index') }}" 
+                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('absensi-pengunjung.*') ? 'bg-white bg-opacity-20' : '' }}">
+                         <i class="fas fa-qrcode text-xs"></i>
+                         <span class="whitespace-nowrap text-xs">Absensi</span>
+                     </a>
+                     @endif
 
                     <!-- Data Buku -->
-                    <a href="{{ route('buku.index') }}" 
+                    @if(Auth::user()->hasAnyPermission(['buku.view', 'buku.create', 'buku.update', 'buku.delete']) || Auth::user()->isAdmin())
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.data-buku') : route('buku.index') }}" 
                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('buku.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-book"></i>
                         <span class="whitespace-nowrap text-xs">Data Buku</span>
                     </a>
+                    @endif
 
                     <!-- Transaksi Dropdown -->
+                    @php
+                        $hasTransaksiPermission = Auth::user()->hasAnyPermission([
+                            'peminjaman.manage', 'pengembalian.manage', 'riwayat-transaksi.view'
+                        ]) || Auth::user()->isAdmin();
+                    @endphp
+                    
+                    @if($hasTransaksiPermission)
                     <div class="relative group flex items-center">
                         <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('peminjaman.*', 'pengembalian.*') ? 'bg-white bg-opacity-20' : '' }}">
                             <i class="fas fa-exchange-alt"></i>
@@ -211,27 +264,42 @@
                         <!-- Dropdown Menu -->
                         <div class="absolute text-xs top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
+                                @if(Auth::user()->hasPermission('peminjaman.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('peminjaman.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-book-reader w-5"></i>
                                     <span>Peminjaman</span>
                                 </a>
+                                @endif
                                 
+                                @if(Auth::user()->hasPermission('pengembalian.manage') || Auth::user()->isAdmin())
                                 <a href="{{ route('pengembalian.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-undo w-5"></i>
                                     <span>Pengembalian</span>
                                 </a>
-                                <a href="" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
-                                    <i class="fas fa-undo w-5"></i>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : '#' }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-history w-5"></i>
                                     <span>Riwayat Transaksi</span>
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <!-- Laporan Dropdown -->
+                    @php
+                        $hasLaporanPermission = Auth::user()->hasAnyPermission([
+                            'laporan.anggota', 'laporan.buku', 'laporan.kas'
+                        ]) || Auth::user()->isAdmin();
+                    @endphp
+                    
+                    @if($hasLaporanPermission)
                     <div class="relative group flex items-center">
                         <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
                             <i class="fas fa-chart-bar"></i>
@@ -242,33 +310,42 @@
                         <!-- Dropdown Menu -->
                         <div class="absolute text-xs top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
-                                <a href="" 
+                                @if(Auth::user()->hasPermission('laporan.anggota') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '#' }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-users w-5"></i>
                                     <span>Laporan Anggota</span>
                                 </a>
+                                @endif
                                 
-                                <a href="" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                @if(Auth::user()->hasPermission('laporan.buku') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '#' }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-book w-5"></i>
                                     <span>Laporan Buku</span>
                                 </a>
+                                @endif
                                 
-                                <a href="" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors ">
+                                @if(Auth::user()->hasPermission('laporan.kas') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '#' }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-money-bill w-5"></i>
                                     <span>Laporan Kas</span>
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <!-- Pengaturan -->
+                    @if(Auth::user()->hasPermission('pengaturan.manage') || Auth::user()->isAdmin())
                     <a href="{{ route('admin.pengaturan') }}" 
                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.pengaturan') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-cog text-xs"></i>
                         <span class="whitespace-nowrap text-xs">Pengaturan</span>
                     </a>
+                    @endif
                 </div>
 
                 <!-- User Menu -->
@@ -313,8 +390,8 @@
         <!-- Mobile Menu -->
         <div id="mobileMenu" class="md:hidden bg-white border-t border-gray-200 hidden">
             <div class="px-4 py-2 space-y-1">
-                <a href="{{ route('admin.dashboard') }}" 
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-50 text-blue-700' : '' }}">
+                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.dashboard') : route('admin.dashboard') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ (request()->routeIs('admin.dashboard') || request()->routeIs('kepsek.dashboard')) ? 'bg-blue-50 text-blue-700' : '' }}">
                     <i class="fas fa-tachometer-alt w-5"></i>
                     <span>Dashboard</span>
                 </a>
@@ -360,19 +437,21 @@
                     
                 </div>
                 
-                <a href="{{ route('anggota.index') }}" 
+                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.data-anggota') : route('anggota.index') }}" 
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('anggota.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                     <i class="fas fa-users w-5"></i>
                     <span>Data Anggota</span>
                 </a>
                 
-                <a href="{{ route('user.index') }}" 
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('user.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                    <i class="fas fa-user-cog w-5"></i>
-                    <span>User</span>
+                @if(Auth::user()->hasAnyPermission(['absensi.manage', 'absensi.scan', 'absensi.history']) || Auth::user()->isAdmin())
+                <a href="{{ route('absensi-pengunjung.index') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('absensi-pengunjung.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <i class="fas fa-qrcode w-5"></i>
+                    <span>Absensi</span>
                 </a>
+                @endif
                 
-                <a href="{{ route('buku.index') }}" 
+                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.data-buku') : route('buku.index') }}" 
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('buku.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                     <i class="fas fa-book w-5"></i>
                     <span>Data Buku</span>
@@ -391,8 +470,8 @@
                         <i class="fas fa-undo w-5"></i>
                         <span>Pengembalian</span>
                     </a>
-                    <a href=""
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : '' }}"
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') || request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-undo w-5"></i>
                         <span>Riwayat Transaksi</span>
                     </a>
@@ -401,28 +480,30 @@
                 <!-- Mobile Laporan -->
                 <div class="border-t border-gray-100 pt-2">
                     <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">Laporan</div>
-                    <a href="" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.anggota') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '' }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.anggota') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-users w-5"></i>
                         <span>Laporan Anggota</span>
                     </a>
-                    <a href="" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.buku') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '' }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.buku') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-book w-5"></i>
                         <span>Laporan Buku</span>
                     </a>
-                    <a href="" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.kas') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '' }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.kas') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-money-bill w-5"></i>
                         <span>Laporan Kas</span>
                     </a>
                 </div>
                 
+                @if(Auth::user()->hasPermission('pengaturan.manage') || Auth::user()->isAdmin())
                 <a href="{{ route('admin.pengaturan') }}" 
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.pengaturan') ? 'bg-blue-50 text-blue-700' : '' }}">
                     <i class="fas fa-cog w-5"></i>
                     <span>Pengaturan Website</span>
                 </a>
+                @endif
                 
                 <!-- Mobile Logout -->
                 <div class="border-t border-gray-100 pt-2">

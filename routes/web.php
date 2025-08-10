@@ -21,6 +21,7 @@ use App\Http\Controllers\CetakController;
 use App\Http\Controllers\RiwayatPeminjamanController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PermissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +45,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Frontend Routes (untuk petugas menampilkan ke siswa/guru)
-Route::middleware(['auth', 'role:petugas'])->prefix('frontend')->group(function () {
+Route::middleware(['auth', 'role:PETUGAS'])->prefix('frontend')->group(function () {
     Route::get('/', [FrontendController::class, 'index'])->name('frontend.home');
     Route::get('/cari-buku', [FrontendController::class, 'cariBuku'])->name('frontend.cari.buku');
     Route::get('/tentang', [FrontendController::class, 'tentang'])->name('frontend.tentang');
@@ -56,8 +57,8 @@ Route::middleware(['auth'])->group(function () {
     // Routes ini akan dipindah ke admin group
 });
 
-// Admin Routes
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+// Admin Routes (Admin dan Kepala Sekolah bisa akses)
+Route::middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/pengaturan-website', [AdminController::class, 'pengaturanWebsite'])->name('admin.pengaturan');
     Route::post('/pengaturan-website', [AdminController::class, 'updatePengaturanWebsite'])->name('admin.pengaturan.update');
@@ -130,6 +131,14 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     
     // CRUD Role
     Route::resource('role', RoleController::class);
+    
+    // Permission Management
+    Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+    Route::get('/permissions/role/{roleId}', [PermissionController::class, 'getRolePermissions'])->name('permissions.role.get');
+    Route::post('/permissions/role/{roleId}/update', [PermissionController::class, 'updateRolePermissions'])->name('permissions.role.update');
+    Route::post('/permissions/role/{roleId}/reset', [PermissionController::class, 'resetRolePermissions'])->name('permissions.role.reset');
+    Route::post('/permissions/copy', [PermissionController::class, 'copyPermissions'])->name('permissions.copy');
+    Route::post('/permissions/bulk-assign', [PermissionController::class, 'bulkAssignPermissions'])->name('permissions.bulk-assign');
     Route::post('/role/generate-kode', [RoleController::class, 'generateKode'])->name('role.generate-kode');
     
     // CRUD User
@@ -152,7 +161,11 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::resource('denda', DendaController::class);
     
     // CRUD Absensi Pengunjung
+    // Absensi Pengunjung
     Route::resource('absensi-pengunjung', AbsensiPengunjungController::class);
+    Route::post('/absensi-pengunjung/scan-barcode', [AbsensiPengunjungController::class, 'scanBarcode'])->name('admin.absensi-pengunjung.scan-barcode');
+    Route::get('/absensi-pengunjung/history/search', [AbsensiPengunjungController::class, 'searchHistory'])->name('admin.absensi-pengunjung.history.search');
+    Route::get('/absensi-pengunjung/today', [AbsensiPengunjungController::class, 'todayVisitors'])->name('admin.absensi-pengunjung.today');
     
     // Riwayat Peminjaman
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('riwayat-peminjaman.index');
@@ -173,7 +186,7 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
 });
 
 // Petugas Routes
-Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function () {
+Route::middleware(['auth', 'role:PETUGAS'])->prefix('petugas')->group(function () {
     Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
     Route::get('/beranda', [PetugasController::class, 'beranda'])->name('petugas.beranda');
     Route::get('/tentang', [PetugasController::class, 'tentang'])->name('petugas.tentang');
@@ -190,7 +203,17 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
 });
 
 // Kepala Sekolah Routes
-Route::middleware(['auth', 'role:kepala_sekolah'])->prefix('kepsek')->group(function () {
+Route::middleware(['auth', 'role:KEPALA_SEKOLAH'])->prefix('kepsek')->group(function () {
     Route::get('/dashboard', [KepsekController::class, 'dashboard'])->name('kepsek.dashboard');
     Route::get('/laporan', [KepsekController::class, 'laporan'])->name('kepsek.laporan');
+    
+    // Gunakan controller admin yang sudah ada
+    Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('kepsek.riwayat-peminjaman');
+    Route::get('/data-buku', [BukuController::class, 'index'])->name('kepsek.data-buku');
+    Route::get('/data-anggota', [AnggotaController::class, 'index'])->name('kepsek.data-anggota');
+    
+    // Export routes (gunakan yang sudah ada)
+    Route::get('/export/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'export'])->name('kepsek.export.riwayat-peminjaman');
+    Route::get('/export/data-buku', [BukuController::class, 'export'])->name('kepsek.export.data-buku');
+    Route::get('/export/data-anggota', [AnggotaController::class, 'export'])->name('kepsek.export.data-anggota');
 });

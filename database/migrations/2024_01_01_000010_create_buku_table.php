@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('judul_buku');
             $table->string('isbn')->nullable();
             $table->string('barcode')->unique(); // Barcode unik untuk setiap buku
-            $table->foreignId('penulis_id')->constrained('penulis')->onDelete('cascade');
-            $table->foreignId('penerbit_id')->constrained('penerbit')->onDelete('cascade');
+            $table->string('pengarang')->nullable(); // Pengarang sebagai string
+            $table->string('penerbit')->nullable(); // Penerbit sebagai string
             $table->foreignId('kategori_id')->constrained('kategori_buku')->onDelete('cascade');
             $table->foreignId('jenis_id')->constrained('jenis_buku')->onDelete('cascade');
             $table->foreignId('sumber_id')->constrained('sumber_buku')->onDelete('cascade');

@@ -22,7 +22,7 @@ class BukuExport implements FromCollection, WithHeadings, WithMapping, ShouldAut
 
     public function collection()
     {
-        $query = Buku::with(['kategori', 'jenis', 'sumber']);
+        $query = Buku::with(['kategoriBuku', 'jenisBuku', 'sumberBuku', 'rakBuku']);
 
         if ($this->request) {
             // Apply search filter
@@ -32,14 +32,9 @@ class BukuExport implements FromCollection, WithHeadings, WithMapping, ShouldAut
                     $q->where('judul_buku', 'LIKE', "%{$search}%")
                       ->orWhere('isbn', 'LIKE', "%{$search}%")
                       ->orWhere('barcode', 'LIKE', "%{$search}%")
-                      ->orWhere('lokasi_rak', 'LIKE', "%{$search}%")
-                      ->orWhereHas('penulis', function($q) use ($search) {
-                          $q->where('nama_penulis', 'LIKE', "%{$search}%");
-                      })
-                      ->orWhereHas('penerbit', function($q) use ($search) {
-                          $q->where('nama_penerbit', 'LIKE', "%{$search}%");
-                      })
-                      ->orWhereHas('kategori', function($q) use ($search) {
+                      ->orWhere('pengarang', 'LIKE', "%{$search}%")
+                      ->orWhere('penerbit', 'LIKE', "%{$search}%")
+                      ->orWhereHas('kategoriBuku', function($q) use ($search) {
                           $q->where('nama_kategori', 'LIKE', "%{$search}%");
                       });
                 });
@@ -107,11 +102,11 @@ class BukuExport implements FromCollection, WithHeadings, WithMapping, ShouldAut
             $buku->judul_buku,
             $buku->isbn ?? '-',
             $buku->barcode ?? '-',
-            $buku->penulis ?? '-',
+            $buku->pengarang ?? '-',
             $buku->penerbit ?? '-',
-            $buku->kategori ? $buku->kategori->nama_kategori : '-',
-            $buku->jenis ? $buku->jenis->nama_jenis : '-',
-            $buku->sumber ? $buku->sumber->nama_sumber : '-',
+            $buku->kategoriBuku ? $buku->kategoriBuku->nama_kategori : '-',
+            $buku->jenisBuku ? $buku->jenisBuku->nama_jenis : '-',
+            $buku->sumberBuku ? $buku->sumberBuku->nama_sumber : '-',
             $buku->tahun_terbit ?? '-',
             $buku->jumlah_halaman ?? '-',
             $buku->bahasa ?? 'Indonesia',

@@ -158,35 +158,45 @@
     <!-- Tombol Aksi -->
     <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
         <div class="flex space-x-2">
+            @if(Auth::user()->hasPermission('anggota.create') || Auth::user()->isAdmin())
             <a href="{{ route('anggota.create') }}"
                class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-blue-600 border border-transparent rounded-lg active:bg-blue-600 hover:bg-blue-700 focus:outline-none focus:shadow-outline-blue">
                 <i class="fas fa-plus mr-1"></i> Tambah Data
             </a>
+            @endif
             
+            @if(Auth::user()->hasPermission('anggota.import') || Auth::user()->isAdmin())
             <button onclick="openModal('importModal')"
                     class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-green-600 border border-transparent rounded-lg active:bg-green-600 hover:bg-green-700 focus:outline-none focus:shadow-outline-green">
                 <i class="fas fa-upload mr-1"></i> Import Data
             </button>
             
-            <a href="{{ route('anggota.export') }}?{{ http_build_query(request()->all()) }}"
-               class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-yellow-600 border border-transparent rounded-lg active:bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:shadow-outline-yellow">
-                <i class="fas fa-download mr-1"></i> Export Data
-            </a>
-            
             <a href="{{ route('anggota.download-template') }}"
                class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple">
                 <i class="fas fa-file-download mr-1"></i> Download Template
             </a>
+            @endif
             
+            @if(Auth::user()->hasPermission('anggota.export') || Auth::user()->isAdmin())
+            <a href="{{ route('anggota.export') }}?{{ http_build_query(request()->all()) }}"
+               class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-yellow-600 border border-transparent rounded-lg active:bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:shadow-outline-yellow">
+                <i class="fas fa-download mr-1"></i> Export Data
+            </a>
+            @endif
+            
+            @if(Auth::user()->hasPermission('anggota.delete') || Auth::user()->isAdmin())
             <button onclick="bulkDelete()" id="bulkDeleteBtn" 
                     class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-red-600 border border-transparent rounded-lg active:bg-red-600 hover:bg-red-700 focus:outline-none focus:shadow-outline-red hidden">
                 <i class="fas fa-trash mr-1"></i> Hapus Terpilih
             </button>
+            @endif
             
+            @if(Auth::user()->hasPermission('anggota.cetak-kartu') || Auth::user()->isAdmin())
             <button onclick="bulkPrintKartu()" id="bulkPrintBtn" 
                     class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-indigo-600 border border-transparent rounded-lg active:bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:shadow-outline-indigo hidden">
                 <i class="fas fa-id-card mr-1"></i> Cetak Kartu Terpilih
             </button>
+            @endif
         </div>
         
         <div class="text-sm text-gray-600">
@@ -200,12 +210,14 @@
             <table class="w-full whitespace-no-wrap">
                 <thead>
                     <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b bg-gray-50">
+                        @if(Auth::user()->hasPermission('anggota.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('anggota.cetak-kartu') || Auth::user()->isAdmin())
                         <th class="px-4 py-3">
                             <label class="checkbox-wrapper">
                                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
                                 <span class="checkmark"></span>
                             </label>
                         </th>
+                        @endif
                         <th class="px-4 py-3">No</th>
                         <!-- <th class="px-4 py-3">No. Anggota</th> -->
                         <th class="px-4 py-3">Nama Lengkap</th>
@@ -220,12 +232,14 @@
                 <tbody class="bg-white divide-y">
                     @forelse($anggota as $index => $item)
                     <tr class="text-gray-700">
+                        @if(Auth::user()->hasPermission('anggota.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('anggota.cetak-kartu') || Auth::user()->isAdmin())
                         <td class="px-4 py-3">
                             <label class="checkbox-wrapper">
                                 <input type="checkbox" class="item-checkbox" value="{{ $item->id }}" onchange="updateBulkDeleteButton()">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
+                        @endif
                         <td class="px-4 py-3 text-sm">
                             {{ $index + $anggota->firstItem() }}
                         </td>
@@ -285,22 +299,29 @@
                         </td>
                         <td class="px-4 py-3 text-sm">
                             <div class="flex space-x-2">
+                                @if(Auth::user()->hasPermission('anggota.view') || Auth::user()->isAdmin())
                                 <a href="{{ route('anggota.show', $item->id) }}" 
                                    class="text-purple-500 hover:text-purple-700" 
                                    title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('anggota.update') || Auth::user()->isAdmin())
                                 <a href="{{ route('anggota.edit', $item->id) }}" 
                                    class="text-blue-500 hover:text-blue-700" 
                                    title="Edit Data">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('anggota.cetak-kartu') || Auth::user()->isAdmin())
                                 <a href="{{ route('anggota.cetak-kartu', $item->id) }}" 
                                    target="_blank"
                                    class="text-green-500 hover:text-green-700" 
                                    title="Cetak Kartu">
                                     <i class="fas fa-print"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('anggota.delete') || Auth::user()->isAdmin())
                                 <form action="{{ route('anggota.destroy', $item->id) }}" method="POST" class="inline-block">
                                     @csrf
                                     @method('DELETE')
@@ -311,12 +332,16 @@
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr class="text-gray-700">
-                        <td colspan="10" class="px-4 py-3 text-sm text-center">
+                        <td colspan="{{ 
+                            9 + 
+                            (Auth::user()->hasPermission('anggota.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('anggota.cetak-kartu') || Auth::user()->isAdmin() ? 1 : 0) 
+                        }}" class="px-4 py-3 text-sm text-center">
                             Tidak ada data anggota.
                         </td>
                     </tr>
@@ -337,6 +362,7 @@
     </div>
 </div>
 
+@if(Auth::user()->hasPermission('anggota.import'))
 <!-- Modal Import Data -->
 <div id="importModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -383,6 +409,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <script>
 // Pastikan fungsi tersedia secara global

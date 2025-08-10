@@ -85,6 +85,15 @@
             <div class="flex items-center gap-3">
                 <!-- Import/Export Buttons -->
                 <div class="flex items-center gap-2">
+                    @if(Auth::user()->hasPermission('buku.export') || Auth::user()->isAdmin())
+                    <a href="{{ route('buku.export', request()->query()) }}" 
+                       class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                        <i class="fas fa-file-excel mr-2"></i>
+                        Export
+                    </a>
+                    @endif
+                    
+                    @if(Auth::user()->hasPermission('buku.import') || Auth::user()->isAdmin())
                     <a href="{{ route('buku.download-template') }}" 
                        class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                         <i class="fas fa-download mr-2"></i>
@@ -95,35 +104,40 @@
                         <i class="fas fa-upload mr-2"></i>
                         Import
                     </button>
-                    <a href="{{ route('buku.export', request()->query()) }}" 
-                       class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                        <i class="fas fa-file-excel mr-2"></i>
-                        Export
-                    </a>
+                    @endif
+                    
+                    @if(Auth::user()->hasPermission('buku.create') || Auth::user()->isAdmin())
                     <a href="{{ route('buku.create') }}" 
                    class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform ">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah
                 </a>
+                @endif
                 </div>
                 
+                @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                 <!-- Bulk Action Buttons (Hidden by default) -->
                 <div id="bulkActionButtons" class="flex items-center gap-2 opacity-0 transition-all duration-300 ease-in-out">
                     <div class="flex items-center gap-2">
+                        @if(Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <button onclick="printBarcodeSelected()" 
                                 class="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                             <i class="fas fa-print mr-2"></i>
                             Cetak Barcode
                         </button>
+                        @endif
+                        @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin())
                         <button onclick="deleteSelected()" 
                                 class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                             <i class="fas fa-trash mr-2"></i>
                             Hapus Terpilih
                         </button>
+                        @endif
                     </div>
                     <span id="selectedCount" class="text-sm text-gray-500 transition-all duration-200 mr-2 font-medium bg-gray-100 px-2 py-1 rounded-full">0 buku dipilih</span>
 
                 </div>
+                @endif
                 
                 
             </div>
@@ -137,12 +151,14 @@
             <table class="min-w-full divide-y divide-gray-200" style="min-width: 900px;">
                 <thead class="bg-gray-50">
                     <tr>
+                        @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <div class="flex items-center">
                                 <input type="checkbox" id="selectAll" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200">
                                 <span class="ml-2 text-xs text-gray-500 transition-all duration-200">Pilih</span>
                             </div>
                         </th>
+                        @endif
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Cover
                         </th>
@@ -164,17 +180,21 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                         </th>
+                        @if(Auth::user()->hasPermission('buku.update') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Aksi
                         </th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($buku as $bukuItem)
                     <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <td class="px-6 py-4 whitespace-nowrap">
                             <input type="checkbox" class="book-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200" value="{{ $bukuItem->id }}">
                         </td>
+                        @endif
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex-shrink-0 h-16 w-12 group relative" title="{{ $bukuItem->judul_buku }}">
                                 @if($bukuItem->cover_buku)
@@ -225,40 +245,58 @@
                                 {{ $bukuItem->stok_tersedia > 0 ? 'Tersedia' : 'Habis' }}
                             </span>
                         </td>
+                        @if(Auth::user()->hasPermission('buku.update') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex items-center space-x-2">
+                                @if(Auth::user()->hasPermission('buku.view') || Auth::user()->isAdmin())
                                 <a href="{{ route('buku.show', $bukuItem->id) }}" 
                                    class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('buku.update') || Auth::user()->isAdmin())
                                 <a href="{{ route('buku.edit', $bukuItem->id) }}" 
                                    class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                                 <a href="{{ route('buku.cetak-barcode', $bukuItem->id) }}" 
                                    class="text-green-600 hover:text-green-900 transition-colors duration-200" title="Cetak Barcode" target="_blank">
                                     <i class="fas fa-print"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin())
                                 <button onclick="confirmDeleteBuku({{ $bukuItem->id }})" 
                                         class="text-red-600 hover:text-red-900 transition-colors duration-200" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>
+                                @endif
                             </div>
                         </td>
+                        @endif
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-12 text-center">
+                        <td colspan="{{ 
+                            7 + 
+                            (Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin() ? 1 : 0) + 
+                            (Auth::user()->hasPermission('buku.update') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin() ? 1 : 0) 
+                        }}" class="px-6 py-12 text-center">
                             <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                 <i class="fas fa-book text-3xl text-gray-400"></i>
                             </div>
                             <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada buku ditemukan</h3>
                             <p class="text-gray-600 mb-6">Belum ada data buku yang ditambahkan atau tidak ada buku yang sesuai dengan filter.</p>
+                            @if(Auth::user()->hasPermission('buku.create') || Auth::user()->isAdmin())
                             <a href="{{ route('buku.create') }}" 
                                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200">
                                 <i class="fas fa-plus mr-2"></i>
                                 Tambah Buku Pertama
                             </a>
+                            @else
+                            <p class="text-gray-500">Tidak ada data buku tersedia.</p>
+                            @endif
                         </td>
                     </tr>
                     @endforelse

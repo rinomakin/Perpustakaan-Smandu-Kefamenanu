@@ -10,7 +10,7 @@ class KelasController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin']);
+        $this->middleware(['auth', 'role:ADMIN']);
     }
 
     public function index()

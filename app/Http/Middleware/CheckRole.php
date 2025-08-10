@@ -23,7 +23,8 @@ class CheckRole
 
         $user = Auth::user();
         
-        if (in_array($user->peran, $roles)) {
+        // Check if user has role and if role's kode_peran matches
+        if ($user->role && in_array(strtoupper($user->role->kode_peran), array_map('strtoupper', $roles))) {
             return $next($request);
         }
 

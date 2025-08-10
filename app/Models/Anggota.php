@@ -27,15 +27,22 @@ class Anggota extends Model
         'foto',
         'status',
         'tanggal_bergabung',
+        'tanggal_lahir',
     ];
 
     protected $casts = [
         'tanggal_bergabung' => 'date',
+        'tanggal_lahir' => 'date',
     ];
 
     public function kelas()
     {
         return $this->belongsTo(Kelas::class);
+    }
+
+    public function jurusan()
+    {
+        return $this->hasOneThrough(Jurusan::class, Kelas::class, 'id', 'id', 'kelas_id', 'jurusan_id');
     }
 
     public function peminjaman()

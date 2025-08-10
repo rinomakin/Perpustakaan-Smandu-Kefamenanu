@@ -13,7 +13,7 @@ class KepsekController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('role:kepala_sekolah');
+        $this->middleware('role:KEPALA_SEKOLAH');
     }
 
     public function dashboard()
@@ -45,4 +45,6 @@ class KepsekController extends Controller
             
         return view('kepsek.laporan', compact('laporanBulanan'));
     }
+
+
 } 

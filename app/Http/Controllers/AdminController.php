@@ -14,10 +14,10 @@ class AdminController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('role:admin');
+        $this->middleware('role:ADMIN');
     }
 
-    public function dashboard()
+        public function dashboard()
     {
         return view('admin.dashboard');
     }

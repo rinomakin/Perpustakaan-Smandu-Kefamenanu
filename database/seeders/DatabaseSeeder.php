@@ -14,13 +14,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PengaturanWebsiteSeeder::class,
             RoleSeeder::class,
+            PermissionSeeder::class,
             JurusanSeeder::class,
             KelasSeeder::class,
             KategoriBukuSeeder::class,
             JenisBukuSeeder::class,
             SumberBukuSeeder::class,
-
             UserSeeder::class,
+            AssignPermissionsSeeder::class,
         ]);
     }
 }

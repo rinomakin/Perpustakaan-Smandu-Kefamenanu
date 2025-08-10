@@ -125,19 +125,19 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-user-shield text-gray-400"></i>
                         </div>
-                        <select name="peran" 
-                                id="peran" 
-                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('peran') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                        <select name="peran_id" 
+                                id="peran_id" 
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('peran_id') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                 required>
                             <option value="">Pilih role</option>
                             @foreach($roles as $role)
-                                <option value="{{ $role->kode_peran }}" {{ old('peran', $user->peran) === $role->kode_peran ? 'selected' : '' }}>
+                                <option value="{{ $role->id }}" {{ old('peran_id', $user->peran_id) == $role->id ? 'selected' : '' }}>
                                     {{ $role->nama_peran }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
-                    @error('peran')
+                    @error('peran_id')
                         <p class="text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-1"></i>
                             {{ $message }}

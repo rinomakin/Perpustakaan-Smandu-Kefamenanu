@@ -18,12 +18,12 @@ class BukuController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin']);
+        $this->middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH']);
     }
 
     public function index(Request $request)
     {
-        $query = Buku::with(['kategori', 'jenis', 'sumber']);
+        $query = Buku::with(['kategoriBuku', 'jenisBuku', 'sumberBuku', 'rakBuku']);
 
         // Filter berdasarkan pencarian
         if ($request->filled('search')) {
@@ -33,9 +33,9 @@ class BukuController extends Controller
                   ->orWhere('isbn', 'LIKE', "%{$search}%")
                   ->orWhere('barcode', 'LIKE', "%{$search}%")
                   ->orWhere('lokasi_rak', 'LIKE', "%{$search}%")
-                  ->orWhere('penulis', 'LIKE', "%{$search}%")
+                  ->orWhere('pengarang', 'LIKE', "%{$search}%")
                   ->orWhere('penerbit', 'LIKE', "%{$search}%")
-                  ->orWhereHas('kategori', function($q) use ($search) {
+                  ->orWhereHas('kategoriBuku', function($q) use ($search) {
                       $q->where('nama_kategori', 'LIKE', "%{$search}%");
                   });
             });

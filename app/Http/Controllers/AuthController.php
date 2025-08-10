@@ -29,12 +29,13 @@ class AuthController extends Controller
             $user = Auth::user();
             
             // Redirect berdasarkan peran
-            switch ($user->peran) {
-                case 'admin':
+            $kodePeran = $user->role ? $user->role->kode_peran : null;
+            switch ($kodePeran) {
+                case 'ADMIN':
                     return redirect()->intended('/admin/dashboard');
-                case 'kepala_sekolah':
+                case 'KEPALA_SEKOLAH':
                     return redirect()->intended('/kepsek/dashboard');
-                case 'petugas':
+                case 'PETUGAS':
                     return redirect()->intended('/frontend');
                 default:
                     return redirect()->intended('/dashboard');

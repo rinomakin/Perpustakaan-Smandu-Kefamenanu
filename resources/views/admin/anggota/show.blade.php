@@ -12,14 +12,18 @@
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-semibold text-gray-800">{{ $anggota->nama_lengkap }}</h3>
             <div class="flex space-x-2">
+                @if(Auth::user()->hasPermission('anggota.update'))
                 <a href="{{ route('anggota.edit', $anggota->id) }}"
                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
                     <i class="fas fa-edit mr-1"></i>Edit
                 </a>
+                @endif
+                @if(Auth::user()->hasPermission('anggota.cetak-kartu'))
                 <a href="{{ route('anggota.cetak-kartu', $anggota->id) }}" target="_blank"
                    class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
                     <i class="fas fa-print mr-1"></i>Cetak Kartu
                 </a>
+                @endif
                 <a href="{{ route('anggota.index') }}"
                    class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
                     <i class="fas fa-arrow-left mr-1"></i>Kembali

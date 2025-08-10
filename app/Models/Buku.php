@@ -15,7 +15,7 @@ class Buku extends Model
         'judul_buku',
         'isbn',
         'barcode',
-        'penulis',
+        'pengarang',
         'penerbit',
         'kategori_id',
         'jenis_id',
@@ -41,19 +41,24 @@ class Buku extends Model
 
 
 
-    public function kategori()
+    public function kategoriBuku()
     {
         return $this->belongsTo(KategoriBuku::class, 'kategori_id');
     }
 
-    public function jenis()
+    public function jenisBuku()
     {
         return $this->belongsTo(JenisBuku::class, 'jenis_id');
     }
 
-    public function sumber()
+    public function sumberBuku()
     {
         return $this->belongsTo(SumberBuku::class, 'sumber_id');
+    }
+
+    public function rakBuku()
+    {
+        return $this->belongsTo(RakBuku::class, 'rak_id');
     }
 
     public function detailPeminjaman()
@@ -61,9 +66,25 @@ class Buku extends Model
         return $this->hasMany(DetailPeminjaman::class);
     }
 
+    // Alias relationships untuk backward compatibility
+    public function kategori()
+    {
+        return $this->kategoriBuku();
+    }
+
+    public function jenis()
+    {
+        return $this->jenisBuku();
+    }
+
+    public function sumber()
+    {
+        return $this->sumberBuku();
+    }
+
     public function rak()
     {
-        return $this->belongsTo(RakBuku::class, 'rak_id');
+        return $this->rakBuku();
     }
 
     // Method untuk generate barcode otomatis
