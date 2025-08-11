@@ -468,17 +468,23 @@ function searchAnggota(query) {
     dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari...</div>';
     dropdown.classList.remove('hidden');
     
-    fetch(`/admin/pengembalian/search-anggota?query=${encodeURIComponent(query)}`, {
+    const url = `/admin/pengembalian/search-anggota?query=${encodeURIComponent(query)}`;
+    
+    fetch(url, {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
+            'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.success && data.data.length > 0) {
+        if (data.success && data.data && data.data.length > 0) {
             dropdown.innerHTML = '';
             data.data.forEach((anggota) => {
                 const item = document.createElement('div');
@@ -504,7 +510,7 @@ function searchAnggota(query) {
     })
     .catch(error => {
         console.error('Error searching anggota:', error);
-        dropdown.innerHTML = '<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan</div>';
+        dropdown.innerHTML = '<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan: ' + error.message + '</div>';
     });
 }
 

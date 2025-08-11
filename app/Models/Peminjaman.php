@@ -53,6 +53,11 @@ class Peminjaman extends Model
         return $this->hasOne(Denda::class);
     }
 
+    public function pengembalian()
+    {
+        return $this->hasMany(Pengembalian::class);
+    }
+
     // Method untuk generate nomor peminjaman otomatis
     public static function generateNomorPeminjaman()
     {

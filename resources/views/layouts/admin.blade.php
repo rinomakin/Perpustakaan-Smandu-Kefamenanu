@@ -230,8 +230,8 @@
 
                                           <!-- Absensi Pengunjung -->
                      @if(Auth::user()->hasAnyPermission(['absensi.manage', 'absensi.scan', 'absensi.history']) || Auth::user()->isAdmin())
-                     <a href="{{ route('absensi-pengunjung.index') }}" 
-                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('absensi-pengunjung.*') ? 'bg-white bg-opacity-20' : '' }}">
+                     <a href="{{ route('admin.absensi-pengunjung.index') }}" 
+                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.absensi-pengunjung.*') ? 'bg-white bg-opacity-20' : '' }}">
                          <i class="fas fa-qrcode text-xs"></i>
                          <span class="whitespace-nowrap text-xs">Absensi</span>
                      </a>
@@ -281,10 +281,18 @@
                                 @endif
                                 
                                 @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
-                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : '#' }}" 
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : route('riwayat-peminjaman.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-history w-5"></i>
-                                    <span>Riwayat Transaksi</span>
+                                    <span>Riwayat Peminjaman</span>
+                                </a>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('pengembalian.manage') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-pengembalian') : route('riwayat-pengembalian.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-undo-alt w-5"></i>
+                                    <span>Riwayat Pengembalian</span>
                                 </a>
                                 @endif
                             </div>
@@ -461,8 +469,8 @@
                 </a>
                 
                 @if(Auth::user()->hasAnyPermission(['absensi.manage', 'absensi.scan', 'absensi.history']) || Auth::user()->isAdmin())
-                <a href="{{ route('absensi-pengunjung.index') }}" 
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('absensi-pengunjung.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                        <a href="{{ route('admin.absensi-pengunjung.index') }}" 
+                                        class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.absensi-pengunjung.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                     <i class="fas fa-qrcode w-5"></i>
                     <span>Absensi</span>
                 </a>
@@ -482,15 +490,20 @@
                         <i class="fas fa-book-reader w-5"></i>
                         <span>Peminjaman</span>
                     </a>
-                    <a href=""
+                    <a href="{{ route('pengembalian.index') }}"
                        class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-undo w-5"></i>
                         <span>Pengembalian</span>
                     </a>
-                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : '' }}"
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') || request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-blue-50 text-blue-700' : '' }}">
-                        <i class="fas fa-undo w-5"></i>
-                        <span>Riwayat Transaksi</span>
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : route('riwayat-peminjaman.index') }}"
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('riwayat-peminjaman.*') || request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-history w-5"></i>
+                        <span>Riwayat Peminjaman</span>
+                    </a>
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-pengembalian') : route('riwayat-pengembalian.index') }}"
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('riwayat-pengembalian.*') || request()->routeIs('kepsek.riwayat-pengembalian') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-undo-alt w-5"></i>
+                        <span>Riwayat Pengembalian</span>
                     </a>
                 </div>
                 

@@ -9,7 +9,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold">📋 Absensi Pengunjung</h1>
-                <p class="text-blue-100 mt-1">Kelola absensi pengunjung perpustakaan dengan scan barcode</p>
+                <p class="text-blue-100 mt-1">Kelola absensi pengunjung perpustakaan dengan pencarian anggota</p>
             </div>
             <div class="text-right">
                 <div class="text-3xl font-bold">{{ $totalPengunjungHariIni }}</div>
@@ -51,89 +51,90 @@
                     <p class="text-lg font-semibold text-green-600" id="scanner-status">Siap</p>
                 </div>
                 <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-qrcode text-purple-600 text-xl"></i>
+                    <i class="fas fa-search text-purple-600 text-xl"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content: Scanner & Visitor Table -->
+    <!-- Main Content: Member Search & Visitor Table -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Left Panel: Barcode Scanner -->
+        <!-- Left Panel: Member Search Form -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-camera mr-2 text-blue-600"></i>
-                    Barcode Scanner
+                    <i class="fas fa-search mr-2 text-blue-600"></i>
+                    Pencarian Anggota
                 </h2>
                 <div class="flex items-center space-x-2">
-                    <div id="connection-status" class="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span class="text-sm text-gray-600" id="status-text">Disconnected</span>
+                    <div id="connection-status" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm text-gray-600" id="status-text">Siap</span>
                 </div>
             </div>
 
-            <!-- Camera Preview -->
-            <div class="relative mb-4">
-                <div id="camera-container" class="bg-gray-100 rounded-lg overflow-hidden relative" style="height: 300px;">
-                    <video id="camera-preview" class="w-full h-full object-cover hidden"></video>
-                    <canvas id="camera-canvas" class="hidden"></canvas>
-                    
-                    <!-- Placeholder ketika camera off -->
-                    <div id="camera-placeholder" class="flex items-center justify-center h-full bg-gray-50">
-                        <div class="text-center">
-                            <i class="fas fa-video text-4xl text-gray-400 mb-3"></i>
-                            <p class="text-gray-600">Klik "Aktifkan Kamera" untuk memulai scan</p>
-                        </div>
-                    </div>
-
-                    <!-- Scanning Frame -->
-                    <div id="scan-frame" class="absolute inset-0 pointer-events-none hidden">
-                        <div class="w-full h-full relative">
-                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-red-500 rounded-lg">
-                                <div class="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-red-500"></div>
-                                <div class="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-red-500"></div>
-                                <div class="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-red-500"></div>
-                                <div class="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-red-500"></div>
-                            </div>
-                            <!-- Scanning Line Animation -->
-                            <div id="scan-line" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-0.5 bg-red-500 opacity-75 animate-pulse"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Camera Controls -->
-            <div class="flex space-x-3 mb-4">
-                <button id="start-camera" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                    <i class="fas fa-play mr-2"></i>
-                    Aktifkan Kamera
-                </button>
-                <button id="stop-camera" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 hidden">
-                    <i class="fas fa-stop mr-2"></i>
-                    Matikan Kamera
-                </button>
-            </div>
-
-            <!-- Manual Input -->
-            <div class="border-t pt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Input Manual Barcode:</label>
+            <!-- Search Form -->
+            <div class="space-y-4">
+                <!-- Search Input with Scan Button -->
                 <div class="flex space-x-2">
-                    <input type="text" id="manual-barcode" placeholder="Masukkan barcode anggota..." 
-                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button id="process-manual" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                        <i class="fas fa-check"></i>
+                    <div class="flex-1 relative">
+                        <input type="text" id="member-search" 
+                               placeholder="Cari anggota berdasarkan nama, nomor anggota, atau barcode..." 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                    <button id="scan-barcode-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center">
+                        <i class="fas fa-qrcode mr-2"></i>
+                        Scan
                     </button>
                 </div>
-            </div>
 
-            <!-- Last Scan Result -->
-            <div id="scan-result" class="mt-4 p-3 rounded-lg hidden">
-                <div class="flex items-center space-x-3">
-                    <img id="result-photo" src="" alt="Foto" class="w-12 h-12 rounded-full object-cover">
-                    <div>
-                        <div id="result-name" class="font-medium text-gray-900"></div>
-                        <div id="result-class" class="text-sm text-gray-600"></div>
-                        <div id="result-time" class="text-xs text-gray-500"></div>
+                <!-- Search Results -->
+                <div id="search-results" class="hidden">
+                    <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                        <div id="search-results-list" class="divide-y divide-gray-200">
+                            <!-- Search results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Member Info -->
+                <div id="selected-member" class="hidden p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <img id="selected-photo" src="" alt="Foto" class="w-12 h-12 rounded-full object-cover">
+                        <div class="flex-1">
+                            <div id="selected-name" class="font-medium text-gray-900"></div>
+                            <div id="selected-info" class="text-sm text-gray-600"></div>
+                        </div>
+                        <button id="record-attendance" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                            <i class="fas fa-check mr-2"></i>
+                            Catat Absensi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Input -->
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Input Manual Barcode:</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="manual-barcode" placeholder="Masukkan barcode anggota..." 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="process-manual" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Last Scan Result -->
+                <div id="scan-result" class="mt-4 p-3 rounded-lg hidden">
+                    <div class="flex items-center space-x-3">
+                        <img id="result-photo" src="" alt="Foto" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <div id="result-name" class="font-medium text-gray-900"></div>
+                            <div id="result-class" class="text-sm text-gray-600"></div>
+                            <div id="result-time" class="text-xs text-gray-500"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -238,6 +239,61 @@
     </div>
 </div>
 
+<!-- Scan Modal -->
+<div id="scanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Scan Barcode Anggota</h3>
+                    <button type="button" id="closeScanModal" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-4">Arahkan kamera ke barcode anggota untuk scan</p>
+                    <div id="scanContainer" class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
+                        <div id="scanPlaceholder" class="text-center">
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
+                        </div>
+                        <div id="scanVideo" class="w-full h-full hidden">
+                            <div id="reader" class="w-full h-full"></div>
+                        </div>
+                        <div id="scanLoading" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+                            <div class="text-center text-white">
+                                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                <p>Memulai kamera...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        <span id="scanStatus">Siap untuk scan</span>
+                    </div>
+                    <div class="flex space-x-3" id="scanControls">
+                        <button type="button" id="startScanBtn" 
+                                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold">
+                            <i class="fas fa-play mr-2"></i>Mulai Scan
+                        </button>
+                        <button type="button" id="stopScanBtn" 
+                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold hidden">
+                            <i class="fas fa-stop mr-2"></i>Stop Scan
+                        </button>
+                        <button type="button" id="cancelScan" 
+                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Success/Error Messages -->
 <div id="message-container" class="fixed top-4 right-4 z-50"></div>
 @endsection
@@ -245,162 +301,294 @@
 @section('scripts')
 <!-- Include ZXing barcode scanning library -->
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
-// Camera and Barcode Scanner functionality
-class BarcodeScanner {
+// Member Search and Barcode Scanner functionality
+class MemberSearchScanner {
     constructor() {
         this.isScanning = false;
         this.stream = null;
         this.codeReader = null;
+        this.html5QrcodeScanner = null;
         this.lastScanTime = 0;
         this.scanCooldown = 3000; // 3 seconds cooldown between scans
+        this.searchTimeout = null;
+        this.selectedMember = null;
         this.init();
     }
 
     init() {
         this.bindEvents();
-        this.setStatus('disconnected');
+        this.setStatus('ready');
     }
 
     bindEvents() {
-        document.getElementById('start-camera').addEventListener('click', () => this.startCamera());
-        document.getElementById('stop-camera').addEventListener('click', () => this.stopCamera());
+        // Search functionality
+        document.getElementById('member-search').addEventListener('input', (e) => this.handleSearch(e.target.value));
+        document.getElementById('member-search').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.handleSearch(e.target.value);
+        });
+
+        // Scan button
+        document.getElementById('scan-barcode-btn').addEventListener('click', () => this.openScanModal());
+
+        // Manual input
         document.getElementById('process-manual').addEventListener('click', () => this.processManualBarcode());
         document.getElementById('manual-barcode').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.processManualBarcode();
         });
+
+        // Record attendance
+        document.getElementById('record-attendance').addEventListener('click', () => this.recordAttendance());
+
+        // Other buttons
         document.getElementById('refresh-visitors').addEventListener('click', () => this.refreshVisitors());
         document.getElementById('search-history').addEventListener('click', () => this.searchHistory());
+
+        // Modal controls
+        document.getElementById('closeScanModal').addEventListener('click', () => this.closeScanModal());
+        document.getElementById('cancelScan').addEventListener('click', () => this.closeScanModal());
+        document.getElementById('startScanBtn').addEventListener('click', () => this.startScanning());
+        document.getElementById('stopScanBtn').addEventListener('click', () => this.stopScanning());
+
+        // Close modal when clicking outside
+        document.getElementById('scanModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                this.closeScanModal();
+            }
+        });
     }
 
-    async startCamera() {
-        const videoElement = document.getElementById('camera-preview');
-        const scannerLoading = document.getElementById('scan-frame');
-        const scannerPlaceholder = document.getElementById('camera-placeholder');
+    // Search functionality
+    handleSearch(query) {
+        clearTimeout(this.searchTimeout);
+        
+        if (query.length < 2) {
+            this.hideSearchResults();
+            return;
+        }
+
+        this.searchTimeout = setTimeout(() => {
+            this.searchMembers(query);
+        }, 300);
+    }
+
+    async searchMembers(query) {
+        try {
+            const response = await fetch(`{{ route('admin.absensi-pengunjung.search-members') }}?q=${encodeURIComponent(query)}`);
+            const result = await response.json();
+
+            if (result.success) {
+                this.displaySearchResults(result.data);
+            } else {
+                this.showMessage(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error searching members:', error);
+            this.showMessage('Terjadi kesalahan saat mencari anggota', 'error');
+        }
+    }
+
+    displaySearchResults(members) {
+        const resultsContainer = document.getElementById('search-results');
+        const resultsList = document.getElementById('search-results-list');
+
+        if (members.length === 0) {
+            resultsList.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-search text-2xl mb-2"></i>
+                    <p>Tidak ada anggota yang ditemukan</p>
+                </div>
+            `;
+        } else {
+            resultsList.innerHTML = members.map(member => `
+                <div class="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 member-result" 
+                     data-member='${JSON.stringify(member)}'>
+                    <div class="flex items-center space-x-3">
+                        <img src="${member.foto || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>')}" 
+                             alt="Foto" class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">${member.nama_lengkap}</div>
+                            <div class="text-sm text-gray-600">
+                                ${member.nomor_anggota} | ${member.kelas || '-'}
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            ${member.status === 'aktif' ? '<span class="text-green-600">Aktif</span>' : '<span class="text-red-600">Tidak Aktif</span>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click event listeners
+            resultsList.querySelectorAll('.member-result').forEach(element => {
+                element.addEventListener('click', () => {
+                    const member = JSON.parse(element.dataset.member);
+                    this.selectMember(member);
+                });
+            });
+        }
+
+        resultsContainer.classList.remove('hidden');
+    }
+
+    selectMember(member) {
+        this.selectedMember = member;
+        
+        // Update selected member display
+        document.getElementById('selected-photo').src = member.foto || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>');
+        document.getElementById('selected-name').textContent = member.nama_lengkap;
+        document.getElementById('selected-info').textContent = `${member.nomor_anggota} | ${member.kelas || '-'}`;
+        
+        // Show selected member section
+        document.getElementById('selected-member').classList.remove('hidden');
+        
+        // Hide search results
+        this.hideSearchResults();
+        
+        // Clear search input
+        document.getElementById('member-search').value = '';
+    }
+
+    hideSearchResults() {
+        document.getElementById('search-results').classList.add('hidden');
+    }
+
+    // Scan functionality
+    openScanModal() {
+        document.getElementById('scanModal').classList.remove('hidden');
+        this.initializeScanner();
+    }
+
+    closeScanModal() {
+        this.stopScanning();
+        document.getElementById('scanModal').classList.add('hidden');
+        this.resetScanModal();
+    }
+
+    resetScanModal() {
+        const scanContainer = document.getElementById('scanContainer');
+        const scanPlaceholder = document.getElementById('scanPlaceholder');
+        const scanVideo = document.getElementById('scanVideo');
+        const scanLoading = document.getElementById('scanLoading');
+        
+        scanLoading.classList.add('hidden');
+        scanPlaceholder.classList.remove('hidden');
+        scanVideo.classList.add('hidden');
+        
+        scanPlaceholder.innerHTML = `
+            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
+        `;
+        
+        document.getElementById('scanStatus').textContent = 'Siap untuk scan';
+        document.getElementById('startScanBtn').classList.remove('hidden');
+        document.getElementById('stopScanBtn').classList.add('hidden');
+    }
+
+    async initializeScanner() {
+        console.log('🚀 Initializing scanner...');
+        
+        const scanContainer = document.getElementById('scanContainer');
+        const scanLoading = document.getElementById('scanLoading');
+        const scanVideo = document.getElementById('scanVideo');
+        const scanPlaceholder = document.getElementById('scanPlaceholder');
+        
+        // Show loading
+        scanLoading.classList.remove('hidden');
+        scanPlaceholder.classList.add('hidden');
+        scanVideo.classList.remove('hidden');
         
         try {
-            this.setStatus('connecting');
-            console.log('Setting up reliable camera scanner...');
+            // Create HTML5-QRCode scanner
+            this.html5QrcodeScanner = new Html5Qrcode("reader");
             
-            // Check if getUserMedia is supported
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                console.error('getUserMedia not supported');
-                this.showMessage('Browser tidak mendukung akses kamera', 'error');
-                this.setStatus('error');
-                return;
-            }
-            
-            // Request camera access with multiple fallback options
-            const constraints = {
-                video: {
-                    width: { ideal: 1280, min: 640 },
-                    height: { ideal: 720, min: 480 },
-                    facingMode: "environment"
-                }
+            // Configure scanner
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                supportedScanTypes: [
+                    Html5QrcodeScanType.SCAN_TYPE_CAMERA
+                ]
             };
             
-            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('Camera access granted!');
+            // Start scanning
+            await this.html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+                (error) => this.onScanFailure(error)
+            );
             
-            // Set the video stream
-            videoElement.srcObject = this.stream;
-            await videoElement.play();
+            console.log('📹 Scanner started successfully');
+            scanLoading.classList.add('hidden');
+            scanVideo.classList.remove('hidden');
+            document.getElementById('scanStatus').textContent = 'Scanner aktif';
+            document.getElementById('startScanBtn').classList.add('hidden');
+            document.getElementById('stopScanBtn').classList.remove('hidden');
+            this.showMessage('Scanner siap. Arahkan kamera ke barcode.', 'success');
             
-            // Show camera elements
-            scannerPlaceholder.classList.add('hidden');
-            videoElement.classList.remove('hidden');
-            scannerLoading.classList.remove('hidden');
-            document.getElementById('start-camera').classList.add('hidden');
-            document.getElementById('stop-camera').classList.remove('hidden');
-
-            this.setStatus('connected');
-            await this.startZXingScanning();
-
         } catch (error) {
-            console.error('Error accessing camera:', error);
-            this.handleCameraError(error);
-        }
-    }
-
-    stopCamera() {
-        if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
-            this.stream = null;
-        }
-
-        if (this.codeReader) {
-            this.codeReader.reset();
-            this.codeReader = null;
-        }
-
-        // Hide camera elements
-        document.getElementById('camera-preview').classList.add('hidden');
-        document.getElementById('scan-frame').classList.add('hidden');
-        document.getElementById('camera-placeholder').classList.remove('hidden');
-        document.getElementById('start-camera').classList.remove('hidden');
-        document.getElementById('stop-camera').classList.add('hidden');
-
-        this.isScanning = false;
-        this.setStatus('disconnected');
-    }
-
-    async startZXingScanning() {
-        try {
-            // Load ZXing library
-            if (typeof ZXing === 'undefined') {
-                console.error('ZXing library not loaded');
-                this.showMessage('Library barcode scanner tidak tersedia', 'error');
-                return;
+            console.error('❌ Scanner initialization error:', error);
+            scanLoading.classList.add('hidden');
+            scanPlaceholder.classList.remove('hidden');
+            scanVideo.classList.add('hidden');
+            
+            if (error.name === 'NotAllowedError') {
+                this.showMessage('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+            } else if (error.name === 'NotFoundError') {
+                this.showMessage('Tidak ada kamera yang ditemukan.', 'error');
+            } else {
+                this.showMessage('Gagal menginisialisasi scanner: ' + error.message, 'error');
             }
-
-            const videoElement = document.getElementById('camera-preview');
             
-            // Initialize ZXing reader
-            this.codeReader = new ZXing.BrowserMultiFormatReader();
-            
-            console.log('ZXing scanner initialized, starting detection...');
-            this.isScanning = true;
-            
-            // Start continuous scanning with throttling
-            await this.codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
-                if (result && this.isScanning) {
-                    const currentTime = Date.now();
-                    if (currentTime - this.lastScanTime > this.scanCooldown) {
-                        console.log('🎉 Barcode detected:', result.text);
-                        this.lastScanTime = currentTime;
-                        this.processBarcode(result.text);
-                    }
-                }
-                
-                if (error && error.name !== 'NotFoundException') {
-                    console.warn('Scanner error:', error);
-                }
-            });
-            
-            console.log('ZXing scanner started successfully!');
-            
-        } catch (error) {
-            console.error('Error starting ZXing scanner:', error);
-            this.showMessage('Gagal memulai scanner: ' + error.message, 'error');
-            this.setStatus('error');
+            // Show manual input option
+            scanPlaceholder.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-2"></i>
+                    <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
+                    <p class="text-sm text-gray-400">Gunakan pencarian manual di atas</p>
+                </div>
+            `;
         }
     }
 
-    handleCameraError(error) {
-        console.error('Camera error details:', error);
-        
-        this.showDetailedError(error);
-        this.setStatus('error');
-        
-        // Show manual input hint
-        setTimeout(() => {
-            this.showMessage('Anda dapat menggunakan input manual di bawah untuk scan barcode', 'info');
-            document.getElementById('manual-barcode').focus();
-        }, 2000);
+    onScanSuccess(decodedText, decodedResult) {
+        console.log('🎉 Barcode detected:', decodedText);
+        this.processBarcode(decodedText);
     }
 
+    onScanFailure(error) {
+        // Handle scan failure silently
+        console.log('⚠️ Scan failure:', error);
+    }
 
+    startScanning() {
+        if (!this.html5QrcodeScanner) {
+            this.showMessage('Scanner belum siap. Silakan tunggu.', 'warning');
+            return;
+        }
+        
+        try {
+            document.getElementById('scanStatus').textContent = 'Scanning...';
+        } catch (error) {
+            console.error('Error starting scanner:', error);
+            this.showMessage('Gagal memulai scanner. Silakan coba lagi.', 'error');
+        }
+    }
+
+    stopScanning() {
+        if (this.html5QrcodeScanner) {
+            try {
+                this.html5QrcodeScanner.stop();
+                document.getElementById('scanStatus').textContent = 'Scanner dihentikan';
+            } catch (error) {
+                console.error('Error stopping scanner:', error);
+            }
+        }
+    }
 
     async processBarcode(barcode) {
         if (!barcode) return;
@@ -423,6 +611,7 @@ class BarcodeScanner {
                 this.showScanResult(result.data);
                 this.showMessage(result.message, 'success');
                 this.refreshVisitors();
+                this.closeScanModal();
             } else {
                 this.showMessage(result.message, 'error');
             }
@@ -432,7 +621,7 @@ class BarcodeScanner {
             this.showMessage('Terjadi kesalahan saat memproses barcode', 'error');
         }
 
-        this.setStatus('connected');
+        this.setStatus('ready');
     }
 
     processManualBarcode() {
@@ -441,6 +630,46 @@ class BarcodeScanner {
             this.processBarcode(barcode);
             document.getElementById('manual-barcode').value = '';
         }
+    }
+
+    async recordAttendance() {
+        if (!this.selectedMember) {
+            this.showMessage('Pilih anggota terlebih dahulu', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ route("admin.absensi-pengunjung.store-ajax") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ 
+                    anggota_id: this.selectedMember.id,
+                    keterangan: 'Pencarian Manual'
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showMessage(result.message, 'success');
+                this.refreshVisitors();
+                this.clearSelectedMember();
+            } else {
+                this.showMessage(result.message, 'error');
+            }
+
+        } catch (error) {
+            console.error('Error recording attendance:', error);
+            this.showMessage('Terjadi kesalahan saat mencatat absensi', 'error');
+        }
+    }
+
+    clearSelectedMember() {
+        this.selectedMember = null;
+        document.getElementById('selected-member').classList.add('hidden');
     }
 
     showScanResult(data) {
@@ -570,21 +799,15 @@ class BarcodeScanner {
         const scannerStatus = document.getElementById('scanner-status');
 
         switch (status) {
-            case 'connected':
+            case 'ready':
                 statusElement.className = 'w-3 h-3 bg-green-500 rounded-full';
-                textElement.textContent = 'Connected';
-                scannerStatus.textContent = 'Aktif';
+                textElement.textContent = 'Siap';
+                scannerStatus.textContent = 'Siap';
                 scannerStatus.className = 'text-lg font-semibold text-green-600';
-                break;
-            case 'connecting':
-                statusElement.className = 'w-3 h-3 bg-yellow-500 rounded-full animate-pulse';
-                textElement.textContent = 'Connecting...';
-                scannerStatus.textContent = 'Menghubungkan...';
-                scannerStatus.className = 'text-lg font-semibold text-yellow-600';
                 break;
             case 'processing':
                 statusElement.className = 'w-3 h-3 bg-blue-500 rounded-full animate-pulse';
-                textElement.textContent = 'Processing...';
+                textElement.textContent = 'Memproses...';
                 scannerStatus.textContent = 'Memproses...';
                 scannerStatus.className = 'text-lg font-semibold text-blue-600';
                 break;
@@ -595,10 +818,10 @@ class BarcodeScanner {
                 scannerStatus.className = 'text-lg font-semibold text-red-600';
                 break;
             default:
-                statusElement.className = 'w-3 h-3 bg-red-500 rounded-full';
-                textElement.textContent = 'Disconnected';
+                statusElement.className = 'w-3 h-3 bg-green-500 rounded-full';
+                textElement.textContent = 'Siap';
                 scannerStatus.textContent = 'Siap';
-                scannerStatus.className = 'text-lg font-semibold text-gray-600';
+                scannerStatus.className = 'text-lg font-semibold text-green-600';
         }
     }
 
@@ -640,78 +863,11 @@ class BarcodeScanner {
             }
         }, 5000);
     }
-
-    // Add permission request helper
-    async requestCameraPermission() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop());
-            return true;
-        } catch (error) {
-            console.error('Camera permission denied:', error);
-            return false;
-        }
-    }
-
-    // Add device detection
-    isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-
-    // Enhanced error handling
-    showDetailedError(error) {
-        let helpText = '';
-        
-        switch (error.name) {
-            case 'NotAllowedError':
-                helpText = `
-                    <div class="mt-2 text-sm">
-                        <p><strong>Cara mengatasi:</strong></p>
-                        <ol class="list-decimal list-inside mt-1 space-y-1">
-                            <li>Klik ikon kamera di address bar</li>
-                            <li>Pilih "Always allow" atau "Allow"</li>
-                            <li>Refresh halaman dan coba lagi</li>
-                        </ol>
-                    </div>
-                `;
-                break;
-            case 'NotFoundError':
-                helpText = `
-                    <div class="mt-2 text-sm">
-                        <p><strong>Solusi:</strong></p>
-                        <ul class="list-disc list-inside mt-1 space-y-1">
-                            <li>Pastikan kamera terhubung dengan baik</li>
-                            <li>Gunakan input manual barcode di bawah</li>
-                        </ul>
-                    </div>
-                `;
-                break;
-        }
-        
-        this.showMessage(this.getErrorMessage(error) + helpText, 'error');
-    }
-
-    getErrorMessage(error) {
-        switch (error.name) {
-            case 'NotAllowedError':
-                return 'Akses kamera ditolak. Mohon berikan izin akses kamera.';
-            case 'NotFoundError':
-                return 'Kamera tidak ditemukan pada device ini.';
-            case 'NotSupportedError':
-                return 'Browser tidak mendukung akses kamera.';
-            case 'NotReadableError':
-                return 'Kamera sedang digunakan oleh aplikasi lain.';
-            case 'OverconstrainedError':
-                return 'Kamera tidak mendukung resolusi yang diminta.';
-            default:
-                return 'Error: ' + error.message;
-        }
-    }
 }
 
 // Initialize scanner when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    window.barcodeScanner = new BarcodeScanner();
+    window.memberSearchScanner = new MemberSearchScanner();
     
     // Set default dates (today)
     const today = new Date().toISOString().split('T')[0];
@@ -721,8 +877,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Cleanup when page is unloaded
 window.addEventListener('beforeunload', function() {
-    if (window.barcodeScanner) {
-        window.barcodeScanner.stopCamera();
+    if (window.memberSearchScanner) {
+        window.memberSearchScanner.stopScanning();
     }
 });
 </script>

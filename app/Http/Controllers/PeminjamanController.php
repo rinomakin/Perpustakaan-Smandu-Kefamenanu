@@ -18,7 +18,10 @@ class PeminjamanController extends Controller
 
     public function index()
     {
-        $peminjaman = Peminjaman::with(['anggota', 'user', 'detailPeminjaman.buku'])->paginate(10);
+        // Filter out returned books (status = 'dikembalikan') from active list
+        $peminjaman = Peminjaman::with(['anggota', 'user', 'detailPeminjaman.buku'])
+            ->where('status', '!=', 'dikembalikan')
+            ->paginate(10);
         return view('admin.peminjaman.index', compact('peminjaman'));
     }
 

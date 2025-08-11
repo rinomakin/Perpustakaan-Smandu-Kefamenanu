@@ -51,26 +51,77 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- QR Scanner -->
+            <!-- Member Search Form -->
             <div class="bg-white rounded-lg shadow-md">
-                <div class="bg-black text-white px-4 py-3 rounded-t-lg flex items-center">
-                    <i class="fas fa-qrcode mr-2"></i>
-                    <span class="font-medium">Scan QR Code Disini</span>
+                <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg flex items-center">
+                    <i class="fas fa-search mr-2"></i>
+                    <span class="font-medium">Pencarian Anggota</span>
                 </div>
                 <div class="p-6">
-                    <div class="text-center mb-4">
-                        <div class="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-camera text-gray-400 text-4xl"></i>
+                    <div class="space-y-4">
+                        <!-- Search Input with Scan Button -->
+                        <div class="flex space-x-2">
+                            <div class="flex-1 relative">
+                                <input type="text" id="member-search" 
+                                       placeholder="Cari anggota berdasarkan nama, nomor anggota, atau barcode..." 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                            </div>
+                            <button id="scan-barcode-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center">
+                                <i class="fas fa-qrcode mr-2"></i>
+                                Scan
+                            </button>
                         </div>
-                        <p class="text-gray-600 mb-4">Klik tombol di bawah untuk memulai scan QR Code</p>
-                    </div>
-                    <div class="flex space-x-4">
-                        <button id="openScannerBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
-                            <i class="fas fa-qrcode mr-2"></i>Buka Scanner
-                        </button>
-                        <button id="manualInputBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
-                            <i class="fas fa-keyboard mr-2"></i>Input Manual
-                        </button>
+
+                        <!-- Search Results -->
+                        <div id="search-results" class="hidden">
+                            <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                                <div id="search-results-list" class="divide-y divide-gray-200">
+                                    <!-- Search results will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Member Info -->
+                        <div id="selected-member" class="hidden p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <img id="selected-photo" src="" alt="Foto" class="w-12 h-12 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div id="selected-name" class="font-medium text-gray-900"></div>
+                                    <div id="selected-info" class="text-sm text-gray-600"></div>
+                                </div>
+                                <button id="record-attendance" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                                    <i class="fas fa-check mr-2"></i>
+                                    Catat Absensi
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Manual Input -->
+                        <div class="border-t pt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Input Manual Barcode:</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="manual-barcode" placeholder="Masukkan barcode anggota..." 
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button id="process-manual" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Last Scan Result -->
+                        <div id="scan-result" class="mt-4 p-3 rounded-lg hidden">
+                            <div class="flex items-center space-x-3">
+                                <img id="result-photo" src="" alt="Foto" class="w-12 h-12 rounded-full object-cover">
+                                <div>
+                                    <div id="result-name" class="font-medium text-gray-900"></div>
+                                    <div id="result-class" class="text-sm text-gray-600"></div>
+                                    <div id="result-time" class="text-xs text-gray-500"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -225,30 +276,30 @@
         </div>
     </footer>
 
-    <!-- QR Scanner Modal -->
-    <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <!-- Scan Modal -->
+    <div id="scanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
                 <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white">Scan QR Code Absensi</h3>
-                        <button type="button" id="closeScanner" class="text-white hover:text-gray-200">
+                        <h3 class="text-lg font-semibold text-white">Scan Barcode Anggota</h3>
+                        <button type="button" id="closeScanModal" class="text-white hover:text-gray-200">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
                 <div class="p-6">
                     <div class="mb-4">
-                        <p class="text-gray-600 mb-4">Arahkan kamera ke QR Code untuk scan absensi</p>
-                        <div id="scannerContainer" class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                            <div id="scannerPlaceholder" class="text-center">
+                        <p class="text-gray-600 mb-4">Arahkan kamera ke barcode anggota untuk scan</p>
+                        <div id="scanContainer" class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
+                            <div id="scanPlaceholder" class="text-center">
                                 <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
                                 <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
                             </div>
-                            <div id="scannerVideo" class="w-full h-full hidden">
+                            <div id="scanVideo" class="w-full h-full hidden">
                                 <div id="reader" class="w-full h-full"></div>
                             </div>
-                            <div id="scannerLoading" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+                            <div id="scanLoading" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
                                 <div class="text-center text-white">
                                     <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
                                     <p>Memulai kamera...</p>
@@ -258,9 +309,9 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <div class="text-sm text-gray-600">
-                            <span id="scannerStatus">Siap untuk scan</span>
+                            <span id="scanStatus">Siap untuk scan</span>
                         </div>
-                        <div class="flex space-x-3" id="scannerControls">
+                        <div class="flex space-x-3" id="scanControls">
                             <button type="button" id="startScanBtn" 
                                     class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold">
                                 <i class="fas fa-play mr-2"></i>Mulai Scan
@@ -281,341 +332,461 @@
     </div>
 
     <script>
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('tbody tr');
-            
-            tableRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+        // Member Search and Barcode Scanner functionality
+        class MemberSearchScanner {
+            constructor() {
+                this.isScanning = false;
+                this.html5QrcodeScanner = null;
+                this.lastScanTime = 0;
+                this.scanCooldown = 3000; // 3 seconds cooldown between scans
+                this.searchTimeout = null;
+                this.selectedMember = null;
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                // Search functionality
+                document.getElementById('member-search').addEventListener('input', (e) => this.handleSearch(e.target.value));
+                document.getElementById('member-search').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.handleSearch(e.target.value);
+                });
+
+                // Scan button
+                document.getElementById('scan-barcode-btn').addEventListener('click', () => this.openScanModal());
+
+                // Manual input
+                document.getElementById('process-manual').addEventListener('click', () => this.processManualBarcode());
+                document.getElementById('manual-barcode').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.processManualBarcode();
+                });
+
+                // Record attendance
+                document.getElementById('record-attendance').addEventListener('click', () => this.recordAttendance());
+
+                // Modal controls
+                document.getElementById('closeScanModal').addEventListener('click', () => this.closeScanModal());
+                document.getElementById('cancelScan').addEventListener('click', () => this.closeScanModal());
+                document.getElementById('startScanBtn').addEventListener('click', () => this.startScanning());
+                document.getElementById('stopScanBtn').addEventListener('click', () => this.stopScanning());
+
+                // Close modal when clicking outside
+                document.getElementById('scanModal').addEventListener('click', (e) => {
+                    if (e.target === e.currentTarget) {
+                        this.closeScanModal();
+                    }
+                });
+
+                // Table search functionality
+                document.getElementById('searchInput').addEventListener('keyup', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const tableRows = document.querySelectorAll('tbody tr');
+                    
+                    tableRows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        if (text.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Search functionality
+            handleSearch(query) {
+                clearTimeout(this.searchTimeout);
+                
+                if (query.length < 2) {
+                    this.hideSearchResults();
+                    return;
                 }
-            });
-        });
 
-        // QR Code Scanner functionality
-        let html5QrcodeScanner = null;
-        let isScanning = false;
-
-        // Setup CSRF token untuk AJAX requests
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        // Check browser compatibility on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const openScannerBtn = document.getElementById('openScannerBtn');
-            
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                openScannerBtn.disabled = true;
-                openScannerBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                openScannerBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Browser Tidak Mendukung';
-                showNotification('Browser Anda tidak mendukung akses kamera. Silakan gunakan browser modern.', 'warning');
-            } else {
-                console.log('✅ Browser supports camera access');
+                this.searchTimeout = setTimeout(() => {
+                    this.searchMembers(query);
+                }, 300);
             }
-        });
 
-        // Open Scanner button functionality
-        document.getElementById('openScannerBtn').addEventListener('click', function() {
-            document.getElementById('scannerModal').classList.remove('hidden');
-            initializeHTML5QRCodeScanner();
-        });
+            async searchMembers(query) {
+                try {
+                    const response = await fetch(`{{ route('petugas.absensi-pengunjung.search-members') }}?q=${encodeURIComponent(query)}`);
+                    const result = await response.json();
 
-        // Manual input button functionality
-        document.getElementById('manualInputBtn').addEventListener('click', function() {
-            showManualInputDialog();
-        });
-
-        // Modal control buttons
-        document.getElementById('closeScanner').addEventListener('click', function() {
-            closeScanner();
-        });
-
-        document.getElementById('cancelScan').addEventListener('click', function() {
-            closeScanner();
-        });
-
-        document.getElementById('startScanBtn').addEventListener('click', function() {
-            startScanning();
-        });
-
-        document.getElementById('stopScanBtn').addEventListener('click', function() {
-            stopScanning();
-        });
-
-        // Close modal when clicking outside
-        document.getElementById('scannerModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeScanner();
+                    if (result.success) {
+                        this.displaySearchResults(result.data);
+                    } else {
+                        this.showMessage(result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error searching members:', error);
+                    this.showMessage('Terjadi kesalahan saat mencari anggota', 'error');
+                }
             }
-        });
 
-        // Initialize HTML5-QRCode Scanner
-        function initializeHTML5QRCodeScanner() {
-            console.log('🚀 Initializing HTML5-QRCode scanner...');
-            
-            const scannerContainer = document.getElementById('scannerContainer');
-            const scannerLoading = document.getElementById('scannerLoading');
-            const scannerVideo = document.getElementById('scannerVideo');
-            const scannerPlaceholder = document.getElementById('scannerPlaceholder');
-            
-            // Show loading
-            scannerLoading.classList.remove('hidden');
-            scannerPlaceholder.classList.add('hidden');
-            scannerVideo.classList.remove('hidden');
-            
-            try {
-                // Create HTML5-QRCode scanner
-                html5QrcodeScanner = new Html5Qrcode("reader");
+            displaySearchResults(members) {
+                const resultsContainer = document.getElementById('search-results');
+                const resultsList = document.getElementById('search-results-list');
+
+                if (members.length === 0) {
+                    resultsList.innerHTML = `
+                        <div class="p-4 text-center text-gray-500">
+                            <i class="fas fa-search text-2xl mb-2"></i>
+                            <p>Tidak ada anggota yang ditemukan</p>
+                        </div>
+                    `;
+                } else {
+                    resultsList.innerHTML = members.map(member => `
+                        <div class="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 member-result" 
+                             data-member='${JSON.stringify(member)}'>
+                            <div class="flex items-center space-x-3">
+                                <img src="${member.foto || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>')}" 
+                                     alt="Foto" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900">${member.nama_lengkap}</div>
+                                    <div class="text-sm text-gray-600">
+                                        ${member.nomor_anggota} | ${member.kelas || '-'}
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    ${member.status === 'aktif' ? '<span class="text-green-600">Aktif</span>' : '<span class="text-red-600">Tidak Aktif</span>'}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add click event listeners
+                    resultsList.querySelectorAll('.member-result').forEach(element => {
+                        element.addEventListener('click', () => {
+                            const member = JSON.parse(element.dataset.member);
+                            this.selectMember(member);
+                        });
+                    });
+                }
+
+                resultsContainer.classList.remove('hidden');
+            }
+
+            selectMember(member) {
+                this.selectedMember = member;
                 
-                // Configure scanner
-                const config = {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0,
-                    supportedScanTypes: [
-                        Html5QrcodeScanType.SCAN_TYPE_CAMERA
-                    ]
-                };
+                // Update selected member display
+                document.getElementById('selected-photo').src = member.foto || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>');
+                document.getElementById('selected-name').textContent = member.nama_lengkap;
+                document.getElementById('selected-info').textContent = `${member.nomor_anggota} | ${member.kelas || '-'}`;
                 
-                // Start scanning
-                html5QrcodeScanner.start(
-                    { facingMode: "environment" },
-                    config,
-                    onScanSuccess,
-                    onScanFailure
-                ).then(() => {
+                // Show selected member section
+                document.getElementById('selected-member').classList.remove('hidden');
+                
+                // Hide search results
+                this.hideSearchResults();
+                
+                // Clear search input
+                document.getElementById('member-search').value = '';
+            }
+
+            hideSearchResults() {
+                document.getElementById('search-results').classList.add('hidden');
+            }
+
+            async recordAttendance() {
+                if (!this.selectedMember) {
+                    this.showMessage('Pilih anggota terlebih dahulu', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('{{ route("petugas.absensi-pengunjung.store") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ 
+                            anggota_id: this.selectedMember.id,
+                            keterangan: 'Pencarian Manual'
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.showMessage(result.message, 'success');
+                        this.clearSelectedMember();
+                        // Reload page to show updated attendance list
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        this.showMessage(result.message, 'error');
+                    }
+
+                } catch (error) {
+                    console.error('Error recording attendance:', error);
+                    this.showMessage('Terjadi kesalahan saat mencatat absensi', 'error');
+                }
+            }
+
+            clearSelectedMember() {
+                this.selectedMember = null;
+                document.getElementById('selected-member').classList.add('hidden');
+            }
+
+            // Setup CSRF token untuk AJAX requests
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            // Scan functionality
+            openScanModal() {
+                document.getElementById('scanModal').classList.remove('hidden');
+                this.initializeScanner();
+            }
+
+            closeScanModal() {
+                this.stopScanning();
+                document.getElementById('scanModal').classList.add('hidden');
+                this.resetScanModal();
+            }
+
+            resetScanModal() {
+                const scanContainer = document.getElementById('scanContainer');
+                const scanPlaceholder = document.getElementById('scanPlaceholder');
+                const scanVideo = document.getElementById('scanVideo');
+                const scanLoading = document.getElementById('scanLoading');
+                
+                scanLoading.classList.add('hidden');
+                scanPlaceholder.classList.remove('hidden');
+                scanVideo.classList.add('hidden');
+                
+                scanPlaceholder.innerHTML = `
+                    <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
+                `;
+                
+                document.getElementById('scanStatus').textContent = 'Siap untuk scan';
+                document.getElementById('startScanBtn').classList.remove('hidden');
+                document.getElementById('stopScanBtn').classList.add('hidden');
+            }
+
+            async initializeScanner() {
+                console.log('🚀 Initializing scanner...');
+                
+                const scanContainer = document.getElementById('scanContainer');
+                const scanLoading = document.getElementById('scanLoading');
+                const scanVideo = document.getElementById('scanVideo');
+                const scanPlaceholder = document.getElementById('scanPlaceholder');
+                
+                // Show loading
+                scanLoading.classList.remove('hidden');
+                scanPlaceholder.classList.add('hidden');
+                scanVideo.classList.remove('hidden');
+                
+                try {
+                    // Create HTML5-QRCode scanner
+                    this.html5QrcodeScanner = new Html5Qrcode("reader");
+                    
+                    // Configure scanner
+                    const config = {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        aspectRatio: 1.0,
+                        supportedScanTypes: [
+                            Html5QrcodeScanType.SCAN_TYPE_CAMERA
+                        ]
+                    };
+                    
+                    // Start scanning
+                    await this.html5QrcodeScanner.start(
+                        { facingMode: "environment" },
+                        config,
+                        (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+                        (error) => this.onScanFailure(error)
+                    );
+                    
                     console.log('📹 Scanner started successfully');
-                    scannerLoading.classList.add('hidden');
-                    scannerVideo.classList.remove('hidden');
-                    document.getElementById('scannerStatus').textContent = 'Scanner aktif';
+                    scanLoading.classList.add('hidden');
+                    scanVideo.classList.remove('hidden');
+                    document.getElementById('scanStatus').textContent = 'Scanner aktif';
                     document.getElementById('startScanBtn').classList.add('hidden');
                     document.getElementById('stopScanBtn').classList.remove('hidden');
-                    showNotification('Scanner HTML5-QRCode siap. Arahkan kamera ke QR Code.', 'success');
-                }).catch((err) => {
-                    console.error('❌ Scanner initialization error:', err);
-                    scannerLoading.classList.add('hidden');
-                    scannerPlaceholder.classList.remove('hidden');
-                    scannerVideo.classList.add('hidden');
+                    this.showMessage('Scanner siap. Arahkan kamera ke barcode.', 'success');
                     
-                    if (err.name === 'NotAllowedError') {
-                        showNotification('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
-                    } else if (err.name === 'NotFoundError') {
-                        showNotification('Tidak ada kamera yang ditemukan.', 'error');
-                    } else {
-                        showNotification('Gagal menginisialisasi scanner: ' + err.message, 'error');
-                    }
-                    
-                    // Fallback to manual input
-                    setupManualInput();
-                });
-                
-            } catch (error) {
-                console.error('❌ HTML5-QRCode initialization error:', error);
-                scannerLoading.classList.add('hidden');
-                scannerPlaceholder.classList.remove('hidden');
-                scannerVideo.classList.add('hidden');
-                showNotification('Gagal menginisialisasi scanner: ' + error.message, 'error');
-                setupManualInput();
-            }
-        }
-
-        // Scan success callback
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log('🎉 QR Code detected:', decodedText);
-            processScannedQRCode(decodedText);
-        }
-
-        // Scan failure callback
-        function onScanFailure(error) {
-            // Handle scan failure silently
-            console.log('⚠️ Scan failure:', error);
-        }
-
-        function startScanning() {
-            if (!html5QrcodeScanner) {
-                showNotification('Scanner belum siap. Silakan tunggu.', 'warning');
-                return;
-            }
-            
-            try {
-                document.getElementById('scannerStatus').textContent = 'Scanning...';
-            } catch (error) {
-                console.error('Error starting scanner:', error);
-                showNotification('Gagal memulai scanner. Silakan coba lagi.', 'error');
-            }
-        }
-
-        function stopScanning() {
-            if (html5QrcodeScanner) {
-                try {
-                    html5QrcodeScanner.stop();
-                    document.getElementById('scannerStatus').textContent = 'Scanner dihentikan';
                 } catch (error) {
-                    console.error('Error stopping scanner:', error);
+                    console.error('❌ Scanner initialization error:', error);
+                    scanLoading.classList.add('hidden');
+                    scanPlaceholder.classList.remove('hidden');
+                    scanVideo.classList.add('hidden');
+                    
+                    if (error.name === 'NotAllowedError') {
+                        this.showMessage('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+                    } else if (error.name === 'NotFoundError') {
+                        this.showMessage('Tidak ada kamera yang ditemukan.', 'error');
+                    } else {
+                        this.showMessage('Gagal menginisialisasi scanner: ' + error.message, 'error');
+                    }
+                    
+                    // Show manual input option
+                    scanPlaceholder.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-2"></i>
+                            <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
+                            <p class="text-sm text-gray-400">Gunakan pencarian manual di atas</p>
+                        </div>
+                    `;
                 }
             }
-        }
 
-        function closeScanner() {
-            try {
-                // Stop scanner if running
-                if (html5QrcodeScanner) {
-                    html5QrcodeScanner.stop();
+            onScanSuccess(decodedText, decodedResult) {
+                console.log('🎉 Barcode detected:', decodedText);
+                this.processBarcode(decodedText);
+            }
+
+            onScanFailure(error) {
+                // Handle scan failure silently
+                console.log('⚠️ Scan failure:', error);
+            }
+
+            startScanning() {
+                if (!this.html5QrcodeScanner) {
+                    this.showMessage('Scanner belum siap. Silakan tunggu.', 'warning');
+                    return;
                 }
                 
-            } catch (error) {
-                console.error('Error stopping scanner:', error);
-            }
-            
-            document.getElementById('scannerModal').classList.add('hidden');
-            document.getElementById('startScanBtn').classList.remove('hidden');
-            document.getElementById('stopScanBtn').classList.add('hidden');
-            document.getElementById('scannerStatus').textContent = 'Siap untuk scan';
-            
-            // Reset scanner container
-            const scannerContainer = document.getElementById('scannerContainer');
-            const scannerPlaceholder = document.getElementById('scannerPlaceholder');
-            const scannerVideo = document.getElementById('scannerVideo');
-            const scannerLoading = document.getElementById('scannerLoading');
-            
-            scannerLoading.classList.add('hidden');
-            scannerPlaceholder.classList.remove('hidden');
-            scannerVideo.classList.add('hidden');
-            
-            // Reset placeholder content
-            scannerPlaceholder.innerHTML = `
-                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
-                <p class="text-gray-500">Kamera akan aktif saat modal dibuka</p>
-            `;
-            
-            // Remove manual input button if exists
-            const manualInputBtn = document.getElementById('manualInputBtn');
-            if (manualInputBtn) {
-                manualInputBtn.remove();
-            }
-        }
-
-        // Process scanned QR Code
-        function processScannedQRCode(qrData) {
-            const scannerStatus = document.getElementById('scannerStatus');
-            scannerStatus.textContent = 'Memproses QR Code...';
-            
-            // Send QR data to server for processing
-            fetch(`{{ route('petugas.absensi-pengunjung.scan-qr') }}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ qr_code: qrData })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    closeScanner();
-                    // Reload page to show updated attendance list
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification(data.message, 'error');
-                    scannerStatus.textContent = 'Scan gagal - coba lagi';
+                try {
+                    document.getElementById('scanStatus').textContent = 'Scanning...';
+                } catch (error) {
+                    console.error('Error starting scanner:', error);
+                    this.showMessage('Gagal memulai scanner. Silakan coba lagi.', 'error');
                 }
-            })
-            .catch(error => {
-                console.error('Error processing QR code:', error);
-                showNotification('Terjadi kesalahan saat memproses QR Code', 'error');
-                scannerStatus.textContent = 'Error - coba lagi';
-            });
-        }
-
-        // Manual input fallback
-        function setupManualInput() {
-            console.log('Setting up manual input fallback...');
-            
-            const scannerContainer = document.getElementById('scannerContainer');
-            const scannerPlaceholder = document.getElementById('scannerPlaceholder');
-            const scannerVideo = document.getElementById('scannerVideo');
-            const scannerLoading = document.getElementById('scannerLoading');
-            
-            // Hide video and show manual input
-            scannerVideo.classList.add('hidden');
-            scannerLoading.classList.add('hidden');
-            scannerPlaceholder.classList.remove('hidden');
-            
-            // Update placeholder content
-            scannerPlaceholder.innerHTML = `
-                <div class="text-center">
-                    <i class="fas fa-keyboard text-4xl text-gray-400 mb-2"></i>
-                    <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
-                    <button type="button" onclick="showManualInputDialog()" 
-                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">
-                        Input Manual
-                    </button>
-                </div>
-            `;
-            
-            showNotification('Gunakan tombol "Input Manual" untuk memasukkan QR Code.', 'info');
-        }
-
-        function showManualInputDialog() {
-            const qrCodeInput = prompt('Masukkan QR Code atau nomor anggota:');
-            if (qrCodeInput && qrCodeInput.trim()) {
-                processScannedQRCode(qrCodeInput.trim());
             }
-        }
 
-        // Notification function
-        function showNotification(message, type = 'info') {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full`;
-            
-            // Set background color based on type
-            switch(type) {
-                case 'success':
-                    notification.classList.add('bg-green-500');
-                    break;
-                case 'error':
-                    notification.classList.add('bg-red-500');
-                    break;
-                case 'warning':
-                    notification.classList.add('bg-yellow-500');
-                    break;
-                default:
-                    notification.classList.add('bg-blue-500');
-            }
-            
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-            
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
+            stopScanning() {
+                if (this.html5QrcodeScanner) {
+                    try {
+                        this.html5QrcodeScanner.stop();
+                        document.getElementById('scanStatus').textContent = 'Scanner dihentikan';
+                    } catch (error) {
+                        console.error('Error stopping scanner:', error);
                     }
-                }, 300);
-            }, 3000);
+                }
+            }
+
+            async processBarcode(barcode) {
+                if (!barcode) return;
+
+                try {
+                    const response = await fetch('{{ route("petugas.absensi-pengunjung.scan-qr") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ qr_code: barcode })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.showScanResult(result.data);
+                        this.showMessage(result.message, 'success');
+                        this.closeScanModal();
+                        // Reload page to show updated attendance list
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        this.showMessage(result.message, 'error');
+                    }
+
+                } catch (error) {
+                    console.error('Error processing barcode:', error);
+                    this.showMessage('Terjadi kesalahan saat memproses barcode', 'error');
+                }
+            }
+
+            processManualBarcode() {
+                const barcode = document.getElementById('manual-barcode').value.trim();
+                if (barcode) {
+                    this.processBarcode(barcode);
+                    document.getElementById('manual-barcode').value = '';
+                }
+            }
+
+            showScanResult(data) {
+                const resultDiv = document.getElementById('scan-result');
+                const photo = document.getElementById('result-photo');
+                const name = document.getElementById('result-name');
+                const classInfo = document.getElementById('result-class');
+                const time = document.getElementById('result-time');
+
+                photo.src = data.foto || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>');
+                name.textContent = data.nama_lengkap;
+                classInfo.textContent = `${data.kelas} | ${data.nomor_anggota}`;
+                time.textContent = `Waktu masuk: ${data.waktu_masuk}`;
+
+                resultDiv.classList.remove('hidden', 'bg-red-50', 'bg-green-50');
+                resultDiv.classList.add('bg-green-50');
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    resultDiv.classList.add('hidden');
+                }, 5000);
+            }
+
+            showMessage(message, type = 'info') {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full`;
+                
+                // Set background color based on type
+                switch(type) {
+                    case 'success':
+                        notification.classList.add('bg-green-500');
+                        break;
+                    case 'error':
+                        notification.classList.add('bg-red-500');
+                        break;
+                    case 'warning':
+                        notification.classList.add('bg-yellow-500');
+                        break;
+                    default:
+                        notification.classList.add('bg-blue-500');
+                }
+                
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // Animate in
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
         }
 
-        // Cleanup on page unload
+        // Initialize scanner when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            window.memberSearchScanner = new MemberSearchScanner();
+        });
+
+        // Cleanup when page is unloaded
         window.addEventListener('beforeunload', function() {
-            if (html5QrcodeScanner && isScanning) {
-                html5QrcodeScanner.stop();
+            if (window.memberSearchScanner) {
+                window.memberSearchScanner.stopScanning();
             }
         });
+
+
     </script>
 </body>
 </html>

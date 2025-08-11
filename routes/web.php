@@ -19,6 +19,7 @@ use App\Http\Controllers\DendaController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\CetakController;
 use App\Http\Controllers\RiwayatPeminjamanController;
+use App\Http\Controllers\RiwayatPengembalianController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PermissionController;
@@ -39,6 +40,8 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+
+
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -56,6 +59,8 @@ Route::middleware(['auth', 'role:PETUGAS'])->prefix('frontend')->group(function 
 Route::middleware(['auth'])->group(function () {
     // Routes ini akan dipindah ke admin group
 });
+
+
 
 // Admin Routes (Admin dan Kepala Sekolah bisa akses)
 Route::middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH'])->prefix('admin')->group(function () {
@@ -158,20 +163,34 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::post('/peminjaman/scan-multiple-buku', [PeminjamanController::class, 'scanMultipleBuku'])->name('peminjaman.scan-multiple-buku');
     
     // CRUD Pengembalian
-Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
-Route::get('/pengembalian/search-anggota', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])->name('pengembalian.search-anggota');
-Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
-Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
-Route::post('/pengembalian/scan-barcode-anggota', [\App\Http\Controllers\PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
-Route::get('/pengembalian/history', [\App\Http\Controllers\PengembalianController::class, 'history'])->name('pengembalian.history');
+    Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
+    Route::get('/pengembalian/search-anggota', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])->name('pengembalian.search-anggota');
+    Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
+    Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
+    Route::post('/pengembalian/scan-barcode-anggota', [\App\Http\Controllers\PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
+    Route::get('/pengembalian/test-permission', [\App\Http\Controllers\PengembalianController::class, 'testPermission'])->name('pengembalian.test-permission');
+
+    // Riwayat Pengembalian
+    Route::get('/riwayat-pengembalian', [RiwayatPengembalianController::class, 'index'])->name('riwayat-pengembalian.index');
+    Route::get('/riwayat-pengembalian/export', [RiwayatPengembalianController::class, 'export'])->name('riwayat-pengembalian.export');
     
     // CRUD Denda
     Route::resource('denda', DendaController::class);
     
     // CRUD Absensi Pengunjung
     // Absensi Pengunjung
-    Route::resource('absensi-pengunjung', AbsensiPengunjungController::class);
+    Route::resource('absensi-pengunjung', AbsensiPengunjungController::class)->names([
+        'index' => 'admin.absensi-pengunjung.index',
+        'create' => 'admin.absensi-pengunjung.create',
+        'store' => 'admin.absensi-pengunjung.store',
+        'show' => 'admin.absensi-pengunjung.show',
+        'edit' => 'admin.absensi-pengunjung.edit',
+        'update' => 'admin.absensi-pengunjung.update',
+        'destroy' => 'admin.absensi-pengunjung.destroy',
+    ]);
     Route::post('/absensi-pengunjung/scan-barcode', [AbsensiPengunjungController::class, 'scanBarcode'])->name('admin.absensi-pengunjung.scan-barcode');
+    Route::get('/absensi-pengunjung/search-members', [AbsensiPengunjungController::class, 'searchMembers'])->name('admin.absensi-pengunjung.search-members');
+    Route::post('/absensi-pengunjung/store-ajax', [AbsensiPengunjungController::class, 'storeAjax'])->name('admin.absensi-pengunjung.store-ajax');
     Route::get('/absensi-pengunjung/history/search', [AbsensiPengunjungController::class, 'searchHistory'])->name('admin.absensi-pengunjung.history.search');
     Route::get('/absensi-pengunjung/today', [AbsensiPengunjungController::class, 'todayVisitors'])->name('admin.absensi-pengunjung.today');
     
@@ -215,6 +234,7 @@ Route::middleware(['auth', 'role:PETUGAS'])->prefix('petugas')->group(function (
         'destroy' => 'petugas.absensi-pengunjung.destroy',
     ]);
     Route::post('/absensi-pengunjung/scan-qr', [AbsensiPengunjungController::class, 'scanQR'])->name('petugas.absensi-pengunjung.scan-qr');
+    Route::get('/absensi-pengunjung/search-members', [AbsensiPengunjungController::class, 'searchMembers'])->name('petugas.absensi-pengunjung.search-members');
 });
 
 // Kepala Sekolah Routes
@@ -230,11 +250,13 @@ Route::middleware(['auth', 'role:KEPALA_SEKOLAH'])->prefix('kepsek')->group(func
     
     // Gunakan controller admin yang sudah ada
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('kepsek.riwayat-peminjaman');
+    Route::get('/riwayat-pengembalian', [RiwayatPengembalianController::class, 'index'])->name('kepsek.riwayat-pengembalian');
     Route::get('/data-buku', [BukuController::class, 'index'])->name('kepsek.data-buku');
     Route::get('/data-anggota', [AnggotaController::class, 'index'])->name('kepsek.data-anggota');
     
     // Export routes (gunakan yang sudah ada)
     Route::get('/export/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'export'])->name('kepsek.export.riwayat-peminjaman');
+    Route::get('/export/riwayat-pengembalian', [RiwayatPengembalianController::class, 'export'])->name('kepsek.export.riwayat-pengembalian');
     Route::get('/export/data-buku', [BukuController::class, 'export'])->name('kepsek.export.data-buku');
     Route::get('/export/data-anggota', [AnggotaController::class, 'export'])->name('kepsek.export.data-anggota');
 });

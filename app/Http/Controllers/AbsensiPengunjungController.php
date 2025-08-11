@@ -134,8 +134,14 @@ class AbsensiPengunjungController extends Controller
         $absensi = AbsensiPengunjung::findOrFail($id);
         $absensi->delete();
 
-        return redirect()->route('absensi-pengunjung.index')
-            ->with('success', 'Data absensi berhasil dihapus.');
+        // Determine the correct route based on user role
+        if (auth()->user()->hasRole('ADMIN')) {
+            return redirect()->route('admin.absensi-pengunjung.index')
+                ->with('success', 'Data absensi berhasil dihapus.');
+        } else {
+            return redirect()->route('petugas.absensi-pengunjung.index')
+                ->with('success', 'Data absensi berhasil dihapus.');
+        }
     }
 
     /**
@@ -290,6 +296,87 @@ class AbsensiPengunjungController extends Controller
                 'last_page' => $history->lastPage(),
                 'per_page' => $history->perPage(),
                 'total' => $history->total()
+            ]
+        ]);
+    }
+
+    /**
+     * Search members for attendance
+     */
+    public function searchMembers(Request $request)
+    {
+        $query = $request->get('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Minimal 2 karakter untuk pencarian'
+            ]);
+        }
+
+        $members = Anggota::where('status', 'aktif')
+            ->where(function($q) use ($query) {
+                $q->where('nama_lengkap', 'like', '%' . $query . '%')
+                  ->orWhere('nomor_anggota', 'like', '%' . $query . '%')
+                  ->orWhere('barcode_anggota', 'like', '%' . $query . '%');
+            })
+            ->with(['kelas', 'jurusan'])
+            ->limit(10)
+            ->get()
+            ->map(function ($member) {
+                return [
+                    'id' => $member->id,
+                    'nama_lengkap' => $member->nama_lengkap,
+                    'nomor_anggota' => $member->nomor_anggota,
+                    'barcode_anggota' => $member->barcode_anggota,
+                    'kelas' => $member->kelas ? $member->kelas->nama_kelas : '-',
+                    'jurusan' => $member->jurusan ? $member->jurusan->nama_jurusan : '-',
+                    'status' => $member->status,
+                    'foto' => $member->foto ? asset('storage/' . $member->foto) : null
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $members
+        ]);
+    }
+
+    /**
+     * Store attendance via AJAX
+     */
+    public function storeAjax(Request $request)
+    {
+        $request->validate([
+            'anggota_id' => 'required|exists:anggota,id',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        // Cek apakah sudah absen hari ini
+        $sudahAbsen = AbsensiPengunjung::where('anggota_id', $request->anggota_id)
+            ->whereDate('waktu_masuk', today())
+            ->exists();
+
+        if ($sudahAbsen) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anggota sudah melakukan absensi hari ini.'
+            ]);
+        }
+
+        $absensi = AbsensiPengunjung::create([
+            'anggota_id' => $request->anggota_id,
+            'waktu_masuk' => now(),
+            'keterangan' => $request->keterangan,
+            'petugas_id' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Absensi berhasil dicatat.',
+            'data' => [
+                'id' => $absensi->id,
+                'waktu_masuk' => $absensi->waktu_masuk->format('H:i:s')
             ]
         ]);
     }

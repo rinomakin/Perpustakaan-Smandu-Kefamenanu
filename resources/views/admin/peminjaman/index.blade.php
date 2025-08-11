@@ -10,9 +10,25 @@
         <!-- Content -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-exchange-alt text-white text-xl"></i>
-                    <h3 class="text-lg font-semibold text-white">Daftar Peminjaman</h3>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-exchange-alt text-white text-xl"></i>
+                        <h3 class="text-lg font-semibold text-white">Daftar Peminjaman</h3>
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="{{ route('peminjaman.create') }}" 
+                           class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                            <i class="fas fa-plus mr-1"></i>Tambah Data
+                        </a>
+                        <a href="{{ route('riwayat-peminjaman.index') }}" 
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                            <i class="fas fa-history mr-1"></i>Riwayat Peminjaman
+                        </a>
+                        <a href="{{ route('riwayat-pengembalian.index') }}" 
+                           class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                            <i class="fas fa-undo-alt mr-1"></i>Riwayat Pengembalian
+                        </a>
+                    </div>
                 </div>
             </div>
             

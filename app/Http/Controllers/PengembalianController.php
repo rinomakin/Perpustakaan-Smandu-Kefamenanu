@@ -8,6 +8,8 @@ use App\Models\DetailPeminjaman;
 use App\Models\Anggota;
 use App\Models\Buku;
 use App\Models\Denda;
+use App\Models\Pengembalian;
+use App\Models\DetailPengembalian;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -15,15 +17,22 @@ class PengembalianController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:ADMIN']);
+        $this->middleware(['auth']);
+        $this->middleware('permission:pengembalian.manage')->only(['index', 'create', 'store', 'show', 'history']);
+        $this->middleware('permission:pengembalian.manage')->only(['searchAnggota', 'getPeminjamanAktif', 'scanBarcode', 'scanBarcodeAnggota']);
     }
 
     public function index()
     {
-        $pengembalian = Peminjaman::with(['anggota', 'user', 'detailPeminjaman.buku', 'denda'])
-            ->where('status', 'dikembalikan')
-            ->whereDate('tanggal_kembali', today())
-            ->orderBy('tanggal_kembali', 'desc')
+        // Hanya tampilkan pengembalian hari ini dengan detail lengkap
+        $pengembalian = Pengembalian::with([
+            'anggota.kelas', 
+            'user', 
+            'detailPengembalian.buku.kategoriBuku',
+            'peminjaman.detailPeminjaman.buku'
+        ])
+            ->whereDate('tanggal_pengembalian', today())
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
             
         return view('admin.pengembalian.index', compact('pengembalian'));
@@ -34,18 +43,37 @@ class PengembalianController extends Controller
         return view('admin.pengembalian.create');
     }
 
-    /**
-     * Show all pengembalian history (not just today)
-     */
-    public function history()
+    public function show($id)
     {
-        $pengembalian = Peminjaman::with(['anggota', 'user', 'detailPeminjaman.buku', 'denda'])
-            ->where('status', 'dikembalikan')
-            ->orderBy('tanggal_kembali', 'desc')
-            ->paginate(10);
-            
-        return view('admin.pengembalian.history', compact('pengembalian'));
+        $pengembalian = Pengembalian::with([
+            'anggota.kelas', 
+            'user', 
+            'detailPengembalian.buku.kategoriBuku',
+            'peminjaman.detailPeminjaman.buku'
+        ])->findOrFail($id);
+        
+        return view('admin.pengembalian.show', compact('pengembalian'));
     }
+
+    /**
+     * Test method to check permission
+     */
+    public function testPermission()
+    {
+        $user = auth()->user();
+        
+        return response()->json([
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'has_pengembalian_permission' => $user->hasPermission('pengembalian.manage'),
+            'has_peminjaman_permission' => $user->hasPermission('peminjaman.manage'),
+            'is_admin' => $user->isAdmin(),
+            'role' => $user->role ? $user->role->nama_peran : 'No Role',
+            'permissions' => $user->role ? $user->role->permissions->pluck('slug') : []
+        ]);
+    }
+
+
 
     /**
      * Search anggota for pengembalian by barcode or manual search
@@ -256,7 +284,7 @@ class PengembalianController extends Controller
             'jam_kembali' => 'nullable|date_format:H:i',
             'catatan_pengembalian' => 'nullable|string',
             'kondisi_kembali' => 'required|array',
-            'kondisi_kembali.*' => 'required|in:baik,rusak,hilang',
+            'kondisi_kembali.*' => 'required|in:baik,sedikit_rusak,rusak,hilang',
         ]);
 
         DB::beginTransaction();
@@ -274,51 +302,98 @@ class PengembalianController extends Controller
             $isLate = $tanggalKembali->gt($tanggalHarusKembali);
             $daysLate = $isLate ? $tanggalKembali->diffInDays($tanggalHarusKembali) : 0;
             
-            // Update peminjaman status
-            $peminjaman->update([
-                'tanggal_kembali' => $tanggalKembali,
-                'jam_kembali' => $request->jam_kembali ?? now()->format('H:i'),
-                'status' => $isLate ? 'terlambat' : 'dikembalikan',
-                'catatan' => $peminjaman->catatan . ($request->catatan_pengembalian ? "\n\nCatatan Pengembalian: " . $request->catatan_pengembalian : '')
+            // Calculate total denda
+            $dendaPerHari = 1000; // Rp 1000 per hari
+            $totalDenda = $daysLate * $dendaPerHari;
+            
+            // Create pengembalian record
+            $pengembalian = Pengembalian::create([
+                'nomor_pengembalian' => Pengembalian::generateNomorPengembalian(),
+                'peminjaman_id' => $peminjaman->id,
+                'anggota_id' => $peminjaman->anggota_id,
+                'user_id' => auth()->id(),
+                'tanggal_pengembalian' => $tanggalKembali,
+                'jam_pengembalian' => $request->jam_kembali ?? now()->format('H:i'),
+                'jumlah_hari_terlambat' => $daysLate,
+                'total_denda' => $totalDenda,
+                'status_denda' => $totalDenda > 0 ? 'belum_dibayar' : 'tidak_ada',
+                'catatan' => $request->catatan_pengembalian,
+                'status' => 'selesai'
             ]);
 
-            // Update detail peminjaman and book stock
+            // Create detail pengembalian and update book stock
+            $totalDendaBuku = 0;
             foreach ($peminjaman->detailPeminjaman as $detail) {
                 $kondisi = $request->kondisi_kembali[$detail->id] ?? 'baik';
                 
+                // Calculate denda buku berdasarkan kondisi
+                $dendaBuku = 0;
+                switch ($kondisi) {
+                    case 'sedikit_rusak':
+                        $dendaBuku = 5000;
+                        break;
+                    case 'rusak':
+                        $dendaBuku = 25000;
+                        break;
+                    case 'hilang':
+                        $dendaBuku = 100000;
+                        break;
+                }
+                $totalDendaBuku += $dendaBuku;
+                
+                DetailPengembalian::create([
+                    'pengembalian_id' => $pengembalian->id,
+                    'buku_id' => $detail->buku_id,
+                    'detail_peminjaman_id' => $detail->id,
+                    'kondisi_kembali' => $kondisi,
+                    'jumlah_dikembalikan' => $detail->jumlah ?? 1,
+                    'denda_buku' => $dendaBuku,
+                    'catatan_buku' => $this->getCatatanBuku($kondisi)
+                ]);
+
+                // Update detail peminjaman
                 $detail->update([
                     'kondisi_kembali' => $kondisi
                 ]);
 
                 // Return book stock if condition is good or damaged (not lost)
                 if ($kondisi !== 'hilang') {
-                    $detail->buku->increment('stok_tersedia', $detail->jumlah);
+                    $detail->buku->increment('stok_tersedia', $detail->jumlah ?? 1);
                 }
             }
 
-            // Create denda if late
-            $dendaAmount = 0;
-            if ($isLate && $daysLate > 0) {
-                $dendaPerHari = 1000; // Rp 1000 per hari
-                $dendaAmount = $daysLate * $dendaPerHari;
-                
-                Denda::create([
-                    'peminjaman_id' => $peminjaman->id,
-                    'jumlah_denda' => $dendaAmount,
-                    'alasan' => "Keterlambatan pengembalian {$daysLate} hari",
-                    'status' => 'belum_bayar',
-                    'tanggal_denda' => now()
+            // Update total denda jika ada denda buku
+            if ($totalDendaBuku > 0) {
+                $pengembalian->update([
+                    'total_denda' => $totalDenda + $totalDendaBuku
                 ]);
             }
 
-            // Hapus peminjaman setelah diproses
-            $peminjaman->delete();
+            // Update peminjaman status
+            $peminjaman->update([
+                'tanggal_kembali' => $tanggalKembali,
+                'jam_kembali' => $request->jam_kembali ?? now()->format('H:i'),
+                'status' => 'dikembalikan',
+                'catatan' => $peminjaman->catatan . ($request->catatan_pengembalian ? "\n\nCatatan Pengembalian: " . $request->catatan_pengembalian : '')
+            ]);
+
+            // Create denda record if late
+            if ($isLate && $totalDenda > 0) {
+                Denda::create([
+                    'peminjaman_id' => $peminjaman->id,
+                    'anggota_id' => $peminjaman->anggota_id,
+                    'jumlah_hari_terlambat' => $daysLate,
+                    'jumlah_denda' => $totalDenda + $totalDendaBuku,
+                    'status_pembayaran' => 'belum_dibayar',
+                    'catatan' => "Keterlambatan pengembalian {$daysLate} hari"
+                ]);
+            }
 
             DB::commit();
             
-            $message = 'Pengembalian berhasil diproses dan peminjaman telah dihapus.';
+            $message = 'Pengembalian berhasil diproses.';
             if ($isLate) {
-                $message .= " Anggota terlambat {$daysLate} hari dan dikenakan denda Rp " . number_format($dendaAmount, 0, ',', '.');
+                $message .= " Anggota terlambat {$daysLate} hari dan dikenakan denda Rp " . number_format($totalDenda + $totalDendaBuku, 0, ',', '.');
             }
             
             return redirect()->route('pengembalian.index')
@@ -328,6 +403,20 @@ class PengembalianController extends Controller
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get catatan buku berdasarkan kondisi
+     */
+    private function getCatatanBuku(string $kondisi): ?string
+    {
+        return match($kondisi) {
+            'baik' => 'Buku dalam kondisi baik',
+            'sedikit_rusak' => 'Buku sedikit rusak pada bagian cover',
+            'rusak' => 'Buku rusak pada beberapa halaman',
+            'hilang' => 'Buku tidak ditemukan',
+            default => null
+        };
     }
 
     /**

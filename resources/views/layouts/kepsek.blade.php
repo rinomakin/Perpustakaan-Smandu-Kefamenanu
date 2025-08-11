@@ -129,11 +129,18 @@
                         <span class="whitespace-nowrap text-xs">Data Buku</span>
                     </a>
 
-                    <!-- Riwayat Transaksi -->
+                    <!-- Riwayat Peminjaman -->
                     <a href="{{ route('kepsek.riwayat-peminjaman') }}" 
                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-history text-xs"></i>
-                        <span class="whitespace-nowrap text-xs">Riwayat Transaksi</span>
+                        <span class="whitespace-nowrap text-xs">Riwayat Peminjaman</span>
+                    </a>
+                    
+                    <!-- Riwayat Pengembalian -->
+                    <a href="{{ route('kepsek.riwayat-pengembalian') }}" 
+                       class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kepsek.riwayat-pengembalian') ? 'bg-white bg-opacity-20' : '' }}">
+                        <i class="fas fa-undo-alt text-xs"></i>
+                        <span class="whitespace-nowrap text-xs">Riwayat Pengembalian</span>
                     </a>
                 </div>
 
@@ -205,7 +212,13 @@
                 <a href="{{ route('kepsek.riwayat-peminjaman') }}" 
                    class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors {{ request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-blue-600' : '' }}">
                     <i class="fas fa-history w-5"></i>
-                    <span>Riwayat Transaksi</span>
+                    <span>Riwayat Peminjaman</span>
+                </a>
+                
+                <a href="{{ route('kepsek.riwayat-pengembalian') }}" 
+                   class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors {{ request()->routeIs('kepsek.riwayat-pengembalian') ? 'bg-blue-600' : '' }}">
+                    <i class="fas fa-undo-alt w-5"></i>
+                    <span>Riwayat Pengembalian</span>
                 </a>
             </div>
         </div>

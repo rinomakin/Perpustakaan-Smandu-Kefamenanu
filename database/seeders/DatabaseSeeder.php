@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             SumberBukuSeeder::class,
             UserSeeder::class,
             AssignPermissionsSeeder::class,
+            PengembalianSeeder::class,
         ]);
     }
 }
