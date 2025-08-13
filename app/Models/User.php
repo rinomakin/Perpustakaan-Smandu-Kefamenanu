@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -105,6 +106,59 @@ class User extends Authenticatable
         }
         
         return $this->role->permissions;
+    }
+
+    /**
+     * Check if user has a specific role
+     */
+    public function hasRole($role)
+    {
+        if (!$this->role) {
+            return false;
+        }
+        
+        // Check by role code (kode_peran)
+        if (is_string($role)) {
+            return $this->role->kode_peran === strtoupper($role);
+        }
+        
+        // Check by role ID
+        if (is_numeric($role)) {
+            return $this->role->id == $role;
+        }
+        
+        // Check by role object
+        if (is_object($role) && method_exists($role, 'getKey')) {
+            return $this->role->id == $role->getKey();
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if user has any of the given roles
+     */
+    public function hasAnyRole($roles)
+    {
+        foreach ($roles as $role) {
+            if ($this->hasRole($role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if user has all of the given roles
+     */
+    public function hasAllRoles($roles)
+    {
+        foreach ($roles as $role) {
+            if (!$this->hasRole($role)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

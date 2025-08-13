@@ -8,12 +8,13 @@ use App\Models\DetailPeminjaman;
 use App\Models\Anggota;
 use App\Models\Buku;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PeminjamanController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:ADMIN']);
+        $this->middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH']);
     }
 
     public function index()
@@ -626,4 +627,6 @@ class PeminjamanController extends Controller
             ], 500);
         }
     }
+
+
 } 

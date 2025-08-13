@@ -500,4 +500,86 @@ class PengembalianController extends Controller
             ]);
         }
     }
+
+    /**
+     * Update status pembayaran denda
+     */
+    public function updateStatusPembayaranDenda(Request $request, $id)
+    {
+        $request->validate([
+            'status_pembayaran' => 'required|in:belum_dibayar,sudah_dibayar',
+            'tanggal_pembayaran' => 'nullable|date',
+        ]);
+
+        try {
+            $pengembalian = Pengembalian::findOrFail($id);
+            
+            // Update status denda di pengembalian
+            $pengembalian->status_denda = $request->status_pembayaran;
+            $pengembalian->tanggal_pembayaran_denda = $request->tanggal_pembayaran;
+            $pengembalian->save();
+
+            // Update atau buat record denda
+            $denda = Denda::where('peminjaman_id', $pengembalian->peminjaman_id)->first();
+            
+            if ($denda) {
+                // Update denda yang sudah ada
+                $denda->status_pembayaran = $request->status_pembayaran;
+                $denda->tanggal_pembayaran = $request->tanggal_pembayaran;
+                $denda->save();
+            } else {
+                // Buat denda baru jika belum ada
+                Denda::create([
+                    'peminjaman_id' => $pengembalian->peminjaman_id,
+                    'anggota_id' => $pengembalian->anggota_id,
+                    'jumlah_hari_terlambat' => $pengembalian->jumlah_hari_terlambat,
+                    'jumlah_denda' => $pengembalian->total_denda,
+                    'status_pembayaran' => $request->status_pembayaran,
+                    'tanggal_pembayaran' => $request->tanggal_pembayaran,
+                    'catatan' => 'Denda dari pengembalian terlambat'
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status pembayaran denda berhasil diperbarui'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get denda info untuk pengembalian
+     */
+    public function getDendaInfo($id)
+    {
+        try {
+            $pengembalian = Pengembalian::with(['denda'])->findOrFail($id);
+            
+            $dendaInfo = [
+                'has_denda' => $pengembalian->total_denda > 0,
+                'total_denda' => $pengembalian->total_denda,
+                'jumlah_hari_terlambat' => $pengembalian->jumlah_hari_terlambat,
+                'status_denda' => $pengembalian->status_denda,
+                'tanggal_pembayaran_denda' => $pengembalian->tanggal_pembayaran_denda,
+                'denda_records' => $pengembalian->denda
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $dendaInfo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

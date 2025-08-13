@@ -169,13 +169,26 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
     Route::post('/pengembalian/scan-barcode-anggota', [\App\Http\Controllers\PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
     Route::get('/pengembalian/test-permission', [\App\Http\Controllers\PengembalianController::class, 'testPermission'])->name('pengembalian.test-permission');
+    Route::post('/pengembalian/{id}/update-status-pembayaran-denda', [\App\Http\Controllers\PengembalianController::class, 'updateStatusPembayaranDenda'])->name('pengembalian.update-status-pembayaran-denda');
+    Route::get('/pengembalian/{id}/denda-info', [\App\Http\Controllers\PengembalianController::class, 'getDendaInfo'])->name('pengembalian.denda-info');
 
     // Riwayat Pengembalian
     Route::get('/riwayat-pengembalian', [RiwayatPengembalianController::class, 'index'])->name('riwayat-pengembalian.index');
     Route::get('/riwayat-pengembalian/export', [RiwayatPengembalianController::class, 'export'])->name('riwayat-pengembalian.export');
     
     // CRUD Denda
-    Route::resource('denda', DendaController::class);
+    Route::resource('denda', DendaController::class)->names([
+        'index' => 'admin.denda.index',
+        'create' => 'admin.denda.create',
+        'store' => 'admin.denda.store',
+        'show' => 'admin.denda.show',
+        'edit' => 'admin.denda.edit',
+        'update' => 'admin.denda.update',
+        'destroy' => 'admin.denda.destroy',
+    ]);
+    Route::post('/denda/hitung-denda', [DendaController::class, 'hitungDenda'])->name('admin.denda.hitung');
+    Route::post('/denda/{id}/update-status', [DendaController::class, 'updateStatusPembayaran'])->name('admin.denda.update-status');
+    Route::post('/denda/search', [DendaController::class, 'searchDenda'])->name('admin.denda.search');
     
     // CRUD Absensi Pengunjung
     // Absensi Pengunjung
@@ -197,6 +210,8 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     // Riwayat Peminjaman
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('riwayat-peminjaman.index');
     Route::get('/riwayat-peminjaman/export', [RiwayatPeminjamanController::class, 'export'])->name('riwayat-peminjaman.export');
+    
+
     
     // Laporan
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
@@ -254,9 +269,50 @@ Route::middleware(['auth', 'role:KEPALA_SEKOLAH'])->prefix('kepsek')->group(func
     Route::get('/data-buku', [BukuController::class, 'index'])->name('kepsek.data-buku');
     Route::get('/data-anggota', [AnggotaController::class, 'index'])->name('kepsek.data-anggota');
     
+    // Peminjaman aktif untuk kepala sekolah (moved to admin group)
+    // Route::get('/peminjaman-aktif', [PeminjamanController::class, 'peminjamanAktif'])->name('kepsek.peminjaman-aktif');
+    // Route::get('/peminjaman-aktif/export', [PeminjamanController::class, 'exportPeminjamanAktif'])->name('kepsek.peminjaman-aktif.export');
+    
     // Export routes (gunakan yang sudah ada)
     Route::get('/export/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'export'])->name('kepsek.export.riwayat-peminjaman');
     Route::get('/export/riwayat-pengembalian', [RiwayatPengembalianController::class, 'export'])->name('kepsek.export.riwayat-pengembalian');
     Route::get('/export/data-buku', [BukuController::class, 'export'])->name('kepsek.export.data-buku');
     Route::get('/export/data-anggota', [AnggotaController::class, 'export'])->name('kepsek.export.data-anggota');
 });
+
+// Test route untuk debugging permission
+Route::get('/test-permissions', function () {
+    $user = auth()->user();
+    if (!$user) {
+        return 'Not logged in';
+    }
+    
+    echo "<h2>Testing permissions for: {$user->nama_lengkap}</h2>";
+    echo "<p>Role: {$user->role->nama_peran} ({$user->role->kode_peran})</p>";
+    
+    echo "<h3>Peminjaman Permissions:</h3>";
+    echo "peminjaman.view: " . ($user->hasPermission('peminjaman.view') ? 'YES' : 'NO') . "<br>";
+    echo "peminjaman.create: " . ($user->hasPermission('peminjaman.create') ? 'YES' : 'NO') . "<br>";
+    echo "peminjaman.edit: " . ($user->hasPermission('peminjaman.edit') ? 'YES' : 'NO') . "<br>";
+    echo "peminjaman.delete: " . ($user->hasPermission('peminjaman.delete') ? 'YES' : 'NO') . "<br>";
+    echo "peminjaman.show: " . ($user->hasPermission('peminjaman.show') ? 'YES' : 'NO') . "<br>";
+    
+    echo "<h3>Pengembalian Permissions:</h3>";
+    echo "pengembalian.view: " . ($user->hasPermission('pengembalian.view') ? 'YES' : 'NO') . "<br>";
+    echo "pengembalian.create: " . ($user->hasPermission('pengembalian.create') ? 'YES' : 'NO') . "<br>";
+    echo "pengembalian.edit: " . ($user->hasPermission('pengembalian.edit') ? 'YES' : 'NO') . "<br>";
+    echo "pengembalian.delete: " . ($user->hasPermission('pengembalian.delete') ? 'YES' : 'NO') . "<br>";
+    echo "pengembalian.show: " . ($user->hasPermission('pengembalian.show') ? 'YES' : 'NO') . "<br>";
+    
+    echo "<h3>All Permissions:</h3>";
+    $permissions = $user->getAllPermissions();
+    foreach ($permissions as $permission) {
+        echo "- {$permission->name} ({$permission->slug})<br>";
+    }
+    
+    echo "<h3>Test Links:</h3>";
+    echo "<a href='/admin/peminjaman'>Go to Peminjaman</a><br>";
+    echo "<a href='/admin/pengembalian'>Go to Pengembalian</a><br>";
+    
+    return '';
+})->middleware('auth');

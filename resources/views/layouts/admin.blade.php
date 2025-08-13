@@ -264,7 +264,7 @@
                         <!-- Dropdown Menu -->
                         <div class="absolute text-xs top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
-                                @if(Auth::user()->hasPermission('peminjaman.manage') || Auth::user()->isAdmin())
+                                @if(Auth::user()->hasPermission('peminjaman.view') || Auth::user()->isAdmin())
                                 <a href="{{ route('peminjaman.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('peminjaman.*') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-book-reader w-5"></i>
@@ -272,27 +272,20 @@
                                 </a>
                                 @endif
                                 
-                                @if(Auth::user()->hasPermission('pengembalian.manage') || Auth::user()->isAdmin())
+                                @if(Auth::user()->hasPermission('pengembalian.view') || Auth::user()->isAdmin())
                                 <a href="{{ route('pengembalian.index') }}" 
                                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('pengembalian.*') ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <i class="fas fa-undo w-5"></i>
+                                    <i class="fas fa-undo-alt text-gray-400"></i>
                                     <span>Pengembalian</span>
                                 </a>
                                 @endif
                                 
-                                @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
-                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-peminjaman') : route('riwayat-peminjaman.index') }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
-                                    <i class="fas fa-history w-5"></i>
-                                    <span>Riwayat Peminjaman</span>
-                                </a>
-                                @endif
-                                
-                                @if(Auth::user()->hasPermission('pengembalian.manage') || Auth::user()->isAdmin())
-                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.riwayat-pengembalian') : route('riwayat-pengembalian.index') }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
-                                    <i class="fas fa-undo-alt w-5"></i>
-                                    <span>Riwayat Pengembalian</span>
+                                                             
+                                @if(Auth::user()->hasPermission('denda.manage') || Auth::user()->isAdmin())
+                                <a href="{{ route('admin.denda.index') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.denda.*') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-money-bill-wave w-5"></i>
+                                    <span>Denda</span>
                                 </a>
                                 @endif
                             </div>

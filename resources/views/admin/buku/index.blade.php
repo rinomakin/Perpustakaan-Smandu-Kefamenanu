@@ -16,7 +16,7 @@
 
     <!-- Filter Section -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <form method="GET" action="{{ route('buku.index') }}" class=" flex gap-4">
+        <form method="GET" action="{{ route('buku.index') }}" class=" flex gap-4 flex-col sm:flex-row items-center justify-between">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Search Input -->
                 <div>
@@ -64,14 +64,14 @@
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex flex-col pt-6 sm:flex-row gap-3">
                 <button type="submit" 
-                        class="bg-blue-500 hover:bg-blue-600 border  text-white  rounded-lg text-xs transition-colors">
+                        class="bg-blue-500 hover:bg-blue-600 border h-10 p-2 w-auto  text-white  rounded-lg text-xs transition-colors">
                     <i class="fas fa-search mr-2"></i>
                     Filter
                 </button>
                 <a href="{{ route('buku.index') }}" 
-                   class="inline-flex text-xs items-center justify-center px-2 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                   class="inline-flex text-xs items-center justify-center h-10 p-2 w-auto bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-refresh mr-2"></i>
                     Reset
                 </a>
@@ -87,7 +87,7 @@
                 <div class="flex items-center gap-2">
                     @if(Auth::user()->hasPermission('buku.export') || Auth::user()->isAdmin())
                     <a href="{{ route('buku.export', request()->query()) }}" 
-                       class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                       class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                         <i class="fas fa-file-excel mr-2"></i>
                         Export
                     </a>
@@ -95,12 +95,12 @@
                     
                     @if(Auth::user()->hasPermission('buku.import') || Auth::user()->isAdmin())
                     <a href="{{ route('buku.download-template') }}" 
-                       class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                       class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                         <i class="fas fa-download mr-2"></i>
                         Template
                     </a>
                     <button onclick="showImportModal()" 
-                            class="inline-flex items-center px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                            class="inline-flex items-center px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                         <i class="fas fa-upload mr-2"></i>
                         Import
                     </button>
@@ -108,7 +108,7 @@
                     
                     @if(Auth::user()->hasPermission('buku.create') || Auth::user()->isAdmin())
                     <a href="{{ route('buku.create') }}" 
-                   class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform ">
+                   class="inline-flex items-center text-xs px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform ">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah
                 </a>
@@ -121,20 +121,20 @@
                     <div class="flex items-center gap-2">
                         @if(Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <button onclick="printBarcodeSelected()" 
-                                class="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                class="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                             <i class="fas fa-print mr-2"></i>
-                            Cetak Barcode
+                            Cetak
                         </button>
                         @endif
                         @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin())
                         <button onclick="deleteSelected()" 
-                                class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                class="inline-flex  items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                             <i class="fas fa-trash mr-2"></i>
-                            Hapus Terpilih
+                            Hapus 
                         </button>
                         @endif
                     </div>
-                    <span id="selectedCount" class="text-sm text-gray-500 transition-all duration-200 mr-2 font-medium bg-gray-100 px-2 py-1 rounded-full">0 buku dipilih</span>
+                    <span id="selectedCount" class=" text-gray-500 transition-all duration-200 mr-2 text-[10px] font-medium bg-gray-100 px-2 py-1 rounded-full">0 buku dipilih</span>
 
                 </div>
                 @endif
@@ -147,10 +147,10 @@
 
     <!-- Books Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200" style="min-width: 900px;">
-                <thead class="bg-gray-50">
-                    <tr>
+        <div class="overflow-x-auto ">
+            <table class="w-full divide-y  divide-gray-950" style="min-width: 900px;">
+                <thead class="">
+                    <tr class="border-b border-gray-200">
                         @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <div class="flex items-center">
@@ -187,7 +187,7 @@
                         @endif
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-200 w-full ">
                     @forelse($buku as $bukuItem)
                     <tr class="hover:bg-gray-50 transition-colors duration-200">
                         @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())

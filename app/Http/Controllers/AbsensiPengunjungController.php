@@ -21,6 +21,11 @@ class AbsensiPengunjungController extends Controller
             ->orderBy('waktu_masuk', 'desc')
             ->get();
 
+        // Filter out absensi yang tidak memiliki anggota (jika ada)
+        $absensiHariIni = $absensiHariIni->filter(function ($absensi) {
+            return $absensi->anggota !== null;
+        });
+
         // Statistik
         $totalPengunjungHariIni = $absensiHariIni->count();
         $totalPengunjungBulanIni = AbsensiPengunjung::whereMonth('waktu_masuk', now()->month)
@@ -48,34 +53,56 @@ class AbsensiPengunjungController extends Controller
     public function create()
     {
         $anggota = Anggota::where('status', 'aktif')->get();
-        return view('petugas.absensi-pengunjung.create', compact('anggota'));
+        
+        // Determine the correct view based on user role
+        if (auth()->user()->hasRole('ADMIN')) {
+            return view('admin.absensi-pengunjung.create', compact('anggota'));
+        } else {
+            return view('petugas.absensi-pengunjung.create', compact('anggota'));
+        }
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'anggota_id' => 'required|exists:anggota,id',
-            'keterangan' => 'nullable|string|max:255',
+            'nama_pengunjung' => 'required|string|max:255',
+            'tujuan_kunjungan' => 'required|string|max:255',
+            'waktu_masuk' => 'required|date',
+            'catatan' => 'nullable|string|max:500',
         ]);
 
-        // Cek apakah sudah absen hari ini
+        // Cek apakah sudah absen pada tanggal yang sama
         $sudahAbsen = AbsensiPengunjung::where('anggota_id', $request->anggota_id)
-            ->whereDate('waktu_masuk', today())
+            ->whereDate('waktu_masuk', $request->waktu_masuk)
             ->exists();
 
         if ($sudahAbsen) {
-            return back()->with('error', 'Anggota sudah melakukan absensi hari ini.');
+            return back()->with('error', 'Anggota sudah melakukan absensi pada tanggal yang sama.')
+                ->withInput();
         }
+
+        // Ambil data anggota untuk nama pengunjung jika tidak diisi
+        $anggota = Anggota::find($request->anggota_id);
+        $namaPengunjung = $request->nama_pengunjung ?: $anggota->nama_lengkap;
 
         AbsensiPengunjung::create([
             'anggota_id' => $request->anggota_id,
-            'waktu_masuk' => now(),
-            'keterangan' => $request->keterangan,
+            'nama_pengunjung' => $namaPengunjung,
+            'tujuan_kunjungan' => $request->tujuan_kunjungan,
+            'waktu_masuk' => $request->waktu_masuk,
+            'catatan' => $request->catatan,
             'petugas_id' => Auth::id(),
         ]);
 
-        return redirect()->route('petugas.absensi-pengunjung.index')
-            ->with('success', 'Absensi berhasil dicatat.');
+        // Determine the correct redirect route based on user role
+        if (auth()->user()->hasRole('ADMIN')) {
+            return redirect()->route('admin.absensi-pengunjung.index')
+                ->with('success', 'Absensi berhasil dicatat.');
+        } else {
+            return redirect()->route('petugas.absensi-pengunjung.index')
+                ->with('success', 'Absensi berhasil dicatat.');
+        }
     }
 
     public function scanQR(Request $request)
@@ -114,6 +141,8 @@ class AbsensiPengunjungController extends Controller
         // Catat absensi
         AbsensiPengunjung::create([
             'anggota_id' => $anggota->id,
+            'nama_pengunjung' => $anggota->nama_lengkap,
+            'tujuan_kunjungan' => 'Kunjungan Perpustakaan',
             'waktu_masuk' => now(),
             'petugas_id' => Auth::id(),
         ]);
@@ -142,6 +171,64 @@ class AbsensiPengunjungController extends Controller
             return redirect()->route('petugas.absensi-pengunjung.index')
                 ->with('success', 'Data absensi berhasil dihapus.');
         }
+    }
+
+    /**
+     * Show individual attendance record
+     */
+    public function show($id)
+    {
+        $absensi = AbsensiPengunjung::with(['anggota.kelas', 'anggota.jurusan', 'petugas'])
+            ->findOrFail($id);
+
+        return view('admin.absensi-pengunjung.show', compact('absensi'));
+    }
+
+    /**
+     * Show edit form for attendance record
+     */
+    public function edit($id)
+    {
+        $absensi = AbsensiPengunjung::with(['anggota.kelas', 'anggota.jurusan'])
+            ->findOrFail($id);
+        
+        $anggota = Anggota::where('status', 'aktif')->get();
+
+        return view('admin.absensi-pengunjung.edit', compact('absensi', 'anggota'));
+    }
+
+    /**
+     * Update attendance record
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'anggota_id' => 'required|exists:anggota,id',
+            'waktu_masuk' => 'required|date',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $absensi = AbsensiPengunjung::findOrFail($id);
+
+        // Check if the member has another attendance record on the same date (excluding current record)
+        $existingAttendance = AbsensiPengunjung::where('anggota_id', $request->anggota_id)
+            ->whereDate('waktu_masuk', $request->waktu_masuk)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($existingAttendance) {
+            return back()->with('error', 'Anggota sudah memiliki absensi pada tanggal yang sama.')
+                ->withInput();
+        }
+
+        $absensi->update([
+            'anggota_id' => $request->anggota_id,
+            'waktu_masuk' => $request->waktu_masuk,
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return redirect()->route('admin.absensi-pengunjung.index')
+            ->with('success', 'Data absensi berhasil diperbarui.');
     }
 
     /**
@@ -188,9 +275,11 @@ class AbsensiPengunjungController extends Controller
             // Catat absensi baru
             $absensi = AbsensiPengunjung::create([
                 'anggota_id' => $anggota->id,
+                'nama_pengunjung' => $anggota->nama_lengkap,
+                'tujuan_kunjungan' => 'Kunjungan Perpustakaan',
                 'waktu_masuk' => now(),
                 'petugas_id' => Auth::id(),
-                'keterangan' => 'Scan Barcode'
+                'catatan' => 'Scan Barcode'
             ]);
 
             return response()->json([
@@ -198,8 +287,8 @@ class AbsensiPengunjungController extends Controller
                 'message' => 'Absensi berhasil dicatat',
                 'data' => [
                     'id' => $absensi->id,
-                    'nama_lengkap' => $anggota->nama_lengkap,
-                    'nomor_anggota' => $anggota->nomor_anggota,
+                    'nama_lengkap' => $anggota->nama_lengkap ?? 'Nama Tidak Tersedia',
+                    'nomor_anggota' => $anggota->nomor_anggota ?? 'N/A',
                     'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : '-',
                     'jurusan' => $anggota->jurusan ? $anggota->jurusan->nama_jurusan : '-',
                     'waktu_masuk' => $absensi->waktu_masuk->format('H:i:s'),
@@ -225,14 +314,19 @@ class AbsensiPengunjungController extends Controller
             ->orderBy('waktu_masuk', 'desc')
             ->get()
             ->map(function ($item) {
+                // Log untuk debug jika ada masalah dengan data
+                if (!$item->anggota) {
+                    \Log::warning("Absensi ID {$item->id} tidak memiliki relasi anggota");
+                }
+                
                 return [
                     'id' => $item->id,
-                    'nama_lengkap' => $item->anggota->nama_lengkap,
-                    'nomor_anggota' => $item->anggota->nomor_anggota,
-                    'kelas' => $item->anggota->kelas ? $item->anggota->kelas->nama_kelas : '-',
-                    'jurusan' => $item->anggota->jurusan ? $item->anggota->jurusan->nama_jurusan : '-',
+                    'nama_lengkap' => $item->anggota ? $item->anggota->nama_lengkap : 'Nama Tidak Tersedia',
+                    'nomor_anggota' => $item->anggota ? $item->anggota->nomor_anggota : 'N/A',
+                    'kelas' => $item->anggota && $item->anggota->kelas ? $item->anggota->kelas->nama_kelas : '-',
+                    'jurusan' => $item->anggota && $item->anggota->jurusan ? $item->anggota->jurusan->nama_jurusan : '-',
                     'waktu_masuk' => $item->waktu_masuk->format('H:i:s'),
-                    'foto' => $item->anggota->foto ? asset('storage/' . $item->anggota->foto) : null
+                    'foto' => $item->anggota && $item->anggota->foto ? asset('storage/' . $item->anggota->foto) : null
                 ];
             });
 
@@ -279,10 +373,10 @@ class AbsensiPengunjungController extends Controller
             ->through(function ($item) {
                 return [
                     'id' => $item->id,
-                    'nama_lengkap' => $item->anggota->nama_lengkap,
-                    'nomor_anggota' => $item->anggota->nomor_anggota,
-                    'kelas' => $item->anggota->kelas ? $item->anggota->kelas->nama_kelas : '-',
-                    'jurusan' => $item->anggota->jurusan ? $item->anggota->jurusan->nama_jurusan : '-',
+                    'nama_lengkap' => $item->anggota ? $item->anggota->nama_lengkap : 'Nama Tidak Tersedia',
+                    'nomor_anggota' => $item->anggota ? $item->anggota->nomor_anggota : 'N/A',
+                    'kelas' => $item->anggota && $item->anggota->kelas ? $item->anggota->kelas->nama_kelas : '-',
+                    'jurusan' => $item->anggota && $item->anggota->jurusan ? $item->anggota->jurusan->nama_jurusan : '-',
                     'waktu_masuk' => $item->waktu_masuk->format('d/m/Y H:i:s'),
                     'keterangan' => $item->keterangan
                 ];

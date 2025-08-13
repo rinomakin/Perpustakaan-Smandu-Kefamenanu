@@ -16,10 +16,13 @@
                         <h3 class="text-lg font-semibold text-white">Daftar Peminjaman</h3>
                     </div>
                     <div class="flex space-x-3">
+                        @if(Auth::user()->hasPermission('peminjaman.create') || Auth::user()->isAdmin())
                         <a href="{{ route('peminjaman.create') }}" 
                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
                             <i class="fas fa-plus mr-1"></i>Tambah Data
                         </a>
+                        @endif
+                        @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
                         <a href="{{ route('riwayat-peminjaman.index') }}" 
                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
                             <i class="fas fa-history mr-1"></i>Riwayat Peminjaman
@@ -28,6 +31,7 @@
                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
                             <i class="fas fa-undo-alt mr-1"></i>Riwayat Pengembalian
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -89,18 +93,24 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex space-x-2">
+                                        @if(Auth::user()->hasPermission('peminjaman.show') || Auth::user()->isAdmin())
                                         <a href="{{ route('peminjaman.show', $loan->id) }}" 
                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
-                                            <i class="fas fa-eye mr-1"></i>Detail
+                                            <i class="fas fa-eye mr-1"></i>
                                         </a>
+                                        @endif
+                                        @if(Auth::user()->hasPermission('peminjaman.edit') || Auth::user()->isAdmin())
                                         <a href="{{ route('peminjaman.edit', $loan->id) }}" 
                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">
-                                            <i class="fas fa-edit mr-1"></i>Edit
+                                            <i class="fas fa-edit mr-1"></i>
                                         </a>
+                                        @endif
+                                        @if(Auth::user()->hasPermission('peminjaman.delete') || Auth::user()->isAdmin())
                                         <button type="button" onclick="confirmDelete({{ $loan->id }})" 
                                                 class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
-                                            <i class="fas fa-trash mr-1"></i>Hapus
+                                            <i class="fas fa-trash mr-1"></i>
                                         </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

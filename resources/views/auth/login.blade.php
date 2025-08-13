@@ -53,8 +53,12 @@
         </form>
         
         <div class="text-center mt-6 pt-4 border-t border-gray-200">
-            <p class="text-gray-500 text-sm">
-                &copy; {{ date('Y') }} {{ $pengaturan->nama_website ?? 'SIPERPUS' }}
+            <p class="text-gray-500 text-sm uppercase mb-3">
+            &copy; {{ $pengaturan->deskripsi_website ?? 'SIPERPUS' }} {{ date('Y') }}
+                <!-- &copy; {{ date('Y') }} {{ $pengaturan->nama_website ?? 'SIPERPUS' }} -->
+            </p>
+            <p class="text-gray-500 text-xs ">
+                by <a href="https://www.instagram.com/rinomakin" class="text-blue-500">@rinomakin</a>
             </p>
         </div>
     </div>

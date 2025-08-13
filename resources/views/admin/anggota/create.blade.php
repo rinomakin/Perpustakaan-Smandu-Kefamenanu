@@ -54,9 +54,12 @@
 
 @section('content')
 <div class="container px-6 mx-auto grid">
-    <h2 class="my-6 text-2xl font-semibold text-gray-700">
-        Tambah Anggota Baru
-    </h2>
+    <p class="my-6 ">
+    <a href="{{ route('anggota.index') }}"
+                   class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i>Kembali
+                </a>
+    </p>
 
     <!-- Alert Sukses -->
     @if(session('success'))
@@ -88,10 +91,10 @@
             @csrf
             
             <!-- Barcode Section -->
-            <div class="barcode-container">
-                <h3 class="text-lg font-semibold mb-3">Barcode Anggota</h3>
+            <div class="barcode-container p-2">
+                <!-- <h3 class="text-lg font-semibold mb-3">Barcode Anggota</h3> -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                    <div class="flex flex-col">
                         <label for="barcode_anggota" class="block text-sm font-medium text-gray-700 mb-2">Barcode <span class="text-red-500">*</span></label>
                         <div class="flex space-x-2">
                             <input type="text" name="barcode_anggota" id="barcode_anggota" required
@@ -102,32 +105,31 @@
                                 <i class="fas fa-sync-alt mr-1"></i>Generate
                             </button>
                         </div>
-                        <div id="barcodeDisplay" class="barcode-display mt-2 hidden">
+                        <!-- <div id="barcodeDisplay" class="barcode-display mt-2 hidden">
                             <div class="text-center">
                                 <img id="barcodeImage" src="" alt="Barcode" class="mx-auto mb-2" style="max-width: 200px; height: auto;">
                                 <div id="barcodeText" class="font-mono text-sm"></div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
-                    
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Scan Barcode</label>
-                        <button type="button" id="scanBarcodeBtn"
-                                class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
-                            <i class="fas fa-barcode mr-1"></i>Scan Barcode
-                        </button>
+                        <!-- nama lengkap form -->
+                        <label for="nama_lengkap" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
+                        <input type="text" name="nama_lengkap" id="nama_lengkap" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Masukkan nama lengkap">
                     </div>
                 </div>
             </div>
 
             <!-- Personal Information -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
+                <!-- <div>
                     <label for="nama_lengkap" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
                     <input type="text" name="nama_lengkap" id="nama_lengkap" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                            placeholder="Masukkan nama lengkap">
-                </div>
+                </div> -->
                 
                 <div>
                     <label for="jenis_kelamin" class="block text-sm font-medium text-gray-700 mb-2">Jenis Kelamin <span class="text-red-500">*</span></label>
@@ -175,7 +177,7 @@
                     <label for="kelas_id" class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
                     <select name="kelas_id" id="kelas_id"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Kelas (opsional)</option>
+                        <option value="">Pilih Kelas</option>
                         @foreach($kelas as $k)
                             <option value="{{ $k->id }}">{{ $k->nama_kelas }} - {{ $k->jurusan->nama_jurusan }}</option>
                         @endforeach
@@ -222,7 +224,7 @@
             </div>
 
             <!-- Photo Upload -->
-            <div class="mb-6">
+            <div class="mb-10   ">
                 <label for="foto" class="block text-sm font-medium text-gray-700 mb-2">Foto</label>
                 <input type="file" name="foto" id="foto" accept="image/*"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -231,12 +233,9 @@
 
             <!-- Action Buttons -->
             <div class="flex justify-end space-x-3">
-                <a href="{{ route('anggota.index') }}"
-                   class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
-                    <i class="fas fa-arrow-left mr-1"></i>Kembali
-                </a>
+               
                 <button type="submit"
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                        class="px-4 py-2 bg-blue-500 w-full text-white rounded-md hover:bg-blue-600 transition-colors">
                     <i class="fas fa-save mr-1"></i>Simpan
                 </button>
             </div>
@@ -245,7 +244,7 @@
 </div>
 
 <!-- Barcode Scanner Modal -->
-<div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+<!-- <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
@@ -305,7 +304,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <script>
 let stream = null;

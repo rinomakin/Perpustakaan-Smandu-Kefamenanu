@@ -13,10 +13,12 @@
                     <p class="text-gray-600 mt-1">Informasi lengkap peminjaman buku</p>
                 </div>
                 <div class="flex space-x-4">
+                    @if(Auth::user()->role == 'admin')
                     <a href="{{ route('peminjaman.edit', $peminjaman->id) }}" 
                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200">
                         <i class="fas fa-edit mr-2"></i>Edit
                     </a>
+                    @endif
                     <a href="{{ route('peminjaman.index') }}" 
                        class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali

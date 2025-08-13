@@ -76,8 +76,14 @@ class BukuController extends Controller
         $kategoris = KategoriBuku::all();
         $jenis = JenisBuku::all();
 
+        // Statistics
+        $totalBuku = Buku::count();
+        $bukuTersedia = Buku::where('stok_tersedia', '>', 0)->count();
+        $bukuDipinjam = Buku::where('stok_tersedia', '<', 'jumlah_stok')->where('stok_tersedia', '>', 0)->count();
+        $bukuRusak = Buku::where('stok_tersedia', 0)->where('jumlah_stok', '>', 0)->count();
+
         
-        return view('admin.buku.index', compact('buku', 'kategoris', 'jenis'));
+        return view('admin.buku.index', compact('buku', 'kategoris', 'jenis', 'totalBuku', 'bukuTersedia', 'bukuDipinjam', 'bukuRusak'));
     }
 
     public function create()

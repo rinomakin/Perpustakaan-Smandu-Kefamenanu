@@ -129,6 +129,8 @@
                         <span class="whitespace-nowrap text-xs">Data Buku</span>
                     </a>
 
+
+
                     <!-- Riwayat Peminjaman -->
                     <a href="{{ route('kepsek.riwayat-peminjaman') }}" 
                        class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-white bg-opacity-20' : '' }}">
@@ -208,6 +210,8 @@
                     <i class="fas fa-book w-5"></i>
                     <span>Data Buku</span>
                 </a>
+                
+
                 
                 <a href="{{ route('kepsek.riwayat-peminjaman') }}" 
                    class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors {{ request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-blue-600' : '' }}">

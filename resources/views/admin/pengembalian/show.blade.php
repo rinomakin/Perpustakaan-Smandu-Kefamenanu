@@ -16,10 +16,12 @@
                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
                     <i class="fas fa-arrow-left mr-2"></i>Kembali
                 </a>
+                @if(Auth::user()->role == 'admin')
                 <button onclick="window.print()" 
                         class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
                     <i class="fas fa-print mr-2"></i>Cetak
                 </button>
+                @endif
             </div>
         </div>
 
@@ -211,6 +213,19 @@
                                 <p class="text-lg font-semibold text-gray-900">{{ $pengembalian->tanggal_pembayaran_denda->format('d/m/Y') }}</p>
                             </div>
                             @endif
+
+                            <!-- Tombol Status Pembayaran Denda -->
+                            @if(Auth::user()->role == 'admin')
+                            @if($pengembalian->total_denda > 0)
+                            <div class="pt-4 border-t border-gray-200">
+                                <button onclick="openStatusPembayaranModal()" 
+                                        class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+                                    <i class="fas fa-credit-card mr-2"></i>
+                                    Update Status Pembayaran
+                                </button>
+                            </div>
+                            @endif
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -244,4 +259,98 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Update Status Pembayaran Denda -->
+<div id="statusPembayaranModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Update Status Pembayaran Denda</h3>
+            </div>
+            <form id="statusPembayaranForm" class="p-6">
+                <div class="mb-4">
+                    <label for="modal_status_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">
+                        Status Pembayaran
+                    </label>
+                    <select id="modal_status_pembayaran" name="status_pembayaran" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="belum_dibayar">Belum Dibayar</option>
+                        <option value="sudah_dibayar">Sudah Dibayar</option>
+                    </select>
+                </div>
+                <div id="tanggalPembayaranDiv" class="mb-4 hidden">
+                    <label for="modal_tanggal_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">
+                        Tanggal Pembayaran
+                    </label>
+                    <input type="date" id="modal_tanggal_pembayaran" name="tanggal_pembayaran" 
+                           value="{{ date('Y-m-d') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeStatusPembayaranModal()" 
+                            class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200">
+                        Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status modal functionality
+    const modalStatus = document.getElementById('modal_status_pembayaran');
+    const tanggalPembayaranDiv = document.getElementById('tanggalPembayaranDiv');
+
+    modalStatus.addEventListener('change', function() {
+        if (this.value === 'sudah_dibayar') {
+            tanggalPembayaranDiv.classList.remove('hidden');
+        } else {
+            tanggalPembayaranDiv.classList.add('hidden');
+        }
+    });
+
+    // Status form submission
+    document.getElementById('statusPembayaranForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('{{ route("pengembalian.update-status-pembayaran-denda", $pengembalian->id) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeStatusPembayaranModal();
+                // Reload halaman untuk menampilkan perubahan
+                location.reload();
+            } else {
+                alert('Gagal mengupdate status: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengupdate status');
+        });
+    });
+});
+
+function openStatusPembayaranModal() {
+    document.getElementById('statusPembayaranModal').classList.remove('hidden');
+}
+
+function closeStatusPembayaranModal() {
+    document.getElementById('statusPembayaranModal').classList.add('hidden');
+}
+</script>
 @endsection

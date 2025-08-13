@@ -569,112 +569,158 @@
                 document.getElementById('stopScanBtn').classList.add('hidden');
             }
 
-            async initializeScanner() {
-                console.log('🚀 Initializing scanner...');
-                
-                const scanContainer = document.getElementById('scanContainer');
-                const scanLoading = document.getElementById('scanLoading');
-                const scanVideo = document.getElementById('scanVideo');
-                const scanPlaceholder = document.getElementById('scanPlaceholder');
-                
-                // Show loading
-                scanLoading.classList.remove('hidden');
-                scanPlaceholder.classList.add('hidden');
-                scanVideo.classList.remove('hidden');
-                
-                try {
-                    // Create HTML5-QRCode scanner
-                    this.html5QrcodeScanner = new Html5Qrcode("reader");
-                    
-                    // Configure scanner
-                    const config = {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 },
-                        aspectRatio: 1.0,
-                        supportedScanTypes: [
-                            Html5QrcodeScanType.SCAN_TYPE_CAMERA
-                        ]
-                    };
-                    
-                    // Start scanning
-                    await this.html5QrcodeScanner.start(
-                        { facingMode: "environment" },
-                        config,
-                        (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
-                        (error) => this.onScanFailure(error)
-                    );
-                    
-                    console.log('📹 Scanner started successfully');
-                    scanLoading.classList.add('hidden');
-                    scanVideo.classList.remove('hidden');
-                    document.getElementById('scanStatus').textContent = 'Scanner aktif';
-                    document.getElementById('startScanBtn').classList.add('hidden');
-                    document.getElementById('stopScanBtn').classList.remove('hidden');
-                    this.showMessage('Scanner siap. Arahkan kamera ke barcode.', 'success');
-                    
-                } catch (error) {
-                    console.error('❌ Scanner initialization error:', error);
-                    scanLoading.classList.add('hidden');
-                    scanPlaceholder.classList.remove('hidden');
-                    scanVideo.classList.add('hidden');
-                    
-                    if (error.name === 'NotAllowedError') {
-                        this.showMessage('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
-                    } else if (error.name === 'NotFoundError') {
-                        this.showMessage('Tidak ada kamera yang ditemukan.', 'error');
-                    } else {
-                        this.showMessage('Gagal menginisialisasi scanner: ' + error.message, 'error');
-                    }
-                    
-                    // Show manual input option
-                    scanPlaceholder.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-2"></i>
-                            <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
-                            <p class="text-sm text-gray-400">Gunakan pencarian manual di atas</p>
-                        </div>
-                    `;
-                }
+                async initializeScanner() {
+        console.log('🚀 Memulai inisialisasi scanner...');
+        
+        const scanContainer = document.getElementById('scanContainer');
+        const scanLoading = document.getElementById('scanLoading');
+        const scanVideo = document.getElementById('scanVideo');
+        const scanPlaceholder = document.getElementById('scanPlaceholder');
+        
+        // Tampilkan loading
+        scanLoading.classList.remove('hidden');
+        scanPlaceholder.classList.add('hidden');
+        scanVideo.classList.remove('hidden');
+        
+        try {
+            // Periksa apakah browser mendukung getUserMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Browser tidak mendukung akses kamera');
             }
+            
+            // Minta izin akses kamera terlebih dahulu
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            });
+            
+            // Hentikan stream sementara
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Buat HTML5-QRCode scanner
+            this.html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            // Konfigurasi scanner
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                supportedScanTypes: [
+                    Html5QrcodeScanType.SCAN_TYPE_CAMERA
+                ]
+            };
+            
+            // Mulai scanning
+            await this.html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+                (error) => this.onScanFailure(error)
+            );
+            
+            console.log('📹 Scanner berhasil dimulai');
+            scanLoading.classList.add('hidden');
+            scanVideo.classList.remove('hidden');
+            document.getElementById('scanStatus').textContent = 'Scanner aktif - Arahkan ke barcode';
+            document.getElementById('startScanBtn').classList.add('hidden');
+            document.getElementById('stopScanBtn').classList.remove('hidden');
+            this.showMessage('Scanner siap! Arahkan kamera ke barcode anggota.', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error inisialisasi scanner:', error);
+            scanLoading.classList.add('hidden');
+            scanPlaceholder.classList.remove('hidden');
+            scanVideo.classList.add('hidden');
+            
+            let errorMessage = 'Gagal menginisialisasi scanner';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage = 'Akses kamera ditolak. Silakan klik ikon kamera di address bar dan izinkan akses kamera.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage = 'Tidak ada kamera yang ditemukan di perangkat ini.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage = 'Browser tidak mendukung akses kamera. Gunakan browser modern seperti Chrome, Firefox, atau Safari.';
+            } else if (error.message.includes('HTTPS')) {
+                errorMessage = 'Akses kamera memerlukan koneksi HTTPS. Silakan gunakan server HTTPS.';
+            } else {
+                errorMessage = 'Gagal menginisialisasi scanner: ' + error.message;
+            }
+            
+            this.showMessage(errorMessage, 'error');
+            
+            // Tampilkan opsi manual input
+            scanPlaceholder.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-2"></i>
+                    <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
+                    <p class="text-sm text-gray-400 mb-4">${errorMessage}</p>
+                    <button onclick="document.getElementById('manual-barcode').focus()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-keyboard mr-2"></i>
+                        Gunakan Input Manual
+                    </button>
+                </div>
+            `;
+        }
+    }
 
-            onScanSuccess(decodedText, decodedResult) {
-                console.log('🎉 Barcode detected:', decodedText);
-                this.processBarcode(decodedText);
-            }
+                onScanSuccess(decodedText, decodedResult) {
+        console.log('🎉 Barcode terdeteksi:', decodedText);
+        
+        // Hentikan scanner untuk mencegah scan berulang
+        this.stopScanning();
+        
+        // Tampilkan pesan sukses
+        this.showMessage(`Barcode terdeteksi: ${decodedText}`, 'success');
+        
+        // Proses barcode
+        this.processBarcode(decodedText);
+    }
 
-            onScanFailure(error) {
-                // Handle scan failure silently
-                console.log('⚠️ Scan failure:', error);
-            }
+    onScanFailure(error) {
+        // Handle scan failure silently untuk menghindari spam log
+        // Hanya log jika ada error yang signifikan
+        if (error && error.name !== 'NotFoundException') {
+            console.log('⚠️ Scan failure:', error);
+        }
+    }
 
-            startScanning() {
-                if (!this.html5QrcodeScanner) {
-                    this.showMessage('Scanner belum siap. Silakan tunggu.', 'warning');
-                    return;
-                }
-                
-                try {
-                    document.getElementById('scanStatus').textContent = 'Scanning...';
-                } catch (error) {
-                    console.error('Error starting scanner:', error);
-                    this.showMessage('Gagal memulai scanner. Silakan coba lagi.', 'error');
-                }
-            }
+                startScanning() {
+        if (!this.html5QrcodeScanner) {
+            this.showMessage('Scanner belum siap. Silakan tunggu.', 'warning');
+            return;
+        }
+        
+        try {
+            document.getElementById('scanStatus').textContent = 'Scanning aktif - Arahkan ke barcode';
+            this.showMessage('Scanner aktif! Arahkan kamera ke barcode anggota.', 'info');
+        } catch (error) {
+            console.error('Error starting scanner:', error);
+            this.showMessage('Gagal memulai scanner. Silakan coba lagi.', 'error');
+        }
+    }
 
-            stopScanning() {
-                if (this.html5QrcodeScanner) {
-                    try {
-                        this.html5QrcodeScanner.stop();
-                        document.getElementById('scanStatus').textContent = 'Scanner dihentikan';
-                    } catch (error) {
-                        console.error('Error stopping scanner:', error);
-                    }
-                }
+    stopScanning() {
+        if (this.html5QrcodeScanner) {
+            try {
+                this.html5QrcodeScanner.stop();
+                document.getElementById('scanStatus').textContent = 'Scanner dihentikan';
+                this.showMessage('Scanner dihentikan.', 'info');
+            } catch (error) {
+                console.error('Error stopping scanner:', error);
             }
+        }
+    }
 
             async processBarcode(barcode) {
                 if (!barcode) return;
 
+                this.setStatus('processing');
+                this.showMessage('Memproses barcode...', 'info');
+                
                 try {
                     const response = await fetch('{{ route("petugas.absensi-pengunjung.scan-qr") }}', {
                         method: 'POST',
@@ -690,26 +736,45 @@
                     if (result.success) {
                         this.showScanResult(result.data);
                         this.showMessage(result.message, 'success');
-                        this.closeScanModal();
-                        // Reload page to show updated attendance list
+                        
+                        // Tutup modal setelah 2 detik untuk memberikan waktu melihat hasil
                         setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
+                            this.closeScanModal();
+                            // Reload page to show updated attendance list
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                        }, 2000);
                     } else {
                         this.showMessage(result.message, 'error');
+                        // Buka kembali scanner jika ada error
+                        setTimeout(() => {
+                            this.startScanning();
+                        }, 1000);
                     }
 
                 } catch (error) {
                     console.error('Error processing barcode:', error);
-                    this.showMessage('Terjadi kesalahan saat memproses barcode', 'error');
+                    this.showMessage('Terjadi kesalahan saat memproses barcode. Silakan coba lagi.', 'error');
+                    
+                    // Buka kembali scanner jika ada error
+                    setTimeout(() => {
+                        this.startScanning();
+                    }, 1000);
                 }
+
+                this.setStatus('ready');
             }
 
             processManualBarcode() {
                 const barcode = document.getElementById('manual-barcode').value.trim();
                 if (barcode) {
+                    this.showMessage('Memproses barcode manual...', 'info');
                     this.processBarcode(barcode);
                     document.getElementById('manual-barcode').value = '';
+                } else {
+                    this.showMessage('Silakan masukkan barcode terlebih dahulu', 'warning');
+                    document.getElementById('manual-barcode').focus();
                 }
             }
 
@@ -739,22 +804,33 @@
                 const notification = document.createElement('div');
                 notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full`;
                 
-                // Set background color based on type
+                let icon;
+                
+                // Set background color and icon based on type
                 switch(type) {
                     case 'success':
                         notification.classList.add('bg-green-500');
+                        icon = 'fas fa-check-circle';
                         break;
                     case 'error':
                         notification.classList.add('bg-red-500');
+                        icon = 'fas fa-times-circle';
                         break;
                     case 'warning':
                         notification.classList.add('bg-yellow-500');
+                        icon = 'fas fa-exclamation-triangle';
                         break;
                     default:
                         notification.classList.add('bg-blue-500');
+                        icon = 'fas fa-info-circle';
                 }
                 
-                notification.textContent = message;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="${icon} mr-2"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
                 document.body.appendChild(notification);
                 
                 // Animate in
@@ -762,7 +838,7 @@
                     notification.classList.remove('translate-x-full');
                 }, 100);
                 
-                // Remove after 3 seconds
+                // Remove after 5 seconds
                 setTimeout(() => {
                     notification.classList.add('translate-x-full');
                     setTimeout(() => {
@@ -770,7 +846,7 @@
                             notification.parentNode.removeChild(notification);
                         }
                     }, 300);
-                }, 3000);
+                }, 5000);
             }
         }
 

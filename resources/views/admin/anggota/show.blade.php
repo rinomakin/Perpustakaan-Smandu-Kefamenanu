@@ -38,7 +38,7 @@
                 
                 <div class="flex items-center mb-4">
                     @if($anggota->foto)
-                        <img src="{{ asset('storage/anggota/' . $anggota->foto) }}" 
+                        <img src="{{ asset('storage/anggota/' . $anggota->foto) }}"
                              alt="Foto" class="w-20 h-20 rounded-full mr-4 object-cover">
                     @else
                         <div class="w-20 h-20 bg-gray-300 rounded-full mr-4 flex items-center justify-center">

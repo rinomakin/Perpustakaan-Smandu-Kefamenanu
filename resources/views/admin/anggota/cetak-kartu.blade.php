@@ -34,12 +34,15 @@
             <div class="flex">
                <div class="w-1/2">
                 <div class="flex items-center justify-center mb-2">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-10 w-auto">
+                    <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
                 </div>
                     <div class="text-center">
                         <div class="text-[8px] font-bold text-white uppercase">KARTU PERPUSTAKAAN</div>
-                        <div class="text-[8px] font-bold text-white uppercase">SMA Negeri 2 kefamenanu</div>
-                        <div class="text-[8px] text-white mb-5">Jl. Contoh Alamat No. 123, Kota, Provinsi</div>
+                        <!-- <div class="text-[8px] font-bold text-white uppercase">{{ $pengaturan->nama_website }}</div> -->
+                        <div class="text-[8px] font-bold text-white uppercase">{{ $pengaturan->deskripsi_website }}</div>
+                        <!-- tambahkan alamat dari pengaturan -->
+                        <div class="text-[8px] text-white mb-5">{{ $pengaturan->alamat_website }}</div>
+                      
                         <div class="text-[10px] font-bold mb-7 text-white uppercase border-b-2 border-gray-400 pb-1">
                                      {{ $anggota->nama_lengkap }}
                         </div>
@@ -93,7 +96,7 @@
                 <div class="text-[8px]">Kefamenanu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
                 <div class="font-bold text-[8px]">Kepala Perpustakaan</div>
                 <div class="mt-3">
-                    <span class="text-[8px]">Kepala Sekolah</span>
+                    <span class="text-[8px]">{{ $pengaturan->nama_kepala_sekolah }}</span>
                 </div>          
             </div>
         </div>

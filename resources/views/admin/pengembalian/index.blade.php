@@ -12,14 +12,18 @@
                 <p class="text-gray-600 mt-2">Riwayat pengembalian buku perpustakaan untuk hari ini ({{ date('d/m/Y') }})</p>
             </div>
             <div class="flex space-x-3">
+                @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
                 <a href="{{ route('riwayat-pengembalian.index') }}" 
                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
                     <i class="fas fa-history mr-2"></i>Riwayat Pengembalian
                 </a>
+                @endif
+                @if(Auth::user()->hasPermission('pengembalian.create') || Auth::user()->isAdmin())
                 <a href="{{ route('pengembalian.create') }}" 
                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
                     <i class="fas fa-plus mr-2"></i>Proses Pengembalian
                 </a>
+                @endif
             </div>
         </div>
 
@@ -98,25 +102,25 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Pengembalian</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anggota</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Buku</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Pengembalian</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Kembali</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Denda</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Denda</th>
+                                    @if(Auth::user()->hasPermission('pengembalian.show') || Auth::user()->isAdmin() || Auth::user()->hasPermission('pengembalian.edit') || Auth::user()->isAdmin() || Auth::user()->hasPermission('pengembalian.delete') || Auth::user()->isAdmin())
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($pengembalian as $item)
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                @foreach($pengembalian as $index => $item)
+                                <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $item->nomor_pengembalian }}</div>
-                                        <div class="text-sm text-gray-500">No. Peminjaman: {{ $item->peminjaman->nomor_peminjaman }}</div>
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                            {{ $item->nomor_pengembalian }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">{{ $item->anggota->nama_lengkap }}</div>
                                         <div class="text-sm text-gray-500">{{ $item->anggota->nomor_anggota }}</div>
-                                        @if($item->anggota->kelas)
-                                            <div class="text-xs text-gray-400">{{ $item->anggota->kelas->nama_kelas }}</div>
-                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
@@ -124,60 +128,59 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $item->tanggal_pengembalian->format('d/m/Y') }}</div>
-                                        <div class="text-sm text-gray-500">{{ $item->jam_pengembalian ? $item->jam_pengembalian->format('H:i') : '-' }}</div>
+                                        <div class="text-sm text-gray-900">{{ $item->tanggal_pengembalian ? $item->tanggal_pengembalian->format('d/m/Y') : 'N/A' }}</div>
+                                        <div class="text-sm text-gray-500">{{ $item->jam_pengembalian ?? 'N/A' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($item->status === 'selesai')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <i class="fas fa-check-circle mr-1"></i>
-                                                Selesai
-                                            </span>
-                                        @elseif($item->jumlah_hari_terlambat > 0)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                <i class="fas fa-clock mr-1"></i>
-                                                Terlambat {{ $item->jumlah_hari_terlambat }} hari
-                                            </span>
+                                        @if($item->jumlah_hari_terlambat > 0)
+                                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Terlambat {{ $item->jumlah_hari_terlambat }} hari</span>
                                         @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                <i class="fas fa-info-circle mr-1"></i>
-                                                {{ ucfirst($item->status) }}
-                                            </span>
+                                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Tepat Waktu</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($item->total_denda > 0)
-                                            <div class="text-sm font-medium text-red-600">Rp {{ number_format($item->total_denda, 0, ',', '.') }}</div>
-                                            <div class="text-xs text-gray-500">{{ $item->status_denda === 'sudah_dibayar' ? 'Lunas' : 'Belum Bayar' }}</div>
+                                            <span class="text-red-600 font-medium">Rp {{ number_format($item->total_denda, 0, ',', '.') }}</span>
                                         @else
-                                            <span class="text-sm text-gray-500">-</span>
+                                            <span class="text-green-600 font-medium">Rp 0</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ route('pengembalian.show', $item->id) }}" 
-                                           class="text-blue-600 hover:text-blue-900 mr-3">
-                                            <i class="fas fa-eye"></i> Detail
-                                        </a>
+                                    @if(Auth::user()->hasPermission('pengembalian.show') || Auth::user()->isAdmin() || Auth::user()->hasPermission('pengembalian.edit') || Auth::user()->isAdmin() || Auth::user()->hasPermission('pengembalian.delete') || Auth::user()->isAdmin())
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            @if(Auth::user()->hasPermission('pengembalian.show') || Auth::user()->isAdmin())
+                                            <a href="{{ route('pengembalian.show', $item->id) }}" 
+                                               class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                <i class="fas fa-eye mr-1"></i>Detail
+                                            </a>
+                                            @endif
+                                            @if(Auth::user()->hasPermission('pengembalian.edit') || Auth::user()->isAdmin())
+                                            <a href="{{ route('pengembalian.edit', $item->id) }}" 
+                                               class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">
+                                                <i class="fas fa-edit mr-1"></i>Edit
+                                            </a>
+                                            @endif
+                                            @if(Auth::user()->hasPermission('pengembalian.delete') || Auth::user()->isAdmin())
+                                            <button type="button" onclick="confirmDelete({{ $item->id }})" 
+                                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                                <i class="fas fa-trash mr-1"></i>Hapus
+                                            </button>
+                                            @endif
+                                        </div>
                                     </td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- Pagination -->
-                    <div class="mt-6">
-                        {{ $pengembalian->links() }}
-                    </div>
                 @else
                     <div class="text-center py-12">
-                        <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Data Pengembalian</h3>
-                        <p class="text-gray-600 mb-6">Mulai proses pengembalian buku untuk melihat data di sini.</p>
-                        <a href="{{ route('pengembalian.create') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all duration-200">
-                            <i class="fas fa-plus mr-2"></i>Proses Pengembalian
-                        </a>
+                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-undo-alt text-3xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data pengembalian hari ini</h3>
+                        <p class="text-gray-600">Belum ada buku yang dikembalikan hari ini.</p>
                     </div>
                 @endif
             </div>
@@ -186,9 +189,27 @@
 </div>
 
 <script>
-function viewDetail(id) {
-    // Implementation for viewing detail can be added here
-    console.log('View detail for ID:', id);
+function confirmDelete(pengembalianId) {
+    if (confirm('Apakah Anda yakin ingin menghapus data pengembalian ini?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/pengembalian/${pengembalianId}`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = 'DELETE';
+        
+        form.appendChild(csrfToken);
+        form.appendChild(methodField);
+        document.body.appendChild(form);
+        form.submit();
+    }
 }
 </script>
 @endsection

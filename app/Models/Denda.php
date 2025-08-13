@@ -35,4 +35,9 @@ class Denda extends Model
     {
         return $this->belongsTo(Anggota::class);
     }
+
+    public function pengembalian()
+    {
+        return $this->hasMany(Pengembalian::class, 'peminjaman_id', 'peminjaman_id');
+    }
 } 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Kartu Anggota - Bulk Print</title>
+    <title>Cetak Kartu Anggota</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -46,14 +46,7 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <div class="no-print fixed top-5 right-5 z-50 flex space-x-2">
-        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg">
-            <i class="fas fa-print mr-2"></i>Cetak Semua
-        </button>
-        <button onclick="window.close()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-lg">
-            <i class="fas fa-times mr-2"></i>Tutup
-        </button>
-    </div>
+   
     
     <div class="card-grid">
         @foreach($anggotaList as $anggota)
@@ -64,12 +57,14 @@
                     <div class="flex">
                        <div class="w-1/2">
                         <div class="flex items-center justify-center mb-2">
-                            <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-10 w-auto">
+                            <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
                         </div>
                             <div class="text-center">
+                                <!-- ambil nama sekolah dari deksripsi website -->
+                                
                                 <div class="text-[8px] font-bold text-white uppercase">KARTU PERPUSTAKAAN</div>
-                                <div class="text-[8px] font-bold text-white uppercase">SMA Negeri 2 kefamenanu</div>
-                                <div class="text-[8px] text-white mb-5">Jl. Contoh Alamat No. 123, Kota, Provinsi</div>
+                                <div class="text-[8px] font-bold text-white uppercase">{{ $pengaturan->deskripsi_website }}</div>
+                                <div class="text-[8px] text-white mb-5">{{ $pengaturan->alamat_website }}</div>
                                 <div class="text-[10px] font-bold mb-7 text-white uppercase border-b-2 border-gray-400 pb-1">
                                              {{ $anggota->nama_lengkap }}
                                 </div>
@@ -123,7 +118,7 @@
                         <div class="text-[8px]">Kefamenanu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
                         <div class="font-bold text-[8px]">Kepala Perpustakaan</div>
                         <div class="mt-3">
-                            <span class="text-[8px]">Kepala Sekolah</span>
+                            <span class="text-[8px]">{{ $pengaturan->nama_kepala_sekolah }}</span>
                         </div>          
                     </div>
                 </div>

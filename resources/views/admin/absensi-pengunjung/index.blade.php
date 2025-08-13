@@ -147,36 +147,94 @@
                     <i class="fas fa-list mr-2 text-green-600"></i>
                     Pengunjung Hari Ini
                 </h2>
-                <button id="refresh-visitors" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
-                    <i class="fas fa-sync-alt mr-1"></i>
-                    Refresh
-                </button>
+                <div class="flex items-center space-x-2">
+                    <a href="{{ route('admin.absensi-pengunjung.create') }}" 
+                       class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                        <i class="fas fa-plus mr-1"></i>
+                        Tambah Manual
+                    </a>
+                    <button id="refresh-visitors" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                        <i class="fas fa-sync-alt mr-1"></i>
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             <!-- Visitors List -->
             <div id="visitors-container" class="space-y-3 max-h-96 overflow-y-auto">
-                @forelse($absensiHariIni as $absensi)
+                @if($absensiHariIni->count() === 0)
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-users text-4xl mb-3"></i>
+                        <p>Belum ada pengunjung hari ini</p>
+                    </div>
+                @else
+                    @foreach($absensiHariIni as $absensi)
+                        @if(!$absensi->anggota)
+                            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-exclamation-triangle text-red-500"></i>
+                                    <div class="flex-1">
+                                        <div class="font-medium text-red-800">Data Absensi Bermasalah</div>
+                                        <div class="text-sm text-red-600">Absensi ID: {{ $absensi->id }} - Anggota tidak ditemukan</div>
+                                    </div>
+                                    <form action="{{ route('admin.absensi-pengunjung.destroy', $absensi->id) }}" 
+                                          method="POST" 
+                                          class="inline" 
+                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus data absensi ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="text-red-600 hover:text-red-800 transition-colors duration-200" 
+                                                title="Hapus">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @else
                     <div class="visitor-item flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200" data-id="{{ $absensi->id }}">
-                        <img src="{{ $absensi->anggota->foto ? asset('storage/' . $absensi->anggota->foto) : 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>') }}" 
+                        <img src="{{ $absensi->anggota && $absensi->anggota->foto ? asset('storage/' . $absensi->anggota->foto) : 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>') }}" 
                              alt="Foto" class="w-10 h-10 rounded-full object-cover">
                         <div class="flex-1">
-                            <div class="font-medium text-gray-900">{{ $absensi->anggota->nama_lengkap }}</div>
+                            <div class="font-medium text-gray-900">{{ $absensi->anggota ? $absensi->anggota->nama_lengkap : 'Nama Tidak Tersedia' }}</div>
                             <div class="text-sm text-gray-600">
-                                {{ $absensi->anggota->kelas ? $absensi->anggota->kelas->nama_kelas : '-' }} | 
-                                {{ $absensi->anggota->nomor_anggota }}
+                                {{ $absensi->anggota && $absensi->anggota->kelas ? $absensi->anggota->kelas->nama_kelas : '-' }} | 
+                                {{ $absensi->anggota ? $absensi->anggota->nomor_anggota : 'N/A' }}
                             </div>
                         </div>
                         <div class="text-right">
                             <div class="text-sm font-medium text-gray-900">{{ $absensi->waktu_masuk->format('H:i') }}</div>
                             <div class="text-xs text-gray-500">{{ $absensi->waktu_masuk->diffForHumans() }}</div>
                         </div>
+                        <!-- Action Buttons -->
+                        <div class="flex items-center space-x-2 ml-3">
+                            <a href="{{ route('admin.absensi-pengunjung.show', $absensi->id) }}" 
+                               class="text-blue-600 hover:text-blue-800 transition-colors duration-200" 
+                               title="Lihat Detail">
+                                <i class="fas fa-eye text-sm"></i>
+                            </a>
+                            <a href="{{ route('admin.absensi-pengunjung.edit', $absensi->id) }}" 
+                               class="text-yellow-600 hover:text-yellow-800 transition-colors duration-200" 
+                               title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </a>
+                            <form action="{{ route('admin.absensi-pengunjung.destroy', $absensi->id) }}" 
+                                  method="POST" 
+                                  class="inline" 
+                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus data absensi ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" 
+                                        class="text-red-600 hover:text-red-800 transition-colors duration-200" 
+                                        title="Hapus">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                @empty
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-users text-4xl mb-3"></i>
-                        <p>Belum ada pengunjung hari ini</p>
-                    </div>
-                @endforelse
+                        @endif
+                    @endforeach
+                @endif
             </div>
         </div>
     </div>
@@ -488,23 +546,40 @@ class MemberSearchScanner {
     }
 
     async initializeScanner() {
-        console.log('🚀 Initializing scanner...');
+        console.log('🚀 Memulai inisialisasi scanner...');
         
         const scanContainer = document.getElementById('scanContainer');
         const scanLoading = document.getElementById('scanLoading');
         const scanVideo = document.getElementById('scanVideo');
         const scanPlaceholder = document.getElementById('scanPlaceholder');
         
-        // Show loading
+        // Tampilkan loading
         scanLoading.classList.remove('hidden');
         scanPlaceholder.classList.add('hidden');
         scanVideo.classList.remove('hidden');
         
         try {
-            // Create HTML5-QRCode scanner
+            // Periksa apakah browser mendukung getUserMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Browser tidak mendukung akses kamera');
+            }
+            
+            // Minta izin akses kamera terlebih dahulu
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            });
+            
+            // Hentikan stream sementara
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Buat HTML5-QRCode scanner
             this.html5QrcodeScanner = new Html5Qrcode("reader");
             
-            // Configure scanner
+            // Konfigurasi scanner
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
@@ -514,7 +589,7 @@ class MemberSearchScanner {
                 ]
             };
             
-            // Start scanning
+            // Mulai scanning
             await this.html5QrcodeScanner.start(
                 { facingMode: "environment" },
                 config,
@@ -522,47 +597,71 @@ class MemberSearchScanner {
                 (error) => this.onScanFailure(error)
             );
             
-            console.log('📹 Scanner started successfully');
+            console.log('📹 Scanner berhasil dimulai');
             scanLoading.classList.add('hidden');
             scanVideo.classList.remove('hidden');
-            document.getElementById('scanStatus').textContent = 'Scanner aktif';
+            document.getElementById('scanStatus').textContent = 'Scanner aktif - Arahkan ke barcode';
             document.getElementById('startScanBtn').classList.add('hidden');
             document.getElementById('stopScanBtn').classList.remove('hidden');
-            this.showMessage('Scanner siap. Arahkan kamera ke barcode.', 'success');
+            this.showMessage('Scanner siap! Arahkan kamera ke barcode anggota.', 'success');
             
         } catch (error) {
-            console.error('❌ Scanner initialization error:', error);
+            console.error('❌ Error inisialisasi scanner:', error);
             scanLoading.classList.add('hidden');
             scanPlaceholder.classList.remove('hidden');
             scanVideo.classList.add('hidden');
             
+            let errorMessage = 'Gagal menginisialisasi scanner';
+            
             if (error.name === 'NotAllowedError') {
-                this.showMessage('Akses kamera ditolak. Silakan izinkan akses kamera di browser.', 'error');
+                errorMessage = 'Akses kamera ditolak. Silakan klik ikon kamera di address bar dan izinkan akses kamera.';
             } else if (error.name === 'NotFoundError') {
-                this.showMessage('Tidak ada kamera yang ditemukan.', 'error');
+                errorMessage = 'Tidak ada kamera yang ditemukan di perangkat ini.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage = 'Browser tidak mendukung akses kamera. Gunakan browser modern seperti Chrome, Firefox, atau Safari.';
+            } else if (error.message.includes('HTTPS')) {
+                errorMessage = 'Akses kamera memerlukan koneksi HTTPS. Silakan gunakan server HTTPS.';
             } else {
-                this.showMessage('Gagal menginisialisasi scanner: ' + error.message, 'error');
+                errorMessage = 'Gagal menginisialisasi scanner: ' + error.message;
             }
             
-            // Show manual input option
+            this.showMessage(errorMessage, 'error');
+            
+            // Tampilkan opsi manual input
             scanPlaceholder.innerHTML = `
                 <div class="text-center">
                     <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-2"></i>
                     <p class="text-gray-500 mb-4">Kamera tidak tersedia</p>
-                    <p class="text-sm text-gray-400">Gunakan pencarian manual di atas</p>
+                    <p class="text-sm text-gray-400 mb-4">${errorMessage}</p>
+                    <button onclick="document.getElementById('manual-barcode').focus()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-keyboard mr-2"></i>
+                        Gunakan Input Manual
+                    </button>
                 </div>
             `;
         }
     }
 
     onScanSuccess(decodedText, decodedResult) {
-        console.log('🎉 Barcode detected:', decodedText);
+        console.log('🎉 Barcode terdeteksi:', decodedText);
+        
+        // Hentikan scanner untuk mencegah scan berulang
+        this.stopScanning();
+        
+        // Tampilkan pesan sukses
+        this.showMessage(`Barcode terdeteksi: ${decodedText}`, 'success');
+        
+        // Proses barcode
         this.processBarcode(decodedText);
     }
 
     onScanFailure(error) {
-        // Handle scan failure silently
-        console.log('⚠️ Scan failure:', error);
+        // Handle scan failure silently untuk menghindari spam log
+        // Hanya log jika ada error yang signifikan
+        if (error && error.name !== 'NotFoundException') {
+            console.log('⚠️ Scan failure:', error);
+        }
     }
 
     startScanning() {
@@ -572,7 +671,8 @@ class MemberSearchScanner {
         }
         
         try {
-            document.getElementById('scanStatus').textContent = 'Scanning...';
+            document.getElementById('scanStatus').textContent = 'Scanning aktif - Arahkan ke barcode';
+            this.showMessage('Scanner aktif! Arahkan kamera ke barcode anggota.', 'info');
         } catch (error) {
             console.error('Error starting scanner:', error);
             this.showMessage('Gagal memulai scanner. Silakan coba lagi.', 'error');
@@ -584,6 +684,7 @@ class MemberSearchScanner {
             try {
                 this.html5QrcodeScanner.stop();
                 document.getElementById('scanStatus').textContent = 'Scanner dihentikan';
+                this.showMessage('Scanner dihentikan.', 'info');
             } catch (error) {
                 console.error('Error stopping scanner:', error);
             }
@@ -594,6 +695,7 @@ class MemberSearchScanner {
         if (!barcode) return;
 
         this.setStatus('processing');
+        this.showMessage('Memproses barcode...', 'info');
         
         try {
             const response = await fetch('{{ route("admin.absensi-pengunjung.scan-barcode") }}', {
@@ -611,14 +713,27 @@ class MemberSearchScanner {
                 this.showScanResult(result.data);
                 this.showMessage(result.message, 'success');
                 this.refreshVisitors();
-                this.closeScanModal();
+                
+                // Tutup modal setelah 2 detik untuk memberikan waktu melihat hasil
+                setTimeout(() => {
+                    this.closeScanModal();
+                }, 2000);
             } else {
                 this.showMessage(result.message, 'error');
+                // Buka kembali scanner jika ada error
+                setTimeout(() => {
+                    this.startScanning();
+                }, 1000);
             }
 
         } catch (error) {
             console.error('Error processing barcode:', error);
-            this.showMessage('Terjadi kesalahan saat memproses barcode', 'error');
+            this.showMessage('Terjadi kesalahan saat memproses barcode. Silakan coba lagi.', 'error');
+            
+            // Buka kembali scanner jika ada error
+            setTimeout(() => {
+                this.startScanning();
+            }, 1000);
         }
 
         this.setStatus('ready');
@@ -627,8 +742,12 @@ class MemberSearchScanner {
     processManualBarcode() {
         const barcode = document.getElementById('manual-barcode').value.trim();
         if (barcode) {
+            this.showMessage('Memproses barcode manual...', 'info');
             this.processBarcode(barcode);
             document.getElementById('manual-barcode').value = '';
+        } else {
+            this.showMessage('Silakan masukkan barcode terlebih dahulu', 'warning');
+            document.getElementById('manual-barcode').focus();
         }
     }
 
@@ -724,13 +843,38 @@ class MemberSearchScanner {
                 <img src="${visitor.foto || 'data:image/svg+xml;base64,' + btoa('<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"40\\" height=\\"40\\" viewBox=\\"0 0 40 40\\"><rect width=\\"40\\" height=\\"40\\" fill=\\"#e5e7eb\\"/><text x=\\"20\\" y=\\"24\\" text-anchor=\\"middle\\" fill=\\"#9ca3af\\" font-family=\\"Arial\\" font-size=\\"14\\">👤</text></svg>')}" 
                      alt="Foto" class="w-10 h-10 rounded-full object-cover">
                 <div class="flex-1">
-                    <div class="font-medium text-gray-900">${visitor.nama_lengkap}</div>
+                    <div class="font-medium text-gray-900">${visitor.nama_lengkap || 'Nama Tidak Tersedia'}</div>
                     <div class="text-sm text-gray-600">
-                        ${visitor.kelas} | ${visitor.nomor_anggota}
+                        ${visitor.kelas || '-'} | ${visitor.nomor_anggota || 'N/A'}
                     </div>
                 </div>
                 <div class="text-right">
                     <div class="text-sm font-medium text-gray-900">${visitor.waktu_masuk}</div>
+                </div>
+                <!-- Action Buttons -->
+                <div class="flex items-center space-x-2 ml-3">
+                    <a href="{{ route('admin.absensi-pengunjung.show', '') }}/${visitor.id}" 
+                       class="text-blue-600 hover:text-blue-800 transition-colors duration-200" 
+                       title="Lihat Detail">
+                        <i class="fas fa-eye text-sm"></i>
+                    </a>
+                    <a href="{{ route('admin.absensi-pengunjung.edit', '') }}/${visitor.id}" 
+                       class="text-yellow-600 hover:text-yellow-800 transition-colors duration-200" 
+                       title="Edit">
+                        <i class="fas fa-edit text-sm"></i>
+                    </a>
+                    <form action="{{ route('admin.absensi-pengunjung.destroy', '') }}/${visitor.id}" 
+                          method="POST" 
+                          class="inline" 
+                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus data absensi ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="text-red-600 hover:text-red-800 transition-colors duration-200" 
+                                title="Hapus">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         `).join('');
@@ -828,26 +972,34 @@ class MemberSearchScanner {
     showMessage(message, type) {
         const container = document.getElementById('message-container');
         let alertClass;
+        let icon;
         
         switch (type) {
             case 'success':
                 alertClass = 'bg-green-500';
+                icon = 'fas fa-check-circle';
                 break;
             case 'info':
                 alertClass = 'bg-blue-500';
+                icon = 'fas fa-info-circle';
                 break;
             case 'warning':
                 alertClass = 'bg-yellow-500';
+                icon = 'fas fa-exclamation-triangle';
                 break;
             default:
                 alertClass = 'bg-red-500';
+                icon = 'fas fa-times-circle';
         }
         
         const messageDiv = document.createElement('div');
-        messageDiv.className = `${alertClass} text-white px-4 py-3 rounded-lg shadow-lg mb-2 transform transition-all duration-300`;
+        messageDiv.className = `${alertClass} text-white px-4 py-3 rounded-lg shadow-lg mb-2 transform transition-all duration-300 z-50`;
         messageDiv.innerHTML = `
             <div class="flex items-center justify-between">
-                <span>${message}</span>
+                <div class="flex items-center">
+                    <i class="${icon} mr-2"></i>
+                    <span>${message}</span>
+                </div>
                 <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
                     <i class="fas fa-times"></i>
                 </button>
