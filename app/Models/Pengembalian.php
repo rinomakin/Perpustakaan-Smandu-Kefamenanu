@@ -63,7 +63,7 @@ class Pengembalian extends Model
     // Relasi ke Denda
     public function denda(): HasMany
     {
-        return $this->hasMany(Denda::class, 'peminjaman_id', 'peminjaman_id');
+        return $this->hasMany(Denda::class);
     }
 
     // Method untuk generate nomor pengembalian

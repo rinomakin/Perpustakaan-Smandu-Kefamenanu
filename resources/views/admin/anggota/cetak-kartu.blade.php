@@ -28,7 +28,8 @@
         <i class="fas fa-print mr-2"></i>Cetak Kartu
     </button>
     
-    <div class="w-[700px] h-[250px] mx-auto bg-inherit bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg rounded-lg flex overflow-hidden border">
+
+    <div class="w-[700px] h-[250px] mx-auto bg-inherit bg-gradient-to-r bg-white  shadow-lg rounded-lg flex overflow-hidden border">
         <!-- Left Panel - Member Information -->
         <div class="w-[350px] h-[250px] p-4 border-r-2 border-gray-200">
             <div class="flex">
@@ -37,33 +38,38 @@
                     <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
                 </div>
                     <div class="text-center">
-                        <div class="text-[8px] font-bold text-white uppercase">KARTU PERPUSTAKAAN</div>
-                        <!-- <div class="text-[8px] font-bold text-white uppercase">{{ $pengaturan->nama_website }}</div> -->
-                        <div class="text-[8px] font-bold text-white uppercase">{{ $pengaturan->deskripsi_website }}</div>
+                        <div class="text-[8px] font-bold text-gray-900 uppercase">KARTU PERPUSTAKAAN</div>
+                        <!-- <div class="text-[8px] font-bold text-gray-900 uppercase">{{ $pengaturan->nama_website }}</div> -->
+                        <div class="text-[8px] font-bold text-gray-900 uppercase">{{ $pengaturan->deskripsi_website }}</div>
                         <!-- tambahkan alamat dari pengaturan -->
-                        <div class="text-[8px] text-white mb-5">{{ $pengaturan->alamat_website }}</div>
+                        <div class="text-[8px] text-gray-900 mb-5">{{ $pengaturan->alamat_website }}</div>
                       
-                        <div class="text-[10px] font-bold mb-7 text-white uppercase border-b-2 border-gray-400 pb-1">
+                        <div class="text-[10px] font-bold mb-7 text-gray-900 uppercase border-b-2 border-gray-400 pb-1">
                                      {{ $anggota->nama_lengkap }}
                         </div>
                         <div class="inline-block p-2 mb-4 rounded-lg max-w-[150px]">
                     <img src="data:image/png;base64,{{ \App\Helpers\BarcodeHelper::generateBarcodeImage($anggota->barcode_anggota, 'C128') }}" 
-                         alt="Barcode" class="barcode-image text-white mb-1">
-                    <div class="barcode-text text-[10px] text-white">{{ $anggota->barcode_anggota }}</div>
+                         alt="Barcode" class="barcode-image text-gray-900 mb-1">
+                    <div class="barcode-text text-[10px] text-gray-900">{{ $anggota->barcode_anggota }}</div>
                 </div>
                 </div>
             </div>
             <div class="flex-grow text-right">
-                <div class="text-[14px] font-bold bg-slate-500 text-center text-white mb-2">{{ strtoupper($anggota->jenis_anggota) }}</div>
-                <div class="text-[10px] text-white font-bold text-center mb-2">{{ $anggota->nomor_anggota }}</div>
-                <div class="text-[8px] text-white font-semibold text-center">Kartu Berlaku Hingga </div>
-                <div class="text-[8px] text-white font-bold text-center mb-2"> Selama Menjadi Siswa</div>
+                <div class="text-[14px] font-bold  text-center  mb-2">
+                    
+                <div class=" font-bold bg-slate-500 text-center text-white  rounded-lg p-1 w-[100px] mx-auto">
+
+                    {{ strtoupper($anggota->jenis_anggota) }}</div>
+                </div>
+                <div class="text-[10px] text-gray-900 font-bold text-center mb-2">{{ $anggota->nomor_anggota }}</div>
+                <div class="text-[8px] text-gray-900 font-semibold text-center">Kartu Berlaku Hingga </div>
+                <div class="text-[8px] text-gray-900 font-bold text-center mb-2"> Selama Menjadi Siswa</div>
                 <div class="w-[90px] h-[110px] bg-gray-200 mb-2 border-gray-300 rounded flex items-center justify-center mx-auto">
                     @if($anggota->foto)
                         <img src="{{ asset('storage/anggota/' . $anggota->foto) }}" 
                              alt="Foto" class="w-full h-full object-cover rounded">
                     @else
-                        <i class="fas fa-user text-white text-lg"></i>
+                        <i class="fas fa-user text-gray-900 text-lg"></i>
                     @endif
                 </div>
                 
@@ -81,8 +87,8 @@
                 </div>
             </div>
             
-            <div class="text-xs text-white leading-tight mb-4">
-                <ol class="list-decimal text-[8px] font-semibold text-white list-inside space-y-1">
+            <div class="text-xs text-gray-900 leading-tight mb-4">
+                <ol class="list-decimal text-[8px] font-semibold text-gray-900 list-inside space-y-1">
                     <li>Kartu dibawa setiap berkunjung ke Perpustakaan.</li>
                     <li>Kartu tidak dapat dipinjamkan kepada orang lain.</li>
                     <li>Kartu berlaku selama menjadi anggota perpustakaan.</li>
@@ -92,7 +98,7 @@
                     <li>Kartu ini dapat dicabut apabila yang bersangkutan tidak memenuhi ketentuan diatas</li>
                 </ol>
             </div>
-            <div class="text-xs text-white text-right pr-5">
+            <div class="text-xs text-gray-900 text-right pr-5">
                 <div class="text-[8px]">Kefamenanu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
                 <div class="font-bold text-[8px]">Kepala Perpustakaan</div>
                 <div class="mt-3">

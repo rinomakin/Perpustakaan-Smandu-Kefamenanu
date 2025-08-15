@@ -15,21 +15,43 @@
 
 <div class="space-y-6">
     <!-- Filter Section -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <form method="GET" action="{{ route('sumber-buku.index') }}" class="flex gap-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    
+
+    <!-- Header Section with Actions -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-2 mb-4">
+        <div class="flex justify-between flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="showCreateModal()" 
+                        class="inline-flex text-xs items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah
+                </button>
+                
+                <!-- Bulk Action Buttons (Hidden by default) -->
+                <div id="bulkActionButtons" class="flex items-center gap-2 opacity-0 transition-all duration-300 ease-in-out">
+                    <button onclick="deleteSelected()" 
+                            class="inline-flex text-xs items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                        <i class="fas fa-trash mr-2"></i>
+                        Hapus 
+                    </button>
+                    <span id="selectedCount" class="text-[10px] text-gray-500 transition-all duration-200 mr-2 font-medium bg-gray-100 px-2 py-1 rounded-full">0 sumber dipilih</span>
+                </div>
+            </div>
+
+            <div class="flex items-center w-auto gap-3 ">
+            <form method="GET" action="{{ route('sumber-buku.index') }}" class="flex gap-2">
+            <div class="flex gap-4 items-center justify-between">
                 <!-- Search Input -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Cari Sumber Buku</label>
+                 <!-- <label class="block text-xs font-medium text-gray-700 mb-2">Cari Sumber Buku</label> -->
                     <input type="text" name="search" value="{{ request('search') }}" 
                            placeholder="Nama sumber, kode, atau deskripsi..."
-                           class="w-full text-xs px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                           class="w-full text-xs px-2 py-3 border border-gray-300 rounded-lg focus:ring-1 outline-none focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                 </div>
-
                 <!-- Status Filter -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Status</label>
-                    <select name="status" class="w-full text-xs px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    <!-- <label class="block text-xs font-medium text-gray-700 mb-2">Status</label> -->
+                    <select name="status" class="w-full text-xs px-2 py-3 border border-gray-300 rounded-lg focus:ring-1 outline-none focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                         <option value="">Semua Status</option>
                         <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                         <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -37,40 +59,21 @@
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex flex-col  items-center justify-center sm:flex-row gap-3">
                 <button type="submit" 
-                        class="bg-blue-500 hover:bg-blue-600 border text-white rounded-lg text-xs transition-colors">
+                        class="bg-blue-500 p-2  h-10 hover:bg-blue-600   text-white rounded-lg text-xs transition-colors">
                     <i class="fas fa-search mr-2"></i>
                     Filter
                 </button>
                 <a href="{{ route('sumber-buku.index') }}" 
-                   class="inline-flex text-xs items-center justify-center px-2 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                   class="inline-flex text-xs items-center p-2  h-10 justify-center px-2 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-refresh mr-2"></i>
                     Reset
                 </a>
             </div>
-        </form>
-    </div>
+            </form>
+            </div>
 
-    <!-- Header Section with Actions -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <button onclick="showCreateModal()" 
-                        class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform">
-                    <i class="fas fa-plus mr-2"></i>
-                    Tambah Sumber Buku
-                </button>
-                
-                <!-- Bulk Action Buttons (Hidden by default) -->
-                <div id="bulkActionButtons" class="flex items-center gap-2 opacity-0 transition-all duration-300 ease-in-out">
-                    <button onclick="deleteSelected()" 
-                            class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                        <i class="fas fa-trash mr-2"></i>
-                        Hapus Terpilih
-                    </button>
-                    <span id="selectedCount" class="text-sm text-gray-500 transition-all duration-200 mr-2 font-medium bg-gray-100 px-2 py-1 rounded-full">0 sumber dipilih</span>
-                </div>
             </div>
         </div>
     </div>
@@ -99,7 +102,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Jumlah Buku
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -111,17 +114,17 @@
                     @forelse($sumber as $sumberItem)
                     <tr class="hover:bg-gray-50 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" class="sumber-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200" value="{{ $sumberItem->id }}">
+                            <input type="checkbox" class="sumber-checkbox w-4 h-4 text-xs text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 outline-none transition-all duration-200" value="{{ $sumberItem->id }}">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ $sumberItem->kode_sumber ?? '-' }}</div>
+                            <div class="text-xs font-medium text-gray-900">{{ $sumberItem->kode_sumber ?? '-' }}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ $sumberItem->nama_sumber }}</div>
+                            <div class="text-xs font-medium text-gray-900">{{ $sumberItem->nama_sumber }}</div>
                             <div class="text-xs text-gray-500 mt-1">Dibuat: {{ $sumberItem->created_at->format('d/m/Y') }}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm text-gray-600 line-clamp-2">
+                            <div class="text-xs text-gray-600 line-clamp-2">
                                 {{ $sumberItem->deskripsi ?? 'Tidak ada deskripsi' }}
                             </div>
                         </td>
@@ -134,7 +137,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $sumberItem->buku_count ?? 0 }} buku</div>
+                            <div class="text-xs text-center text-gray-900">{{ $sumberItem->buku_count ?? 0 }} buku</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex items-center space-x-2">

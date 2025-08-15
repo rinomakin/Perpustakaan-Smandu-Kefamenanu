@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Kas')
+@section('title', 'Laporan Pengembalian')
 
 @section('content')
 <div class="container-fluid">
@@ -8,11 +8,11 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Laporan Kas Perpustakaan</h3>
+                    <h3 class="card-title">Laporan Data Pengembalian</h3>
                 </div>
                 <div class="card-body">
                     <!-- Filter Form -->
-                    <form method="GET" action="{{ route('admin.laporan.kas') }}" class="mb-4">
+                    <form method="GET" action="{{ route('admin.laporan.pengembalian') }}" class="mb-4">
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -30,22 +30,12 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="jenis">Jenis Transaksi</label>
-                                    <select class="form-control" id="jenis" name="jenis">
-                                        <option value="">Semua Jenis</option>
-                                        <option value="denda" {{ request('jenis') == 'denda' ? 'selected' : '' }}>Denda</option>
-                                        <option value="lainnya" {{ request('jenis') == 'lainnya' ? 'selected' : '' }}>Lainnya</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
                                     <label>&nbsp;</label>
                                     <div>
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-search"></i> Filter
                                         </button>
-                                        <a href="{{ route('admin.laporan.kas') }}" class="btn btn-secondary">
+                                        <a href="{{ route('admin.laporan.pengembalian') }}" class="btn btn-secondary">
                                             <i class="fas fa-refresh"></i> Reset
                                         </a>
                                         <button type="button" class="btn btn-success" onclick="printLaporan()">
@@ -65,7 +55,7 @@
                             <p>Jl. Soekarno-Hatta No. 1, Kefamenanu, Timor Tengah Utara, NTT</p>
                             <p>Telp: (0388) 31123 | Email: perpus@sman1kefamenanu.sch.id</p>
                             <hr style="border: 2px solid #000;">
-                            <h5><strong>LAPORAN KAS PERPUSTAKAAN</strong></h5>
+                            <h5><strong>LAPORAN DATA PENGEMBALIAN BUKU</strong></h5>
                             @if(request('tanggal_mulai') && request('tanggal_akhir'))
                                 <p>Periode: {{ \Carbon\Carbon::parse(request('tanggal_mulai'))->format('d/m/Y') }} - {{ \Carbon\Carbon::parse(request('tanggal_akhir'))->format('d/m/Y') }}</p>
                             @endif
@@ -78,32 +68,48 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Tanggal</th>
-                                        <th>Keterangan</th>
-                                        <th>Jenis</th>
+                                        <th>No. Pengembalian</th>
+                                        <th>Tanggal Kembali</th>
+                                        <th>Nama Anggota</th>
+                                        <th>NIS</th>
+                                        <th>Judul Buku</th>
                                         <th>Jumlah</th>
+                                        <th>Denda</th>
                                         <th>Petugas</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($kas as $index => $k)
+                                    @forelse($pengembalian as $index => $p)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
-                                        <td>{{ $k->keterangan }}</td>
+                                        <td>{{ $p->no_pengembalian }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($p->tanggal_kembali)->format('d/m/Y') }}</td>
+                                        <td>{{ $p->peminjaman->anggota->nama ?? '-' }}</td>
+                                        <td>{{ $p->peminjaman->anggota->nis ?? '-' }}</td>
                                         <td>
-                                            @if($k->jenis == 'denda')
-                                                <span class="badge badge-warning">Denda</span>
+                                            @foreach($p->detailPengembalian as $detail)
+                                                <div>{{ $detail->buku->judul ?? '-' }}</div>
+                                            @endforeach
+                                        </td>
+                                        <td>{{ $p->jumlah_buku }}</td>
+                                        <td>
+                                            @php
+                                                $denda = 0;
+                                                if($p->denda) {
+                                                    $denda = $p->denda->jumlah_denda ?? 0;
+                                                }
+                                            @endphp
+                                            @if($denda > 0)
+                                                Rp {{ number_format($denda, 0, ',', '.') }}
                                             @else
-                                                <span class="badge badge-info">Lainnya</span>
+                                                -
                                             @endif
                                         </td>
-                                        <td>Rp {{ number_format($k->jumlah, 0, ',', '.') }}</td>
-                                        <td>{{ $k->user->nama_panggilan ?? $k->user->name ?? '-' }}</td>
+                                        <td>{{ $p->user->nama_panggilan ?? $p->user->name ?? '-' }}</td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="6" class="text-center">Tidak ada data kas</td>
+                                        <td colspan="9" class="text-center">Tidak ada data pengembalian</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -115,20 +121,26 @@
                             <div class="col-md-6">
                                 <table class="table table-borderless">
                                     <tr>
-                                        <td><strong>Total Transaksi:</strong></td>
-                                        <td>{{ $kas->count() }} transaksi</td>
+                                        <td><strong>Total Pengembalian:</strong></td>
+                                        <td>{{ $pengembalian->count() }} transaksi</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Total Pemasukan:</strong></td>
-                                        <td>Rp {{ number_format($kas->sum('jumlah'), 0, ',', '.') }}</td>
+                                        <td><strong>Total Buku Dikembalikan:</strong></td>
+                                        <td>{{ $pengembalian->sum('jumlah_buku') }} buku</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Denda:</strong></td>
-                                        <td>Rp {{ number_format($kas->where('jenis', 'denda')->sum('jumlah'), 0, ',', '.') }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Lainnya:</strong></td>
-                                        <td>Rp {{ number_format($kas->where('jenis', 'lainnya')->sum('jumlah'), 0, ',', '.') }}</td>
+                                        <td><strong>Total Denda:</strong></td>
+                                        <td>
+                                            @php
+                                                $totalDenda = 0;
+                                                foreach($pengembalian as $p) {
+                                                    if($p->denda) {
+                                                        $totalDenda += $p->denda->jumlah_denda ?? 0;
+                                                    }
+                                                }
+                                            @endphp
+                                            Rp {{ number_format($totalDenda, 0, ',', '.') }}
+                                        </td>
                                     </tr>
                                 </table>
                             </div>
@@ -165,11 +177,6 @@
     }
     #kop-laporan {
         margin-bottom: 20px;
-    }
-    .badge {
-        border: 1px solid #000;
-        color: #000 !important;
-        background: none !important;
     }
 }
 </style>

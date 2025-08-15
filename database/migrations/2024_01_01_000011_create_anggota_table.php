@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nomor_anggota')->unique(); // Nomor anggota otomatis
             $table->string('barcode_anggota')->unique(); // Barcode kartu anggota
             $table->string('nama_lengkap');
+            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable(); // Added jenis_kelamin field
             $table->string('nik')->unique();
             $table->text('alamat');
             $table->string('nomor_telepon');

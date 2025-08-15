@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('denda', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('peminjaman_id')->constrained('peminjaman')->onDelete('cascade');
-            $table->foreignId('anggota_id')->constrained('anggota')->onDelete('cascade');
+            $table->unsignedBigInteger('peminjaman_id'); // Remove foreign key constraint
+            $table->unsignedBigInteger('pengembalian_id')->nullable(); // Added pengembalian_id field
+            $table->unsignedBigInteger('anggota_id'); // Remove foreign key constraint
             $table->integer('jumlah_hari_terlambat');
             $table->decimal('jumlah_denda', 10, 2);
             $table->enum('status_pembayaran', ['belum_dibayar', 'sudah_dibayar'])->default('belum_dibayar');

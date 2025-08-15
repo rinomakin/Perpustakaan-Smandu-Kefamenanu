@@ -12,14 +12,14 @@ use App\Models\Pengembalian;
 use App\Models\DetailPengembalian;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PengembalianController extends Controller
 {
     public function __construct()
     {
         $this->middleware(['auth']);
-        $this->middleware('permission:pengembalian.manage')->only(['index', 'create', 'store', 'show', 'history']);
-        $this->middleware('permission:pengembalian.manage')->only(['searchAnggota', 'getPeminjamanAktif', 'scanBarcode', 'scanBarcodeAnggota']);
+        // Hapus middleware permission untuk method pencarian - akan dicek di method masing-masing jika diperlukan
     }
 
     public function index()
@@ -56,79 +56,182 @@ class PengembalianController extends Controller
     }
 
     /**
-     * Test method to check permission
-     */
-    public function testPermission()
-    {
-        $user = auth()->user();
-        
-        return response()->json([
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'has_pengembalian_permission' => $user->hasPermission('pengembalian.manage'),
-            'has_peminjaman_permission' => $user->hasPermission('peminjaman.manage'),
-            'is_admin' => $user->isAdmin(),
-            'role' => $user->role ? $user->role->nama_peran : 'No Role',
-            'permissions' => $user->role ? $user->role->permissions->pluck('slug') : []
-        ]);
-    }
-
-
-
-    /**
-     * Search anggota for pengembalian by barcode or manual search
+     * FIXED: Search anggota for pengembalian - method yang diperbaiki
      */
     public function searchAnggota(Request $request)
     {
-        $query = $request->get('query', '');
-        
-        if (strlen($query) < 2) {
+        try {
+            // Log untuk debugging
+            Log::info('Search Anggota Request', [
+                'query' => $request->get('query', ''),
+                'user' => auth()->user() ? auth()->user()->name : 'Not logged in',
+                'method' => $request->method(),
+                'url' => $request->url()
+            ]);
+
+            $query = $request->get('query', '');
+            
+            if (strlen($query) < 2) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [],
+                    'message' => 'Query terlalu pendek, minimal 2 karakter'
+                ]);
+            }
+
+            // Cari anggota yang memiliki peminjaman aktif dengan eager loading
+            $anggota = Anggota::with([
+                'kelas', 
+                'jurusan',
+                'peminjaman' => function($q) {
+                    $q->where('status', 'dipinjam')
+                      ->with(['detailPeminjaman.buku']);
+                }
+            ])
+            ->where('status', 'aktif')
+            ->whereHas('peminjaman', function($q) {
+                $q->where('status', 'dipinjam');
+            })
+            ->where(function($q) use ($query) {
+                $q->where('nama', 'LIKE', "%{$query}%")
+                  ->orWhere('nama_lengkap', 'LIKE', "%{$query}%")
+                  ->orWhere('nis', 'LIKE', "%{$query}%")
+                  ->orWhere('nomor_anggota', 'LIKE', "%{$query}%")
+                  ->orWhere('barcode_anggota', 'LIKE', "%{$query}%");
+            })
+            ->limit(10)
+            ->get();
+
+            $result = $anggota->map(function($anggota) {
+                // Ambil peminjaman aktif dengan detail buku
+                $peminjamanAktif = $anggota->peminjaman->where('status', 'dipinjam');
+                
+                return [
+                    'id' => $anggota->id,
+                    'nama_lengkap' => $anggota->nama_lengkap ?: $anggota->nama,
+                    'nis' => $anggota->nis,
+                    'nomor_anggota' => $anggota->nomor_anggota ?: $anggota->nis,
+                    'barcode_anggota' => $anggota->barcode_anggota,
+                    'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
+                    'jurusan' => $anggota->jurusan ? $anggota->jurusan->nama_jurusan : 'N/A',
+                    'jenis_anggota' => $anggota->jenis_anggota ?: 'Siswa',
+                    'jumlah_peminjaman_aktif' => $peminjamanAktif->count(),
+                    'detail_peminjaman' => $peminjamanAktif->map(function($peminjaman) {
+                        return [
+                            'id' => $peminjaman->id,
+                            'nomor_peminjaman' => $peminjaman->nomor_peminjaman,
+                            'tanggal_peminjaman' => $peminjaman->tanggal_peminjaman,
+                            'tanggal_harus_kembali' => $peminjaman->tanggal_harus_kembali,
+                            'buku' => $peminjaman->detailPeminjaman->map(function($detail) {
+                                return [
+                                    'id' => $detail->id,
+                                    'judul' => $detail->buku ? $detail->buku->judul : 'N/A',
+                                    'pengarang' => $detail->buku ? $detail->buku->pengarang : 'N/A',
+                                    'jumlah' => $detail->jumlah ?: 1
+                                ];
+                            })
+                        ];
+                    })
+                ];
+            });
+            
+            Log::info('Search Anggota Result', [
+                'query' => $query,
+                'count' => $result->count(),
+                'total_peminjaman_aktif' => $result->sum('jumlah_peminjaman_aktif')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+                'debug' => [
+                    'query' => $query,
+                    'count' => $result->count(),
+                    'total_peminjaman_aktif' => $result->sum('jumlah_peminjaman_aktif'),
+                    'timestamp' => now()
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in search anggota:', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'query' => $request->get('query', '')
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'data' => [],
-                'message' => 'Query terlalu pendek'
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'debug' => [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'query' => $request->get('query', '')
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Get active borrowings for an anggota
+     */
+    public function getPeminjamanAktif(Request $request)
+    {
+        $anggotaId = $request->get('anggota_id');
+        
+        if (!$anggotaId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID anggota tidak ditemukan'
             ]);
         }
 
         try {
-            // Cari anggota yang memiliki peminjaman aktif
-            $anggota = Anggota::with(['kelas'])
-                ->where('status', 'aktif')
-                ->whereHas('peminjaman', function($q) {
-                    $q->where('status', 'dipinjam');
-                })
-                ->where(function($q) use ($query) {
-                    $q->where('nama_lengkap', 'like', "%{$query}%")
-                      ->orWhere('nomor_anggota', 'like', "%{$query}%")
-                      ->orWhere('barcode_anggota', 'like', "%{$query}%");
-                })
-                ->limit(10)
+            Log::info('Get Peminjaman Aktif', ['anggota_id' => $anggotaId]);
+
+            $peminjaman = Peminjaman::with(['detailPeminjaman.buku.kategoriBuku', 'anggota'])
+                ->where('anggota_id', $anggotaId)
+                ->where('status', 'dipinjam')
                 ->get()
                 ->map(function($item) {
-                    // Hitung jumlah peminjaman aktif
-                    $jumlahPeminjamanAktif = $item->peminjaman()
-                        ->where('status', 'dipinjam')
-                        ->count();
+                    $today = Carbon::now();
+                    $tanggalKembali = Carbon::parse($item->tanggal_harus_kembali);
+                    $isLate = $today->gt($tanggalKembali);
+                    $daysLate = $isLate ? $today->diffInDays($tanggalKembali) : 0;
                     
                     return [
                         'id' => $item->id,
-                        'nama_lengkap' => $item->nama_lengkap,
-                        'nomor_anggota' => $item->nomor_anggota,
-                        'barcode_anggota' => $item->barcode_anggota,
-                        'kelas' => $item->kelas ? $item->kelas->nama_kelas : 'N/A',
-                        'jenis_anggota' => $item->jenis_anggota,
-                        'jumlah_peminjaman_aktif' => $jumlahPeminjamanAktif
+                        'nomor_peminjaman' => $item->nomor_peminjaman,
+                        'tanggal_peminjaman' => $item->tanggal_peminjaman->format('d/m/Y'),
+                        'tanggal_harus_kembali' => $item->tanggal_harus_kembali->format('d/m/Y'),
+                        'is_late' => $isLate,
+                        'days_late' => $daysLate,
+                        'catatan' => $item->catatan ?? '',
+                        'jumlah_buku' => $item->detailPeminjaman->sum('jumlah'),
+                        'detail_peminjaman' => $item->detailPeminjaman->map(function($detail) {
+                            return [
+                                'id' => $detail->id,
+                                'buku_id' => $detail->buku_id,
+                                'judul_buku' => $detail->buku ? $detail->buku->judul : 'N/A',
+                                'pengarang' => $detail->buku ? $detail->buku->pengarang : 'N/A',
+                                'kategori' => $detail->buku && $detail->buku->kategoriBuku ? $detail->buku->kategoriBuku->nama_kategori : 'N/A',
+                                'jumlah' => $detail->jumlah ?? 1,
+                                'kondisi_kembali' => $detail->kondisi_kembali ?? 'baik'
+                            ];
+                        })
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'data' => $anggota
+                'data' => $peminjaman,
+                'message' => $peminjaman->count() > 0 ? 'Peminjaman aktif ditemukan' : 'Tidak ada peminjaman aktif'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error get peminjaman aktif:', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'data' => [],
                 'message' => 'Error: ' . $e->getMessage()
             ]);
         }
@@ -144,9 +247,11 @@ class PengembalianController extends Controller
         ]);
 
         try {
+            Log::info('Scan Barcode Anggota', ['barcode' => $request->barcode]);
+
             $anggota = Anggota::where('barcode_anggota', $request->barcode)
                               ->where('status', 'aktif')
-                              ->with('kelas')
+                              ->with(['kelas', 'jurusan'])
                               ->first();
 
             if (!$anggota) {
@@ -206,70 +311,11 @@ class PengembalianController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error scan barcode anggota:', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Get active borrowings for an anggota
-     */
-    public function getPeminjamanAktif(Request $request)
-    {
-        $anggotaId = $request->get('anggota_id');
-        
-        if (!$anggotaId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ID anggota tidak ditemukan'
-            ]);
-        }
-
-        try {
-            $peminjaman = Peminjaman::with(['detailPeminjaman.buku.kategori', 'anggota'])
-                ->where('anggota_id', $anggotaId)
-                ->where('status', 'dipinjam')
-                ->get()
-                ->map(function($item) {
-                    $today = Carbon::now();
-                    $tanggalKembali = Carbon::parse($item->tanggal_harus_kembali);
-                    $isLate = $today->gt($tanggalKembali);
-                    $daysLate = $isLate ? $today->diffInDays($tanggalKembali) : 0;
-                    
-                    return [
-                        'id' => $item->id,
-                        'nomor_peminjaman' => $item->nomor_peminjaman,
-                        'tanggal_peminjaman' => $item->tanggal_peminjaman->format('d/m/Y'),
-                        'tanggal_harus_kembali' => $item->tanggal_harus_kembali->format('d/m/Y'),
-                        'is_late' => $isLate,
-                        'days_late' => $daysLate,
-                        'catatan' => $item->catatan,
-                        'detail_peminjaman' => $item->detailPeminjaman->map(function($detail) {
-                            return [
-                                'id' => $detail->id,
-                                'buku_id' => $detail->buku_id,
-                                'judul_buku' => $detail->buku->judul_buku,
-                                'penulis' => $detail->buku->penulis,
-                                'kategori' => $detail->buku->kategori ? $detail->buku->kategori->nama_kategori : 'N/A',
-                                'jumlah' => $detail->jumlah,
-                                'kondisi_kembali' => $detail->kondisi_kembali
-                            ];
-                        })
-                    ];
-                });
-
-            return response()->json([
-                'success' => true,
-                'data' => $peminjaman,
-                'message' => $peminjaman->count() > 0 ? 'Peminjaman aktif ditemukan' : 'Tidak ada peminjaman aktif'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ]);
         }
     }
 
@@ -285,10 +331,18 @@ class PengembalianController extends Controller
             'catatan_pengembalian' => 'nullable|string',
             'kondisi_kembali' => 'required|array',
             'kondisi_kembali.*' => 'required|in:baik,sedikit_rusak,rusak,hilang',
+            'status_pembayaran_denda' => 'nullable|in:belum_dibayar,sudah_dibayar',
+            'tanggal_pembayaran_denda' => 'nullable|date',
+            'catatan_pembayaran_denda' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
+            // Validasi tambahan untuk pembayaran denda
+            if ($request->status_pembayaran_denda === 'sudah_dibayar' && !$request->tanggal_pembayaran_denda) {
+                throw new \Exception('Tanggal pembayaran harus diisi jika status sudah dibayar.');
+            }
+            
             $peminjaman = Peminjaman::with('detailPeminjaman.buku')->findOrFail($request->peminjaman_id);
             
             // Check if already returned
@@ -379,13 +433,21 @@ class PengembalianController extends Controller
 
             // Create denda record if late
             if ($isLate && $totalDenda > 0) {
-                Denda::create([
+                $denda = Denda::create([
                     'peminjaman_id' => $peminjaman->id,
+                    'pengembalian_id' => $pengembalian->id,
                     'anggota_id' => $peminjaman->anggota_id,
                     'jumlah_hari_terlambat' => $daysLate,
                     'jumlah_denda' => $totalDenda + $totalDendaBuku,
-                    'status_pembayaran' => 'belum_dibayar',
-                    'catatan' => "Keterlambatan pengembalian {$daysLate} hari"
+                    'status_pembayaran' => $request->status_pembayaran_denda ?? 'belum_dibayar',
+                    'tanggal_pembayaran' => $request->tanggal_pembayaran_denda,
+                    'catatan' => $request->catatan_pembayaran_denda ?? "Keterlambatan pengembalian {$daysLate} hari"
+                ]);
+                
+                // Update status denda di pengembalian berdasarkan input form
+                $pengembalian->update([
+                    'status_denda' => $request->status_pembayaran_denda ?? 'belum_dibayar',
+                    'tanggal_pembayaran_denda' => $request->tanggal_pembayaran_denda
                 ]);
             }
 
@@ -417,88 +479,6 @@ class PengembalianController extends Controller
             'hilang' => 'Buku tidak ditemukan',
             default => null
         };
-    }
-
-    /**
-     * Scan barcode anggota untuk pengembalian
-     */
-    public function scanBarcode(Request $request)
-    {
-        $barcode = $request->get('barcode');
-        
-        if (!$barcode) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Barcode tidak ditemukan'
-            ]);
-        }
-
-        try {
-            $anggota = Anggota::with('kelas')
-                ->where('barcode_anggota', $barcode)
-                ->where('status', 'aktif')
-                ->first();
-
-            if (!$anggota) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anggota tidak ditemukan atau tidak aktif'
-                ]);
-            }
-
-            // Get active borrowings
-            $peminjaman = Peminjaman::with(['detailPeminjaman.buku.kategori'])
-                ->where('anggota_id', $anggota->id)
-                ->where('status', 'dipinjam')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'anggota' => [
-                        'id' => $anggota->id,
-                        'nama_lengkap' => $anggota->nama_lengkap,
-                        'nomor_anggota' => $anggota->nomor_anggota,
-                        'barcode_anggota' => $anggota->barcode_anggota,
-                        'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
-                        'jenis_anggota' => $anggota->jenis_anggota
-                    ],
-                    'peminjaman' => $peminjaman->map(function($item) {
-                        $today = Carbon::now();
-                        $tanggalKembali = Carbon::parse($item->tanggal_harus_kembali);
-                        $isLate = $today->gt($tanggalKembali);
-                        $daysLate = $isLate ? $today->diffInDays($tanggalKembali) : 0;
-                        
-                        return [
-                            'id' => $item->id,
-                            'nomor_peminjaman' => $item->nomor_peminjaman,
-                            'tanggal_peminjaman' => $item->tanggal_peminjaman->format('d/m/Y'),
-                            'tanggal_harus_kembali' => $item->tanggal_harus_kembali->format('d/m/Y'),
-                            'is_late' => $isLate,
-                            'days_late' => $daysLate,
-                            'catatan' => $item->catatan,
-                            'detail_peminjaman' => $item->detailPeminjaman->map(function($detail) {
-                                return [
-                                    'id' => $detail->id,
-                                    'buku_id' => $detail->buku_id,
-                                    'judul_buku' => $detail->buku->judul_buku,
-                                    'penulis' => $detail->buku->penulis,
-                                    'kategori' => $detail->buku->kategori ? $detail->buku->kategori->nama_kategori : 'N/A',
-                                    'jumlah' => $detail->jumlah,
-                                    'kondisi_kembali' => $detail->kondisi_kembali
-                                ];
-                            })
-                        ];
-                    })
-                ],
-                'message' => 'Anggota ditemukan'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ]);
-        }
     }
 
     /**

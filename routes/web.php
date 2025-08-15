@@ -47,6 +47,196 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Route test tanpa middleware sama sekali
+Route::get('/test-route', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'Route tanpa middleware berhasil',
+        'timestamp' => now()
+    ]);
+})->name('test.route');
+
+// Route test search tanpa middleware
+Route::get('/test-search', function(\Illuminate\Http\Request $request) {
+    return response()->json([
+        'success' => true,
+        'message' => 'Test search berhasil',
+        'query' => $request->get('query', ''),
+        'timestamp' => now()
+    ]);
+})->name('test.search');
+
+// Route test untuk memeriksa data peminjaman aktif
+Route::get('/test-peminjaman-aktif', function() {
+    try {
+        // Cek semua peminjaman dengan status dipinjam
+        $peminjamanAktif = \App\Models\Peminjaman::where('status', 'dipinjam')
+            ->with(['anggota', 'detailPeminjaman.buku'])
+            ->get();
+        
+        // Cek anggota dengan peminjaman aktif
+        $anggotaDenganPeminjaman = \App\Models\Anggota::whereHas('peminjaman', function($q) {
+            $q->where('status', 'dipinjam');
+        })->count();
+        
+        return response()->json([
+            'success' => true,
+            'total_peminjaman_aktif' => $peminjamanAktif->count(),
+            'total_anggota_dengan_peminjaman' => $anggotaDenganPeminjaman,
+            'sample_peminjaman' => $peminjamanAktif->take(3)->map(function($p) {
+                return [
+                    'id' => $p->id,
+                    'anggota' => $p->anggota ? $p->anggota->nama_lengkap : 'N/A',
+                    'status' => $p->status,
+                    'detail_count' => $p->detailPeminjaman->count()
+                ];
+            }),
+            'timestamp' => now()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'timestamp' => now()
+        ]);
+    }
+})->name('test.peminjaman.aktif');
+
+// Route search anggota tanpa middleware - untuk testing
+Route::get('/search-anggota-test', function(\Illuminate\Http\Request $request) {
+    try {
+        $query = $request->get('query', '');
+        
+        // Query sederhana untuk testing
+        $anggota = \App\Models\Anggota::with(['kelas', 'jurusan'])
+            ->whereHas('peminjaman', function($q) {
+                $q->where('status', 'dipinjam');
+            })
+            ->where(function($q) use ($query) {
+                $q->where('nama', 'LIKE', "%{$query}%")
+                  ->orWhere('nama_lengkap', 'LIKE', "%{$query}%")
+                  ->orWhere('nis', 'LIKE', "%{$query}%")
+                  ->orWhere('nomor_anggota', 'LIKE', "%{$query}%");
+            })
+            ->limit(5)
+            ->get();
+        
+        $result = $anggota->map(function($anggota) {
+            $peminjamanAktif = $anggota->peminjaman()->where('status', 'dipinjam')->count();
+            
+            return [
+                'id' => $anggota->id,
+                'nama_lengkap' => $anggota->nama_lengkap,
+                'nis' => $anggota->nis,
+                'nomor_anggota' => $anggota->nomor_anggota,
+                'barcode_anggota' => $anggota->barcode_anggota,
+                'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
+                'jurusan' => $anggota->jurusan ? $anggota->jurusan->nama_jurusan : 'N/A',
+                'jenis_anggota' => $anggota->jenis_anggota,
+                'jumlah_peminjaman_aktif' => $peminjamanAktif,
+                'detail_peminjaman' => []
+            ];
+        });
+        
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+            'debug' => [
+                'query' => $query,
+                'count' => $result->count(),
+                'total_peminjaman_aktif' => $result->sum('jumlah_peminjaman_aktif')
+            ]
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            'debug' => [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]
+        ], 500);
+    }
+})->name('search.anggota.test');
+
+// Route search anggota menggunakan controller method yang sudah ada
+Route::get('/search-anggota-simple', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])
+    ->name('search.anggota.simple');
+
+// Route test yang sangat sederhana untuk debugging
+Route::get('/debug-search', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'Route debug search berhasil',
+        'timestamp' => now(),
+        'test_data' => [
+            'query' => request()->get('query', ''),
+            'user' => auth()->user() ? auth()->user()->name : 'Not logged in'
+        ]
+    ]);
+})->name('debug.search');
+
+// Route test untuk pengembalian search-anggota
+Route::get('/test-pengembalian-search', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'Route pengembalian search berfungsi',
+        'timestamp' => now(),
+        'route' => 'admin.pengembalian.search-anggota'
+    ]);
+})->name('test.pengembalian.search');
+
+// Route test model Anggota yang sangat sederhana
+Route::get('/test-anggota-basic', function() {
+    try {
+        $anggota = \App\Models\Anggota::first();
+        return response()->json([
+            'success' => true,
+            'message' => 'Model Anggota berfungsi',
+            'sample_anggota' => $anggota ? [
+                'id' => $anggota->id,
+                'nama' => $anggota->nama,
+                'nama_lengkap' => $anggota->nama_lengkap
+            ] : null,
+            'total_anggota' => \App\Models\Anggota::count()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+})->name('test.anggota.basic');
+
+// Route test untuk memeriksa model Anggota
+Route::get('/test-anggota-model', function() {
+    try {
+        $totalAnggota = \App\Models\Anggota::count();
+        
+        // Test query sederhana untuk anggota dengan nama yang mengandung 'ri'
+        $anggotaTest = \App\Models\Anggota::where('nama', 'LIKE', '%ri%')
+            ->orWhere('nama_lengkap', 'LIKE', '%ri%')
+            ->limit(3)
+            ->get(['id', 'nama', 'nama_lengkap', 'nis']);
+        
+        return response()->json([
+            'success' => true,
+            'total_anggota' => $totalAnggota,
+            'anggota_test' => $anggotaTest,
+            'timestamp' => now()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
+    }
+})->name('test.anggota.model');
+
 // Frontend Routes (untuk petugas menampilkan ke siswa/guru)
 Route::middleware(['auth', 'role:PETUGAS'])->prefix('frontend')->group(function () {
     Route::get('/', [FrontendController::class, 'index'])->name('frontend.home');
@@ -164,7 +354,51 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     
     // CRUD Pengembalian
     Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
-    Route::get('/pengembalian/search-anggota', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])->name('pengembalian.search-anggota');
+    
+    // Route pencarian anggota untuk pengembalian - dengan detail peminjaman
+    // Route untuk pencarian anggota dengan peminjaman aktif - menggunakan controller method
+    Route::get('/pengembalian/search-anggota', [PengembalianController::class, 'searchAnggota'])
+        ->name('pengembalian.search-anggota');
+    
+    Route::get('/pengembalian/search-anggota-no-permission', [\App\Http\Controllers\PengembalianController::class, 'searchAnggotaNoPermission'])->name('pengembalian.search-anggota-no-permission');
+    Route::get('/pengembalian/test-search-anggota', [\App\Http\Controllers\PengembalianController::class, 'testSearchAnggota'])->name('pengembalian.test-search-anggota');
+    Route::get('/pengembalian/test-simple', function() {
+        return response()->json([
+            'success' => true,
+            'message' => 'Route test simple berhasil',
+            'user' => auth()->user() ? auth()->user()->name : 'Not logged in',
+            'timestamp' => now()
+        ]);
+    })->name('pengembalian.test-simple');
+    
+    // Route untuk testing tanpa permission check
+    // Route test yang sangat sederhana - tanpa middleware
+    Route::get('/pengembalian/test-simple-search', function() {
+        return response()->json([
+            'success' => true,
+            'message' => 'Route test berhasil',
+            'timestamp' => now(),
+            'user' => auth()->user() ? auth()->user()->name : 'Not logged in'
+        ]);
+    })->name('pengembalian.test-simple-search');
+    
+
+    
+    Route::get('/pengembalian/search-anggota-test', function(Request $request) {
+        $query = $request->get('query', '');
+        $user = auth()->user();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Route test search berhasil',
+            'query' => $query,
+            'user' => $user ? $user->name : 'Not logged in',
+            'user_id' => $user ? $user->id : null,
+            'is_admin' => $user ? $user->isAdmin() : false,
+            'has_permission' => $user ? $user->hasPermission('pengembalian.manage') : false,
+            'timestamp' => now()
+        ]);
+    })->name('pengembalian.search-anggota-test');
     Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
     Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
     Route::post('/pengembalian/scan-barcode-anggota', [\App\Http\Controllers\PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
@@ -202,10 +436,16 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
         'destroy' => 'admin.absensi-pengunjung.destroy',
     ]);
     Route::post('/absensi-pengunjung/scan-barcode', [AbsensiPengunjungController::class, 'scanBarcode'])->name('admin.absensi-pengunjung.scan-barcode');
-    Route::get('/absensi-pengunjung/search-members', [AbsensiPengunjungController::class, 'searchMembers'])->name('admin.absensi-pengunjung.search-members');
-    Route::post('/absensi-pengunjung/store-ajax', [AbsensiPengunjungController::class, 'storeAjax'])->name('admin.absensi-pengunjung.store-ajax');
-    Route::get('/absensi-pengunjung/history/search', [AbsensiPengunjungController::class, 'searchHistory'])->name('admin.absensi-pengunjung.history.search');
-    Route::get('/absensi-pengunjung/today', [AbsensiPengunjungController::class, 'todayVisitors'])->name('admin.absensi-pengunjung.today');
+Route::get('/absensi-pengunjung/search-members', [AbsensiPengunjungController::class, 'searchMembers'])->name('admin.absensi-pengunjung.search-members');
+Route::post('/absensi-pengunjung/store-ajax', [AbsensiPengunjungController::class, 'storeAjax'])->name('admin.absensi-pengunjung.store-ajax');
+Route::post('/absensi-pengunjung/record-exit', [AbsensiPengunjungController::class, 'recordExit'])->name('admin.absensi-pengunjung.record-exit');
+Route::get('/absensi-pengunjung/history', [AbsensiPengunjungController::class, 'history'])->name('admin.absensi-pengunjung.history');
+Route::get('/absensi-pengunjung/history/search', [AbsensiPengunjungController::class, 'searchHistory'])->name('admin.absensi-pengunjung.history.search');
+Route::get('/absensi-pengunjung/export-excel', [AbsensiPengunjungController::class, 'exportExcel'])->name('admin.absensi-pengunjung.export-excel');
+Route::get('/absensi-pengunjung/export-pdf', [AbsensiPengunjungController::class, 'exportPdf'])->name('admin.absensi-pengunjung.export-pdf');
+Route::get('/absensi-pengunjung/today', [AbsensiPengunjungController::class, 'todayVisitors'])->name('admin.absensi-pengunjung.today');
+Route::get('/absensi-pengunjung/create-test-data', [AbsensiPengunjungController::class, 'createTestData'])->name('admin.absensi-pengunjung.create-test-data');
+Route::get('/absensi-pengunjung/debug-data', [AbsensiPengunjungController::class, 'debugData'])->name('admin.absensi-pengunjung.debug-data');
     
     // Riwayat Peminjaman
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('riwayat-peminjaman.index');
@@ -218,6 +458,7 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::get('/laporan/anggota', [LaporanController::class, 'anggota'])->name('admin.laporan.anggota');
     Route::get('/laporan/buku', [LaporanController::class, 'buku'])->name('admin.laporan.buku');
     Route::get('/laporan/peminjaman', [LaporanController::class, 'peminjaman'])->name('admin.laporan.peminjaman');
+    Route::get('/laporan/pengembalian', [LaporanController::class, 'pengembalian'])->name('admin.laporan.pengembalian');
     Route::get('/laporan/denda', [LaporanController::class, 'denda'])->name('admin.laporan.denda');
     Route::get('/laporan/absensi', [LaporanController::class, 'absensi'])->name('admin.laporan.absensi');
     Route::get('/laporan/kas', [LaporanController::class, 'kas'])->name('admin.laporan.kas');

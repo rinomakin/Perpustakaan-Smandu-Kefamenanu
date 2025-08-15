@@ -13,6 +13,7 @@ class Denda extends Model
 
     protected $fillable = [
         'peminjaman_id',
+        'pengembalian_id',
         'anggota_id',
         'jumlah_hari_terlambat',
         'jumlah_denda',
@@ -38,6 +39,6 @@ class Denda extends Model
 
     public function pengembalian()
     {
-        return $this->hasMany(Pengembalian::class, 'peminjaman_id', 'peminjaman_id');
+        return $this->belongsTo(Pengembalian::class);
     }
 } 

@@ -86,6 +86,7 @@
 
     <!-- Filter dan Pencarian -->
     <div class="mb-6 bg-white rounded-lg shadow-md p-4">
+            
         <form method="GET" action="{{ route('anggota.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <div>
                 <label for="search" class="block text-xs font-medium text-gray-700 mb-1">Cari</label>
@@ -158,12 +159,7 @@
     <!-- Tombol Aksi -->
     <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
         <div class="flex space-x-2">
-            @if(Auth::user()->hasPermission('anggota.create') || Auth::user()->isAdmin())
-            <a href="{{ route('anggota.create') }}"
-               class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-blue-600 border border-transparent rounded-lg active:bg-blue-600 hover:bg-blue-700 focus:outline-none focus:shadow-outline-blue">
-                <i class="fas fa-plus mr-1"></i> Tambah Data
-            </a>
-            @endif
+            
             
             @if(Auth::user()->hasPermission('anggota.import') || Auth::user()->isAdmin())
             <button onclick="openModal('importModal')"
@@ -205,8 +201,25 @@
     </div>
 
     <!-- Tabel -->
-    <div class="w-full overflow-hidden rounded-lg shadow-xs">
+    <div class="w-full overflow-hidden rounded-lg shadow-xs" id="csrf-token" data-token="{{ csrf_token() }}">
+       
         <div class="w-full overflow-x-auto">
+            <div class="bg-blue-800 py-4 text-white px-3 flex justify-between  w-full overflow-x-auto">
+                <div>
+                    <p>
+                        <i class="fas fa-users mr-2"></i> Daftar Anggota
+                    </p>    
+                </div>
+                <div>
+                    @if(Auth::user()->hasPermission('anggota.create') || Auth::user()->isAdmin())
+            <a href="{{ route('anggota.create') }}"
+               class="px-2 py-2 text-xs font-medium leading-5 text-white transition-colors duration-150 bg-green-600 border border-transparent rounded-lg active:bg-green-600 hover:bg-green-600 focus:outline-none focus:shadow-outline-blue">
+                <i class="fas fa-plus mr-1"></i> Tambah
+            </a>
+            @endif
+                </div>
+            
+            </div>
             <table class="w-full whitespace-no-wrap">
                 <thead>
                     <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b bg-gray-50">

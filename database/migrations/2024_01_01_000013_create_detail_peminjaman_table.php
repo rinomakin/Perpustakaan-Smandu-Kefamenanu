@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('peminjaman_id')->constrained('peminjaman')->onDelete('cascade');
             $table->foreignId('buku_id')->constrained('buku')->onDelete('cascade');
+            $table->integer('jumlah')->default(1); // Added jumlah field
             $table->enum('kondisi_kembali', ['baik', 'sedikit_rusak', 'rusak', 'hilang'])->default('baik');
             $table->text('catatan')->nullable();
             $table->timestamps();

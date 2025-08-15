@@ -13,13 +13,13 @@ class PengaturanWebsiteSeeder extends Seeder
     public function run(): void
     {
         PengaturanWebsite::create([
-            'nama_website' => 'Sistem Perpustakaan SMAN 1 Kefamenanu',
+            'nama_website' => 'SIPERPUS',
             'logo' => null,
             'favicon' => null,
-            'deskripsi_website' => 'Sistem Informasi Perpustakaan Digital SMAN 1 Kefamenanu',
+            'deskripsi_website' => 'SMAN 2 KEFAMENANU',
             'alamat_sekolah' => 'Jl. Soekarno-Hatta No. 1, Kefamenanu, Timor Tengah Utara, NTT',
             'telepon_sekolah' => '(0388) 123456',
-            'email_sekolah' => 'sman1kefamenanu@gmail.com',
+            'email_sekolah' => 'sman2kefamenanu@gmail.com',
             'nama_kepala_sekolah' => 'Drs. John Doe, M.Pd',
             'visi_sekolah' => 'Terwujudnya sekolah unggul yang menghasilkan lulusan berkualitas, berakhlak mulia, dan siap menghadapi tantangan global',
             'misi_sekolah' => '1. Menyelenggarakan pendidikan berkualitas dengan standar nasional dan internasional\n2. Mengembangkan potensi peserta didik secara optimal\n3. Menumbuhkan karakter dan akhlak mulia\n4. Mempersiapkan lulusan yang siap menghadapi tantangan global',

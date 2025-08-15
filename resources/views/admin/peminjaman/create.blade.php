@@ -64,7 +64,7 @@
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-semibold text-white">Form Peminjaman Buku</h3>
+                    <h3 class="text-sm font-semibold text-white">Form Peminjaman Buku</h3>
                     <div class="text-white text-sm">
                         <i class="fas fa-clock mr-2"></i>
                         <span id="realTimeClock">--:--:--</span>
@@ -79,23 +79,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <!-- Anggota dengan Auto-Deteksi -->
                     <div class="md:col-span-2">
-                        <label for="anggota_search" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="anggota_search" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-user mr-2"></i>Anggota
                         </label>
                         <div class="flex space-x-2">
                             <div class="flex-1 relative">
                                 <input type="text" id="anggota_search" 
                                        placeholder="Ketik nama anggota atau nomor anggota..." 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 search-input">
+                                       class="w-full text-xs px-4 py-3 border border-blue-200 outline-none rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 search-input">
                                 <input type="hidden" name="anggota_id" id="anggota_id" required>
                                 
                                 <!-- Dropdown hasil pencarian -->
-                                <div id="anggotaDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
+                                <div id="anggotaDropdown" class="absolute z-50 w-full mt-1 text-xs bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
                                     <!-- Hasil pencarian akan muncul di sini -->
                                 </div>
                             </div>
                             <button type="button" id="scanAnggotaBtn" 
-                                    class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-all duration-200">
+                                    class="px-4 py-3 text-xs bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-all duration-200">
                                 <i class="fas fa-barcode"></i>
                             </button>
                         </div>
@@ -107,9 +107,9 @@
                                     <i class="fas fa-user text-blue-600"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <h4 id="anggotaNama" class="font-semibold text-gray-900"></h4>
-                                    <p id="anggotaNomor" class="text-sm text-gray-600"></p>
-                                    <p id="anggotaKelas" class="text-xs text-gray-500"></p>
+                                    <h4 id="anggotaNama" class="font-semibold text-xs text-gray-900"></h4>
+                                    <p id="anggotaNomor" class=" text-gray-600 text-xs"></p>
+                                    <p id="anggotaKelas" class="text-[10px] text-gray-500"></p>
                                 </div>
                                 <button type="button" id="clearAnggota" class="text-red-500 hover:text-red-700 transition-colors duration-150">
                                     <i class="fas fa-times"></i>
@@ -123,27 +123,27 @@
 
                     <!-- Tanggal Peminjaman -->
                     <div>
-                        <label for="tanggal_peminjaman" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="tanggal_peminjaman" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-calendar mr-2"></i>Tanggal Pinjam
                         </label>
                         <input type="date" name="tanggal_peminjaman" id="tanggal_peminjaman" 
                                value="{{ old('tanggal_peminjaman', date('Y-m-d')) }}" required readonly
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50">
-                        <p class="text-xs text-gray-500 mt-1">Otomatis terisi dengan tanggal hari ini</p>
+                               class="w-full text-xs px-4 py-3 border border-blue-200 outline-none rounded-lg focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200 bg-gray-50">
+                        <p class="text-[10px] text-gray-500 mt-1">Otomatis terisi dengan tanggal hari ini</p>
                         @error('tanggal_peminjaman')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p> 
                         @enderror
                     </div>
 
                     <!-- Jam Peminjaman -->
                     <div>
-                        <label for="jam_peminjaman" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="jam_peminjaman" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-clock mr-2"></i>Jam Pinjam
                         </label>
                         <input type="time" name="jam_peminjaman" id="jam_peminjaman" 
                                value="{{ old('jam_peminjaman', date('H:i')) }}" required readonly
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50">
-                        <p class="text-xs text-gray-500 mt-1">Otomatis terisi dengan jam saat ini</p>
+                               class="w-full px-4  py-3 border text-xs border-blue-200 outline-none rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-200 transition-all duration-200 bg-gray-50">
+                        <p class="text-[10px] text-gray-500 mt-1">Otomatis terisi dengan jam saat ini</p>
                         @error('jam_peminjaman')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -151,13 +151,13 @@
 
                     <!-- Tanggal Harus Kembali -->
                     <div>
-                        <label for="tanggal_harus_kembali" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="tanggal_harus_kembali" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-calendar-check mr-2"></i>Tanggal Kembali <span class="text-red-500">*</span>
                         </label>
                         <input type="date" name="tanggal_harus_kembali" id="tanggal_harus_kembali" 
                                value="{{ old('tanggal_harus_kembali', date('Y-m-d')) }}" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        <p class="text-xs text-gray-500 mt-1">Minimal sama dengan tanggal pinjam</p>
+                               class="w-full px-4 py-3 border text-xs border-blue-200 outline-none rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-200 transition-all duration-200">
+                        <p class="text-[10px] text-gray-500 mt-1">Minimal sama dengan tanggal pinjam</p>
                         @error('tanggal_harus_kembali')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -165,13 +165,13 @@
 
                     <!-- Jam Pengembalian -->
                     <div>
-                        <label for="jam_kembali" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="jam_kembali" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-clock mr-2"></i>Jam Kembali <span class="text-red-500">*</span>
                         </label>
                         <input type="time" name="jam_kembali" id="jam_kembali" 
                                value="{{ old('jam_kembali') }}" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        <p class="text-xs text-gray-500 mt-1">Wajib diisi - jam pengembalian buku</p>
+                               class="w-full px-4 py-3 border text-xs border-blue-200 outline-none rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-200 transition-all duration-200">
+                        <p class="text-[10px] text-gray-500 mt-1">Wajib diisi - jam pengembalian buku</p>
                         @error('jam_kembali')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -179,11 +179,11 @@
 
                     <!-- Catatan -->
                     <div class="md:col-span-2">
-                        <label for="catatan" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="catatan" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-sticky-note mr-2"></i>Catatan
                         </label>
                         <textarea name="catatan" id="catatan" rows="3" 
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  class="w-full px-4 py-3 border outline-none text-xs border-blue-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                   placeholder="Catatan tambahan untuk peminjaman ini...">{{ old('catatan') }}</textarea>
                         @error('catatan')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -195,14 +195,14 @@
                 <div class="border-t border-gray-200 pt-6">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">
+                            <h3 class="text-sm font-semibold text-gray-900">
                                 <i class="fas fa-book mr-2"></i>Pilih Buku
                             </h3>
-                            <p class="text-sm text-gray-600">Ketik judul buku atau scan barcode untuk menambah buku</p>
+                            <p class="text-[10px] text-gray-600">Ketik judul buku atau scan barcode untuk menambah buku</p>
                         </div>
                         <button type="button" id="scanBukuBtn" 
-                                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm transition-all duration-200">
-                            <i class="fas fa-barcode mr-2"></i>Scan Buku
+                                class="px-4 py-2 text-xs bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold  transition-all duration-200">
+                            <i class="fas fa-barcode mr-2"></i>Scan
                         </button>
                     </div>
 
@@ -211,13 +211,13 @@
                         <div class="relative">
                             <input type="text" id="buku_search" 
                                    placeholder="Ketik judul buku, penulis, atau ISBN..." 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 search-input">
+                                   class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 search-input">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                                 <i class="fas fa-search text-gray-400"></i>
                             </div>
                             
                             <!-- Dropdown hasil pencarian buku -->
-                            <div id="bukuDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
+                            <div id="bukuDropdown" class="absolute text-xs z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
                                 <!-- Hasil pencarian buku akan muncul di sini -->
                             </div>
                         </div>
@@ -226,8 +226,8 @@
                     <!-- Daftar Buku yang Dipilih -->
                     <div id="selectedBooks" class="mb-6">
                         <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-sm font-medium text-gray-700">Buku yang Dipilih (<span id="selectedCount">0</span>)</h4>
-                            <div class="text-sm text-gray-600">
+                            <h4 class="text-xs font-medium text-gray-700">Buku yang Dipilih (<span id="selectedCount">0</span>)</h4>
+                            <div class="text-xs text-gray-600">
                                 Total Buku: <span id="totalJumlah" class="font-semibold text-blue-600">0</span>
                             </div>
                         </div>
@@ -280,7 +280,7 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white" id="scannerTitle">Scan Barcode</h3>
+                    <h3 class="text-sm font-semibold text-white" id="scannerTitle">Scan Barcode</h3>
                     <button type="button" id="closeScanner" class="text-white hover:text-gray-200">
                         <i class="fas fa-times"></i>
                     </button>

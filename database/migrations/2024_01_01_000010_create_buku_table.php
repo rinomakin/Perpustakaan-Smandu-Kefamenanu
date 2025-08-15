@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('buku', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('rak_id')->nullable(); // Added rak_id field without foreign key constraint
             $table->string('judul_buku');
             $table->string('isbn')->nullable();
             $table->string('barcode')->unique(); // Barcode unik untuk setiap buku
             $table->string('pengarang')->nullable(); // Pengarang sebagai string
             $table->string('penerbit')->nullable(); // Penerbit sebagai string
-            $table->foreignId('kategori_id')->constrained('kategori_buku')->onDelete('cascade');
-            $table->foreignId('jenis_id')->constrained('jenis_buku')->onDelete('cascade');
-            $table->foreignId('sumber_id')->constrained('sumber_buku')->onDelete('cascade');
+            $table->unsignedBigInteger('kategori_id');
+            $table->unsignedBigInteger('jenis_id');
+            $table->unsignedBigInteger('sumber_id');
             $table->integer('tahun_terbit')->nullable();
             $table->integer('jumlah_halaman')->nullable();
             $table->string('bahasa')->default('Indonesia');

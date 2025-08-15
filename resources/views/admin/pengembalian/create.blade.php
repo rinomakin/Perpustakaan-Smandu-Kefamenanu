@@ -53,8 +53,8 @@
         <!-- Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Proses Pengembalian</h1>
-                <p class="text-gray-600 mt-2">Scan kartu anggota untuk melihat peminjaman aktif</p>
+                <!-- <h1 class="text-3xl font-bold text-gray-900">Proses Pengembalian</h1> -->
+                <!-- <p class="text-gray-600 mt-2">Scan kartu anggota untuk melihat peminjaman aktif</p> -->
             </div>
             <a href="{{ route('pengembalian.index') }}" 
                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200">
@@ -64,45 +64,50 @@
 
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
-                <h3 class="text-lg font-semibold text-white">Form Pengembalian Buku</h3>
+                <h3 class="text-[14px] font-semibold text-white">Form Pengembalian Buku</h3>
             </div>
             
             <!-- Step 1: Scan/Search Anggota -->
             <div class="p-6 border-b border-gray-200">
-                <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                <h4 class="text-xs font-semibold text-gray-900 mb-4 ">
                     <i class="fas fa-user-check mr-2"></i>Langkah 1: Identifikasi Anggota
                 </h4>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-1 gap-6 border ">
                     <!-- Scan Barcode -->
-                    <div class="space-y-4">
-                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                            <h5 class="font-semibold text-blue-900 mb-2">Scan Kartu Anggota</h5>
+                    <div class="">
+                        <div class="bg-blue-50 p-4 text-xs rounded-lg border ">
+                            <h5 class="font-semibold text-blue-900 mb-2">Cari Anggota</h5>
                             <p class="text-sm text-blue-700 mb-4">Arahkan kamera ke barcode kartu anggota untuk identifikasi otomatis</p>
-                            <button type="button" id="scanAnggotaBtn" 
+                            
+                            <div class="flex gap-4">
+
+                            <div class=" w-96">
+                                <div class="relative">
+                                    <input type="text" id="anggota_search" 
+                                        placeholder="Cari nama anggota atau nomor anggota (hanya yang sedang meminjam)..." 
+                                        class="w-full px-4 py-3 border outline-none border-gray-300 rounded-lg focus:ring-1 focus:ring-green-300 focus:border-green-300 transition-all duration-200">
+                                    
+                                    <!-- Dropdown hasil pencarian -->
+                                    <div id="anggotaDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
+                                        <!-- Hasil pencarian akan muncul di sini -->
+                                    </div>
+                                </div>
+                            </div>
+
+                                <div class="">
+                                    <button type="button" id="scanAnggotaBtn" 
                                     class="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all duration-200">
-                                <i class="fas fa-qrcode mr-2"></i>Mulai Scan Kartu
-                            </button>
+                                    <i class="fas fa-qrcode mr-2"></i>scan
+                                </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                    <!-- Manual Search -->
-                    <div class="space-y-4">
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <h5 class="font-semibold text-gray-900 mb-2">Pencarian Manual</h5>
-                            <p class="text-sm text-gray-600 mb-4">Ketik nama atau nomor anggota untuk pencarian manual. <span class="text-blue-600 font-medium">Hanya anggota dengan peminjaman aktif yang akan ditampilkan.</span></p>
-                            <div class="relative">
-                                <input type="text" id="anggota_search" 
-                                       placeholder="Ketik nama anggota atau nomor anggota (hanya yang sedang meminjam)..." 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
-                                
-                                <!-- Dropdown hasil pencarian -->
-                                <div id="anggotaDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
-                                    <!-- Hasil pencarian akan muncul di sini -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
+                   
                 </div>
 
                 <!-- Info Anggota yang Dipilih -->
@@ -112,12 +117,12 @@
                             <i class="fas fa-user text-green-600 text-xl"></i>
                         </div>
                         <div class="flex-1">
-                            <h4 id="anggotaNama" class="text-lg font-semibold text-gray-900"></h4>
-                            <p id="anggotaNomor" class="text-sm text-gray-600"></p>
+                            <h4 id="anggotaNama" class="text-sm font-semibold text-gray-900"></h4>
+                            <p id="anggotaNomor" class="text-xs text-gray-600"></p>
                             <p id="anggotaKelas" class="text-xs text-gray-500"></p>
                         </div>
                         <button type="button" id="clearAnggota" class="text-red-500 hover:text-red-700 transition-colors duration-150">
-                            <i class="fas fa-times text-xl"></i>
+                            <i class="fas fa-times text-sm"></i>
                         </button>
                     </div>
                 </div>
@@ -125,17 +130,17 @@
 
             <!-- Step 2: Peminjaman Aktif -->
             <div id="peminjamanSection" class="p-6 hidden">
-                <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                <h4 class="text-sm font-semibold text-gray-900 mb-4">
                     <i class="fas fa-books mr-2"></i>Langkah 2: Peminjaman Aktif
                 </h4>
                 
-                <div id="peminjamanList" class="space-y-4">
+                <div id="peminjamanList" class="space-y-4 text-sm">
                     <!-- Peminjaman aktif akan ditampilkan di sini -->
                 </div>
 
-                <div id="noPeminjaman" class="text-center py-8 hidden">
-                    <i class="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Peminjaman Aktif</h3>
+                <div id="noPeminjaman" class="text-center text-xs py-8 hidden">
+                    <i class="fas fa-check-circle text-xs text-green-300 mb-4"></i>
+                    <h3 class="text-xs font-medium text-gray-900 mb-2">Tidak Ada Peminjaman Aktif</h3>
                     <p class="text-gray-600">Anggota ini tidak memiliki peminjaman yang perlu dikembalikan.</p>
                 </div>
             </div>
@@ -144,51 +149,54 @@
             <form id="pengembalianForm" action="{{ route('pengembalian.store') }}" method="POST" class="hidden" onsubmit="return validateForm()">
                 @csrf
                 <input type="hidden" name="peminjaman_id" id="selectedPeminjamanId">
+                <input type="hidden" name="status_pembayaran_denda" id="hiddenStatusPembayaranDenda" value="belum_dibayar">
+                <input type="hidden" name="tanggal_pembayaran_denda" id="hiddenTanggalPembayaranDenda" value="">
+                <input type="hidden" name="catatan_pembayaran_denda" id="hiddenCatatanPembayaranDenda" value="">
                 
                 <div class="p-6 border-t border-gray-200">
-                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-4">
                         <i class="fas fa-clipboard-check mr-2"></i>Langkah 3: Detail Pengembalian
                     </h4>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Tanggal Pengembalian -->
                         <div>
-                            <label for="tanggal_kembali" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="tanggal_kembali" class="block text-xs font-medium text-gray-700 mb-2">
                                 <i class="fas fa-calendar mr-2"></i>Tanggal Pengembalian
                             </label>
                             <input type="date" name="tanggal_kembali" id="tanggal_kembali" 
                                    value="{{ date('Y-m-d') }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+                                   class="w-full text-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                         </div>
 
                         <!-- Jam Pengembalian -->
                         <div>
-                            <label for="jam_kembali" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="jam_kembali" class="block text-xs font-medium text-gray-700 mb-2">
                                 <i class="fas fa-clock mr-2"></i>Jam Pengembalian
                             </label>
                             <input type="time" name="jam_kembali" id="jam_kembali" 
                                    value="{{ date('H:i') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+                                   class="w-full text-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                         </div>
                     </div>
 
                     <!-- Kondisi Buku -->
                     <div class="mb-6">
-                        <h5 class="text-sm font-medium text-gray-700 mb-3">
+                        <h5 class="text-xs font-medium text-gray-700 mb-3">
                             <i class="fas fa-book-open mr-2"></i>Kondisi Buku Saat Dikembalikan
                         </h5>
-                        <div id="kondisiBukuList" class="space-y-3">
+                        <div id="kondisiBukuList" class="space-y-3 text-xs">
                             <!-- Kondisi buku akan ditampilkan di sini -->
                         </div>
                     </div>
 
                     <!-- Catatan Pengembalian -->
                     <div class="mb-6">
-                        <label for="catatan_pengembalian" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="catatan_pengembalian" class="block text-xs font-medium text-gray-700 mb-2">
                             <i class="fas fa-sticky-note mr-2"></i>Catatan Pengembalian
                         </label>
                         <textarea name="catatan_pengembalian" id="catatan_pengembalian" rows="3" 
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                                  class="w-full px-4 py-3 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                                   placeholder="Catatan tambahan untuk pengembalian ini..."></textarea>
                     </div>
 
@@ -197,8 +205,57 @@
                         <h5 class="font-semibold text-red-900 mb-2">
                             <i class="fas fa-exclamation-triangle mr-2"></i>Informasi Denda
                         </h5>
-                        <div id="dendaDetail" class="text-sm text-red-700">
+                        <div id="dendaDetail" class="text-xs text-red-700">
                             <!-- Detail denda akan ditampilkan di sini -->
+                        </div>
+                    </div>
+
+                    <!-- Form Pembayaran Denda -->
+                    <div id="formPembayaranDenda" class="mb-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
+                        <h5 class="font-semibold text-yellow-900 mb-4">
+                            <i class="fas fa-credit-card mr-2"></i>Form Pembayaran Denda
+                        </h5>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Status Pembayaran -->
+                            <div>
+                                <label for="status_pembayaran_denda" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-check-circle mr-2"></i>Status Pembayaran
+                                </label>
+                                <select name="status_pembayaran_denda" id="status_pembayaran_denda" 
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200">
+                                    <option value="belum_dibayar">Belum Dibayar</option>
+                                    <option value="sudah_dibayar">Sudah Dibayar</option>
+                                </select>
+                            </div>
+
+                            <!-- Tanggal Pembayaran -->
+                            <div>
+                                <label for="tanggal_pembayaran_denda" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-calendar mr-2"></i>Tanggal Pembayaran
+                                </label>
+                                                            <input type="date" name="tanggal_pembayaran_denda" id="tanggal_pembayaran_denda" 
+                                   value="{{ date('Y-m-d') }}" disabled
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-100">
+                            </div>
+                        </div>
+
+                        <!-- Catatan Pembayaran -->
+                        <div class="mt-4">
+                            <label for="catatan_pembayaran_denda" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-sticky-note mr-2"></i>Catatan Pembayaran
+                            </label>
+                            <textarea name="catatan_pembayaran_denda" id="catatan_pembayaran_denda" rows="2" 
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200"
+                                      placeholder="Catatan tambahan untuk pembayaran denda..."></textarea>
+                        </div>
+
+                        <!-- Informasi Total Denda -->
+                        <div class="mt-4 p-3 bg-white border border-yellow-300 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">Total Denda:</span>
+                                <span id="totalDendaDisplay" class="text-lg font-bold text-red-600">Rp 0</span>
+                            </div>
                         </div>
                     </div>
 
@@ -351,6 +408,34 @@ function setupEventListeners() {
             updateDateTime();
         });
     }
+    
+    // Status pembayaran denda event listener
+    document.getElementById('status_pembayaran_denda').addEventListener('change', function() {
+        const tanggalPembayaran = document.getElementById('tanggal_pembayaran_denda');
+        if (this.value === 'sudah_dibayar') {
+            tanggalPembayaran.disabled = false;
+            tanggalPembayaran.classList.remove('bg-gray-100');
+        } else {
+            tanggalPembayaran.disabled = true;
+            tanggalPembayaran.classList.add('bg-gray-100');
+            // Clear tanggal pembayaran jika status bukan sudah_dibayar
+            tanggalPembayaran.value = '';
+            document.getElementById('hiddenTanggalPembayaranDenda').value = '';
+        }
+        
+        // Update hidden input
+        document.getElementById('hiddenStatusPembayaranDenda').value = this.value;
+    });
+    
+    // Tanggal pembayaran denda event listener
+    document.getElementById('tanggal_pembayaran_denda').addEventListener('change', function() {
+        document.getElementById('hiddenTanggalPembayaranDenda').value = this.value;
+    });
+    
+    // Catatan pembayaran denda event listener
+    document.getElementById('catatan_pembayaran_denda').addEventListener('input', function() {
+        document.getElementById('hiddenCatatanPembayaranDenda').value = this.value;
+    });
 }
 
 // Scanner functions
@@ -465,52 +550,99 @@ function closeScanner() {
 function searchAnggota(query) {
     const dropdown = document.getElementById('anggotaDropdown');
     
+    console.log('🔍 Searching for:', query);
+    
     dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari...</div>';
     dropdown.classList.remove('hidden');
     
-    const url = `/admin/pengembalian/search-anggota?query=${encodeURIComponent(query)}`;
+    // Sementara gunakan route test untuk debugging
+    const url = `/test-pengembalian-search?query=${encodeURIComponent(query)}`;
+    console.log('🌐 Search URL:', url);
     
     fetch(url, {
         method: 'GET',
         headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
     .then(response => {
+        console.log('📡 Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log('📦 Search response:', data);
+        
         if (data.success && data.data && data.data.length > 0) {
             dropdown.innerHTML = '';
             data.data.forEach((anggota) => {
+                console.log('👤 Processing anggota:', anggota);
+                
                 const item = document.createElement('div');
                 item.className = 'px-4 py-3 hover:bg-green-50 cursor-pointer border-b border-gray-100 transition-colors duration-150 dropdown-item';
+                
+                // Langsung ambil dari structure anggota
+                const jumlahPeminjaman = anggota.jumlah_peminjaman_aktif || 0;
+                const detailPeminjaman = anggota.detail_peminjaman || [];
+                
                 item.innerHTML = `
-                    <div class="font-medium text-gray-900">${anggota.nama_lengkap}</div>
-                    <div class="text-sm text-gray-600">${anggota.nomor_anggota} - ${anggota.kelas}</div>
-                    <div class="text-xs text-gray-500">Barcode: ${anggota.barcode_anggota || 'N/A'}</div>
+                    <div class="font-medium text-gray-900">${anggota.nama_lengkap || 'N/A'}</div>
+                    <div class="text-sm text-gray-600">${anggota.nis || anggota.nomor_anggota || 'N/A'} - ${anggota.kelas || 'N/A'} (${anggota.jenis_anggota || anggota.jurusan || 'N/A'})</div>
+                    <div class="text-xs text-gray-500">Barcode: ${anggota.barcode_anggota || 'Belum ada barcode'}</div>
                     <div class="text-xs text-blue-600 font-medium mt-1">
-                        <i class="fas fa-book mr-1"></i>${anggota.jumlah_peminjaman_aktif} peminjaman aktif
+                        <i class="fas fa-book mr-1"></i>${jumlahPeminjaman} peminjaman aktif
                     </div>
+                    ${detailPeminjaman.length > 0 ? `
+                        <div class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>Buku: ${detailPeminjaman[0].nomor_peminjaman || 'N/A'}
+                        </div>
+                    ` : ''}
                 `;
+                
                 item.addEventListener('click', () => {
+                    console.log('🎯 Selected anggota:', anggota);
                     selectAnggota(anggota);
-                    getPeminjamanAktif(anggota.id);
+                    if (detailPeminjaman.length > 0) {
+                        // Convert detail_peminjaman ke format yang diharapkan loadPeminjamanAktif
+                        const formattedPeminjaman = detailPeminjaman.map(detail => ({
+                            id: detail.id,
+                            nomor_peminjaman: detail.nomor_peminjaman,
+                            tanggal_peminjaman: detail.tanggal_peminjaman,
+                            tanggal_harus_kembali: detail.tanggal_harus_kembali,
+                            is_late: false, // Will be calculated server side
+                            days_late: 0,
+                            detail_peminjaman: detail.buku || []
+                        }));
+                        loadPeminjamanAktif(formattedPeminjaman);
+                    } else {
+                        getPeminjamanAktif(anggota.id);
+                    }
                     dropdown.classList.add('hidden');
                 });
                 dropdown.appendChild(item);
             });
         } else {
-            dropdown.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">Tidak ada anggota dengan peminjaman aktif ditemukan</div>';
+            dropdown.innerHTML = `
+                <div class="px-4 py-3 text-center text-gray-500">
+                    <i class="fas fa-search mr-2"></i>Tidak ada anggota dengan peminjaman aktif ditemukan
+                    <div class="text-xs text-gray-400 mt-1">Coba cari dengan nama, NIS, atau nomor anggota yang sedang meminjam buku</div>
+                    <div class="text-xs text-red-400 mt-1">Query: "${query}"</div>
+                </div>
+            `;
         }
     })
     .catch(error => {
-        console.error('Error searching anggota:', error);
-        dropdown.innerHTML = '<div class="px-4 py-3 text-center text-red-500">Terjadi kesalahan: ' + error.message + '</div>';
+        console.error('❌ Error searching anggota:', error);
+        dropdown.innerHTML = `
+            <div class="px-4 py-3 text-center text-red-500">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Terjadi kesalahan saat mencari
+                <div class="text-xs text-red-400 mt-1">${error.message}</div>
+                <div class="text-xs text-gray-500 mt-1">Coba refresh halaman atau hubungi admin</div>
+            </div>
+        `;
     });
 }
 
@@ -593,7 +725,7 @@ function loadPeminjamanAktif(peminjamanData) {
 
 function createPeminjamanItem(peminjaman) {
     const div = document.createElement('div');
-    div.className = `p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+    div.className = `p-4 border text-xs rounded-lg cursor-pointer transition-all duration-200 ${
         peminjaman.is_late ? 'late-warning border-red-300' : 'border-gray-200 hover:border-green-300'
     }`;
     div.setAttribute('data-peminjaman-id', peminjaman.id);
@@ -603,7 +735,7 @@ function createPeminjamanItem(peminjaman) {
         lateWarning = `
             <div class="flex items-center text-red-600 mb-2">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                <span class="text-sm font-semibold">Terlambat ${peminjaman.days_late} hari - Denda: Rp ${(peminjaman.days_late * 1000).toLocaleString()}</span>
+                <span class="text-xs font-semibold">Terlambat ${peminjaman.days_late} hari - Denda: Rp ${(peminjaman.days_late * 1000).toLocaleString()}</span>
             </div>
         `;
     }
@@ -613,8 +745,8 @@ function createPeminjamanItem(peminjaman) {
         <div class="flex justify-between items-start mb-3">
             <div>
                 <h6 class="font-semibold text-gray-900">${peminjaman.nomor_peminjaman}</h6>
-                <p class="text-sm text-gray-600">Dipinjam: ${peminjaman.tanggal_peminjaman}</p>
-                <p class="text-sm text-gray-600">Harus kembali: ${peminjaman.tanggal_harus_kembali}</p>
+                <p class="text-xs text-gray-600">Dipinjam: ${peminjaman.tanggal_peminjaman}</p>
+                <p class="text-xs text-gray-600">Harus kembali: ${peminjaman.tanggal_harus_kembali}</p>
             </div>
             <span class="px-3 py-1 text-xs font-medium rounded-full ${
                 peminjaman.is_late ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
@@ -626,10 +758,10 @@ function createPeminjamanItem(peminjaman) {
             ${peminjaman.detail_peminjaman.map(detail => `
                 <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">${detail.judul_buku}</p>
+                        <p class="text-xs font-medium text-gray-900">${detail.judul_buku}</p>
                         <p class="text-xs text-gray-600">${detail.penulis} - ${detail.kategori}</p>
                     </div>
-                    <span class="text-sm text-gray-500">Qty: ${detail.jumlah}</span>
+                    <span class="text-xs text-gray-500">Qty: ${detail.jumlah}</span>
                 </div>
             `).join('')}
         </div>
@@ -657,6 +789,7 @@ function selectPeminjaman(peminjaman) {
         showDendaInfo(peminjaman.days_late);
     } else {
         document.getElementById('dendaInfo').classList.add('hidden');
+        hideFormPembayaranDenda();
     }
     
     // Highlight selected
@@ -682,7 +815,7 @@ function loadKondisiBuku(detailPeminjaman) {
         div.innerHTML = `
             <div class="flex-1">
                 <p class="font-medium text-gray-900">${detail.judul_buku}</p>
-                <p class="text-sm text-gray-600">${detail.penulis} (Qty: ${detail.jumlah})</p>
+                <p class="text-xs text-gray-600">${detail.penulis} (Qty: ${detail.jumlah})</p>
             </div>
             <select name="kondisi_kembali[${detail.id}]" required 
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
@@ -704,6 +837,34 @@ function showDendaInfo(daysLate) {
         <p class="mt-2 text-xs">Denda akan otomatis ditambahkan ke sistem</p>
     `;
     document.getElementById('dendaInfo').classList.remove('hidden');
+    
+    // Tampilkan form pembayaran denda jika ada keterlambatan
+    if (daysLate > 0) {
+        showFormPembayaranDenda(dendaAmount);
+    } else {
+        hideFormPembayaranDenda();
+    }
+}
+
+function showFormPembayaranDenda(totalDenda) {
+    document.getElementById('formPembayaranDenda').classList.remove('hidden');
+    document.getElementById('totalDendaDisplay').textContent = `Rp ${totalDenda.toLocaleString()}`;
+    
+    // Set tanggal pembayaran ke hari ini
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('tanggal_pembayaran_denda').value = today;
+    
+    // Set status pembayaran default ke "belum_dibayar"
+    document.getElementById('status_pembayaran_denda').value = 'belum_dibayar';
+    
+    // Update hidden inputs
+    document.getElementById('hiddenStatusPembayaranDenda').value = 'belum_dibayar';
+    document.getElementById('hiddenTanggalPembayaranDenda').value = today;
+    document.getElementById('hiddenCatatanPembayaranDenda').value = '';
+}
+
+function hideFormPembayaranDenda() {
+    document.getElementById('formPembayaranDenda').classList.add('hidden');
 }
 
 function resetForm() {
@@ -731,6 +892,19 @@ function validateForm() {
     
     if (!isValid) {
         showNotification('Pilih kondisi untuk semua buku!', 'error');
+        return false;
+    }
+    
+    // Validate pembayaran denda
+    const statusPembayaran = document.getElementById('status_pembayaran_denda');
+    const tanggalPembayaran = document.getElementById('tanggal_pembayaran_denda');
+    const formPembayaranDenda = document.getElementById('formPembayaranDenda');
+    
+    // Jika form pembayaran denda ditampilkan dan status sudah_dibayar, tanggal harus diisi
+    if (!formPembayaranDenda.classList.contains('hidden') && 
+        statusPembayaran.value === 'sudah_dibayar' && 
+        !tanggalPembayaran.value) {
+        showNotification('Tanggal pembayaran harus diisi jika status sudah dibayar!', 'error');
         return false;
     }
     

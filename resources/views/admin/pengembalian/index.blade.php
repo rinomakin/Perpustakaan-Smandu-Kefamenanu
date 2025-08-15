@@ -5,27 +5,7 @@
 @section('content')
 <div class="min-h-screen bg-gradient-to-br py-8">
     <div class="px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Data Pengembalian Hari Ini</h1>
-                <p class="text-gray-600 mt-2">Riwayat pengembalian buku perpustakaan untuk hari ini ({{ date('d/m/Y') }})</p>
-            </div>
-            <div class="flex space-x-3">
-                @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
-                <a href="{{ route('riwayat-pengembalian.index') }}" 
-                   class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <i class="fas fa-history mr-2"></i>Riwayat Pengembalian
-                </a>
-                @endif
-                @if(Auth::user()->hasPermission('pengembalian.create') || Auth::user()->isAdmin())
-                <a href="{{ route('pengembalian.create') }}" 
-                   class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <i class="fas fa-plus mr-2"></i>Proses Pengembalian
-                </a>
-                @endif
-            </div>
-        </div>
+       
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -40,48 +20,48 @@
             
             <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-green-100 rounded-full">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    <div class="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full">
+                        <i class="fas fa-check-circle  text-green-600 text-xs"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Dikembalikan</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $totalPengembalianHariIni }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $totalPengembalianHariIni }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-red-100 rounded-full">
-                        <i class="fas fa-clock text-red-600 text-xl"></i>
+                    <div class="w-12 h-12 flex items-center justify-center bg-red-100 rounded-full">
+                        <i class="fas fa-clock text-red-600 text-xs"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Terlambat</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $totalTerlambatHariIni }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $totalTerlambatHariIni }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-yellow-100 rounded-full">
-                        <i class="fas fa-money-bill-wave text-yellow-600 text-xl"></i>
+                    <div class="w-12 h-12 flex items-center justify-center bg-yellow-100 rounded-full">
+                        <i class="fas fa-money-bill-wave text-yellow-600 text-xs"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Denda</p>
-                        <p class="text-2xl font-bold text-gray-900">Rp {{ number_format($totalDendaHariIni, 0, ',', '.') }}</p>
+                        <p class="text-xs font-bold text-gray-900">Rp {{ number_format($totalDendaHariIni, 0, ',', '.') }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-blue-100 rounded-full">
-                        <i class="fas fa-book text-blue-600 text-xl"></i>
+                    <div class="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full">
+                        <i class="fas fa-book text-blue-600 text-xs"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Buku</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $totalBukuDikembalikan }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $totalBukuDikembalikan }}</p>
                     </div>
                 </div>
             </div>
@@ -89,9 +69,30 @@
 
         <!-- Main Content -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
-                <h3 class="text-lg font-semibold text-white">Data Pengembalian Hari Ini</h3>
+            <div></div>
+            <div class="bg-gradient-to-r flex justify-between items-center from-blue-500 to-indigo-600 px-6 py-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-white">Data Pengembalian Hari Ini</h3>
+                </div>
+                <div class="flex space-x-3">
+                @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
+                <a href="{{ route('riwayat-pengembalian.index') }}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-xs">
+                    <i class="fas fa-history mr-2 text-xs"></i>Riwayat
+                </a>
+                @endif
+                @if(Auth::user()->hasPermission('pengembalian.create') || Auth::user()->isAdmin())
+                <a href="{{ route('pengembalian.create') }}" 
+                   class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-xs">
+                    <i class="fas fa-plus "></i>
+                    <span>
+                    Tambah
+                    </span>
+                </a>
+                @endif
             </div>
+            </div>
+             
             
             <div class="p-6">
                 @if($pengembalian->count() > 0)
@@ -119,8 +120,8 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $item->anggota->nama_lengkap }}</div>
-                                        <div class="text-sm text-gray-500">{{ $item->anggota->nomor_anggota }}</div>
+                                        <div class="text-xs font-medium text-gray-900">{{ $item->anggota->nama_lengkap }}</div>
+                                        <div class="text-xs text-gray-500">{{ $item->anggota->nomor_anggota }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
@@ -128,8 +129,8 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $item->tanggal_pengembalian ? $item->tanggal_pengembalian->format('d/m/Y') : 'N/A' }}</div>
-                                        <div class="text-sm text-gray-500">{{ $item->jam_pengembalian ?? 'N/A' }}</div>
+                                        <div class="text-xs text-gray-900">{{ $item->tanggal_pengembalian ? $item->tanggal_pengembalian->format('d/m/Y') : 'N/A' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $item->jam_pengembalian ?? 'N/A' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($item->jumlah_hari_terlambat > 0)
@@ -176,11 +177,11 @@
                     </div>
                 @else
                     <div class="text-center py-12">
-                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <i class="fas fa-undo-alt text-3xl text-gray-400"></i>
+                        <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-undo-alt text-xl text-gray-400"></i>
                         </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data pengembalian hari ini</h3>
-                        <p class="text-gray-600">Belum ada buku yang dikembalikan hari ini.</p>
+                        <h3 class="text-xs font-medium text-gray-900 mb-2">Tidak ada data pengembalian hari ini</h3>
+                        <p class="text-gray-600 text-xs">Belum ada buku yang dikembalikan hari ini.</p>
                     </div>
                 @endif
             </div>

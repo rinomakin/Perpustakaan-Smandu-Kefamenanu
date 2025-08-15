@@ -23,6 +23,7 @@ return new class extends Migration
             $table->time('jam_kembali')->nullable();
             $table->enum('status', ['dipinjam', 'dikembalikan', 'terlambat'])->default('dipinjam');
             $table->text('catatan')->nullable();
+            $table->integer('jumlah_buku')->default(0); // Added jumlah_buku field
             $table->timestamps();
             
             $table->index('nomor_peminjaman');

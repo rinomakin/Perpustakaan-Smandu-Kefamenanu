@@ -296,42 +296,74 @@
                     <!-- Laporan Dropdown -->
                     @php
                         $hasLaporanPermission = Auth::user()->hasAnyPermission([
-                            'laporan.anggota', 'laporan.buku', 'laporan.kas'
+                            'laporan.anggota', 'laporan.buku', 'laporan.peminjaman', 'laporan.pengembalian', 'laporan.denda', 'laporan.kas', 'laporan.absensi'
                         ]) || Auth::user()->isAdmin();
                     @endphp
                     
                     @if($hasLaporanPermission)
                     <div class="relative group flex items-center">
-                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
+                        <button class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
                             <i class="fas fa-chart-bar"></i>
                             <p class="whitespace-nowrap">Laporan</p>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
-                        <div class="absolute text-xs top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <div class="absolute text-xs top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
                                 @if(Auth::user()->hasPermission('laporan.anggota') || Auth::user()->isAdmin())
-                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '#' }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.anggota') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.anggota') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-users w-5"></i>
                                     <span>Laporan Anggota</span>
                                 </a>
                                 @endif
                                 
                                 @if(Auth::user()->hasPermission('laporan.buku') || Auth::user()->isAdmin())
-                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '#' }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.buku') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.buku') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-book w-5"></i>
                                     <span>Laporan Buku</span>
                                 </a>
                                 @endif
                                 
+                                @if(Auth::user()->hasPermission('laporan.peminjaman') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.peminjaman') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.peminjaman') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-book-reader w-5"></i>
+                                    <span>Laporan Peminjaman</span>
+                                </a>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('laporan.pengembalian') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.pengembalian') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.pengembalian') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-undo-alt w-5"></i>
+                                    <span>Laporan Pengembalian</span>
+                                </a>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('laporan.denda') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.denda') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.denda') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-money-bill-wave w-5"></i>
+                                    <span>Laporan Denda</span>
+                                </a>
+                                @endif
+                                
                                 @if(Auth::user()->hasPermission('laporan.kas') || Auth::user()->isAdmin())
-                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '#' }}" 
-                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors">
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.kas') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.kas') ? 'bg-blue-50 text-blue-700' : '' }}">
                                     <i class="fas fa-money-bill w-5"></i>
                                     <span>Laporan Kas</span>
+                                </a>
+                                @endif
+                                
+                                @if(Auth::user()->hasPermission('laporan.absensi') || Auth::user()->isAdmin())
+                                <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.absensi') }}" 
+                                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.absensi') ? 'bg-blue-50 text-blue-700' : '' }}">
+                                    <i class="fas fa-qrcode w-5"></i>
+                                    <span>Laporan Absensi</span>
                                 </a>
                                 @endif
                             </div>
@@ -503,20 +535,40 @@
                 <!-- Mobile Laporan -->
                 <div class="border-t border-gray-100 pt-2">
                     <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">Laporan</div>
-                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '' }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.anggota') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.anggota') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.anggota') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-users w-5"></i>
                         <span>Laporan Anggota</span>
                     </a>
-                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '' }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.buku') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.buku') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.buku') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-book w-5"></i>
                         <span>Laporan Buku</span>
                     </a>
-                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : '' }}" 
-                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('laporan.kas') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.peminjaman') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.peminjaman') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-book-reader w-5"></i>
+                        <span>Laporan Peminjaman</span>
+                    </a>
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.pengembalian') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.pengembalian') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-undo-alt w-5"></i>
+                        <span>Laporan Pengembalian</span>
+                    </a>
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.denda') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.denda') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-money-bill-wave w-5"></i>
+                        <span>Laporan Denda</span>
+                    </a>
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.kas') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.kas') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
                         <i class="fas fa-money-bill w-5"></i>
                         <span>Laporan Kas</span>
+                    </a>
+                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.laporan') : route('admin.laporan.absensi') }}" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 transition-colors {{ request()->routeIs('admin.laporan.absensi') || request()->routeIs('kepsek.laporan') ? 'bg-blue-50 text-blue-700' : '' }}">
+                        <i class="fas fa-qrcode w-5"></i>
+                        <span>Laporan Absensi</span>
                     </a>
                 </div>
                 

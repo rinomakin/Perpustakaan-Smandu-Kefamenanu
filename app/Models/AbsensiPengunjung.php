@@ -19,6 +19,8 @@ class AbsensiPengunjung extends Model
         'waktu_keluar',
         'status',
         'catatan',
+        'keterangan',
+        'petugas_id',
     ];
 
     protected $casts = [
@@ -29,5 +31,10 @@ class AbsensiPengunjung extends Model
     public function anggota()
     {
         return $this->belongsTo(Anggota::class);
+    }
+
+    public function petugas()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'petugas_id');
     }
 } 

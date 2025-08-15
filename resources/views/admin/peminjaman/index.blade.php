@@ -12,26 +12,24 @@
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <i class="fas fa-exchange-alt text-white text-xl"></i>
-                        <h3 class="text-lg font-semibold text-white">Daftar Peminjaman</h3>
+                        <i class="fas fa-exchange-alt text-white text-[14px]"></i>
+                        <h3 class="text-[14px] font-semibold text-white">Daftar Peminjaman</h3>
                     </div>
                     <div class="flex space-x-3">
+                         @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
+                        <a href="{{ route('riwayat-peminjaman.index') }}" 
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-xs">
+                            <i class="fas fa-history mr-1"></i>Riwayat
+                        </a>
+                        
+                        @endif
                         @if(Auth::user()->hasPermission('peminjaman.create') || Auth::user()->isAdmin())
                         <a href="{{ route('peminjaman.create') }}" 
-                           class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
-                            <i class="fas fa-plus mr-1"></i>Tambah Data
+                           class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-xs">
+                            <i class="fas fa-plus mr-1"></i>Tambah
                         </a>
                         @endif
-                        @if(Auth::user()->hasPermission('riwayat-transaksi.view') || Auth::user()->isAdmin())
-                        <a href="{{ route('riwayat-peminjaman.index') }}" 
-                           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
-                            <i class="fas fa-history mr-1"></i>Riwayat Peminjaman
-                        </a>
-                        <a href="{{ route('riwayat-pengembalian.index') }}" 
-                           class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
-                            <i class="fas fa-undo-alt mr-1"></i>Riwayat Pengembalian
-                        </a>
-                        @endif
+                       
                     </div>
                 </div>
             </div>
@@ -41,7 +39,7 @@
                     <table class="w-full text-sm text-left text-gray-500">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-6 py-3">No</th>
+                                <th scope="col" class="px-6 py-3 ">No</th>
                                 <th scope="col" class="px-6 py-3">Nomor Peminjaman</th>
                                 <th scope="col" class="px-6 py-3">Anggota</th>
                                 <th scope="col" class="px-6 py-3">Jumlah Buku</th>
@@ -61,8 +59,8 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-medium text-gray-900">{{ $loan->anggota->nama_lengkap }}</div>
-                                    <div class="text-gray-500 text-xs">{{ $loan->anggota->nomor_anggota }}</div>
+                                    <div class="text-sm text-gray-900">{{ $loan->anggota->nama_lengkap }}</div>
+                                    <!-- <div class="text-gray-500 text-xs">{{ $loan->anggota->nomor_anggota }}</div> -->
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">

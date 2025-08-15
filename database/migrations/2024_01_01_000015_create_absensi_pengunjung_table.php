@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('absensi_pengunjung', function (Blueprint $table) {
             $table->id();
             $table->foreignId('anggota_id')->nullable()->constrained('anggota')->onDelete('set null');
-            $table->string('nama_pengunjung'); // Nama pengunjung (jika bukan anggota)
+            $table->string('nama_pengunjung')->nullable(); // Nama pengunjung (jika bukan anggota)
             $table->string('tujuan_kunjungan'); // Tujuan kunjungan
-            $table->time('waktu_masuk');
-            $table->time('waktu_keluar')->nullable();
+            $table->dateTime('waktu_masuk'); // Changed from time to datetime
+            $table->dateTime('waktu_keluar')->nullable(); // Changed from time to datetime
             $table->enum('status', ['masuk', 'keluar'])->default('masuk');
             $table->text('catatan')->nullable();
+            $table->foreignId('petugas_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }
