@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Data Buku')
+@section('page-title', 'Data Buku')
 
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -14,74 +15,10 @@
 </style>
 <div class="space-y-6">
 
-    <!-- Filter Section -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <form method="GET" action="{{ route('buku.index') }}" class=" flex gap-4 flex-col sm:flex-row items-center justify-between">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Search Input -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Cari Buku</label>
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Judul, ISBN, atau barcode..."
-                           class="w-full text-xs px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                </div>
-
-                <!-- Category Filter -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Kategori</label>
-                    <select name="kategori_id" class="w-full text-xs px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                        <option value="">Semua Kategori</option>
-                        @foreach($kategoris as $kategori)
-                            <option value="{{ $kategori->id }}" {{ request('kategori_id') == $kategori->id ? 'selected' : '' }}>
-                                {{ $kategori->nama_kategori }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Type Filter -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Jenis</label>
-                    <select name="jenis_id" class="w-full text-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                        <option value="">Semua Jenis</option>
-                        @foreach($jenis as $jenisItem)
-                            <option value="{{ $jenisItem->id }}" {{ request('jenis_id') == $jenisItem->id ? 'selected' : '' }}>
-                                {{ $jenisItem->nama_jenis }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Status Filter -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Status</label>
-                    <select name="status" class="w-full text-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                        <option value="">Semua Status</option>
-                        <option value="Tersedia" {{ request('status') == 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
-                        <option value="Dipinjam" {{ request('status') == 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                        <option value="Rusak" {{ request('status') == 'Rusak' ? 'selected' : '' }}>Rusak</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex flex-col pt-6 sm:flex-row gap-3">
-                <button type="submit" 
-                        class="bg-blue-500 hover:bg-blue-600 border h-10 p-2 w-auto  text-white  rounded-lg text-xs transition-colors">
-                    <i class="fas fa-search mr-2"></i>
-                    Filter
-                </button>
-                <a href="{{ route('buku.index') }}" 
-                   class="inline-flex text-xs items-center justify-center h-10 p-2 w-auto bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    <i class="fas fa-refresh mr-2"></i>
-                    Reset
-                </a>
-            </div>
-        </form>
-    </div>
-
     <!-- Header Section with Actions -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Left side - Import/Export and Bulk Actions -->
             <div class="flex items-center gap-3">
                 <!-- Import/Export Buttons -->
                 <div class="flex items-center gap-2">
@@ -105,14 +42,6 @@
                         Import
                     </button>
                     @endif
-                    
-                    @if(Auth::user()->hasPermission('buku.create') || Auth::user()->isAdmin())
-                    <a href="{{ route('buku.create') }}" 
-                   class="inline-flex items-center text-xs px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform ">
-                    <i class="fas fa-plus mr-2"></i>
-                    Tambah
-                </a>
-                @endif
                 </div>
                 
                 @if(Auth::user()->hasPermission('buku.delete') || Auth::user()->isAdmin() || Auth::user()->hasPermission('buku.cetak-barcode') || Auth::user()->isAdmin())
@@ -135,11 +64,38 @@
                         @endif
                     </div>
                     <span id="selectedCount" class=" text-gray-500 transition-all duration-200 mr-2 text-[10px] font-medium bg-gray-100 px-2 py-1 rounded-full">0 buku dipilih</span>
-
                 </div>
                 @endif
+            </div>
+            
+            <!-- Right side - Search, Filter and Add Button -->
+            <div class="flex items-center gap-3">
+                <!-- Search Input -->
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Cari buku..." 
+                               value="{{ request('search') }}"
+                               class="w-64 px-4 py-2 pl-10 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Button -->
+                    <button onclick="openFilterModal()" 
+                            class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filter
+                    </button>
+                </div>
                 
-                
+                @if(Auth::user()->hasPermission('buku.create') || Auth::user()->isAdmin())
+                <a href="{{ route('buku.create') }}" 
+                   class="inline-flex items-center text-xs px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah
+                </a>
+                @endif
             </div>
         </div>
     </div>
@@ -320,6 +276,83 @@
     @endif
 </div>
 
+<!-- Filter Modal -->
+<div id="filterModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Filter Buku</h3>
+                    <button onclick="closeFilterModal()" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="filterForm" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Category Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                        <select name="kategori_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategoris as $kategori)
+                                <option value="{{ $kategori->id }}" {{ request('kategori_id') == $kategori->id ? 'selected' : '' }}>
+                                    {{ $kategori->nama_kategori }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Type Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Buku</label>
+                        <select name="jenis_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">Semua Jenis</option>
+                            @foreach($jenis as $jenisItem)
+                                <option value="{{ $jenisItem->id }}" {{ request('jenis_id') == $jenisItem->id ? 'selected' : '' }}>
+                                    {{ $jenisItem->nama_jenis }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Ketersediaan</label>
+                        <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">Semua Status</option>
+                            <option value="Tersedia" {{ request('status') == 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
+                            <option value="Dipinjam" {{ request('status') == 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                            <option value="Rusak" {{ request('status') == 'Rusak' ? 'selected' : '' }}>Rusak</option>
+                        </select>
+                    </div>
+
+                    <!-- Year Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Terbit</label>
+                        <input type="number" name="tahun_terbit" value="{{ request('tahun_terbit') }}" placeholder="Contoh: 2023"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="resetFilters()" 
+                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        <i class="fas fa-undo mr-2"></i>
+                        Reset
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-filter mr-2"></i>
+                        Terapkan Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Loading Overlay -->
 <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
@@ -334,26 +367,58 @@ document.addEventListener('DOMContentLoaded', function() {
     const bookCheckboxes = document.querySelectorAll('.book-checkbox');
     const selectedCount = document.getElementById('selectedCount');
     const bulkActionButtons = document.getElementById('bulkActionButtons');
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
     
     // Initialize bulk action buttons as hidden
-    bulkActionButtons.style.opacity = '0';
-    bulkActionButtons.style.pointerEvents = 'none';
+    if (bulkActionButtons) {
+        bulkActionButtons.style.opacity = '0';
+        bulkActionButtons.style.pointerEvents = 'none';
+    }
+
+    // Auto-reload search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const searchValue = this.value;
+            
+            searchTimeout = setTimeout(() => {
+                // Show loading state
+                showLoadingOverlay();
+                
+                // Build URL with current filters and new search
+                const currentUrl = new URL(window.location.href);
+                const params = new URLSearchParams(currentUrl.search);
+                
+                if (searchValue.trim()) {
+                    params.set('search', searchValue);
+                } else {
+                    params.delete('search');
+                }
+                
+                // Reload page with new search parameter
+                window.location.href = currentUrl.pathname + '?' + params.toString();
+            }, 500); // 500ms debounce
+        });
+    }
 
     // Select all functionality
-    selectAll.addEventListener('change', function() {
-        bookCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-            
-            // Add visual feedback for all rows
-            const row = checkbox.closest('tr');
-            if (this.checked) {
-                row.classList.add('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-            } else {
-                row.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-            }
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            bookCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                
+                // Add visual feedback for all rows
+                const row = checkbox.closest('tr');
+                if (this.checked) {
+                    row.classList.add('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+                } else {
+                    row.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+                }
+            });
+            updateSelectedCount();
         });
-        updateSelectedCount();
-    });
+    }
 
     // Individual checkbox change
     bookCheckboxes.forEach(checkbox => {
@@ -373,340 +438,96 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateSelectedCount() {
         const checkedBoxes = document.querySelectorAll('.book-checkbox:checked');
-        selectedCount.textContent = `${checkedBoxes.length} buku dipilih`;
+        if (selectedCount) {
+            selectedCount.textContent = `${checkedBoxes.length} buku dipilih`;
+        }
         
         // Show/hide bulk action buttons based on selection with smooth animation
-        if (checkedBoxes.length > 0) {
-            bulkActionButtons.style.opacity = '1';
-            bulkActionButtons.style.pointerEvents = 'auto';
-            selectedCount.classList.add('text-blue-600', 'font-medium', 'bg-blue-100');
-        } else {
-            bulkActionButtons.style.opacity = '0';
-            bulkActionButtons.style.pointerEvents = 'none';
-            selectedCount.classList.remove('text-blue-600', 'font-medium', 'bg-blue-100');
+        if (bulkActionButtons) {
+            if (checkedBoxes.length > 0) {
+                bulkActionButtons.style.opacity = '1';
+                bulkActionButtons.style.pointerEvents = 'auto';
+                if (selectedCount) {
+                    selectedCount.classList.add('text-blue-600', 'font-medium', 'bg-blue-100');
+                }
+            } else {
+                bulkActionButtons.style.opacity = '0';
+                bulkActionButtons.style.pointerEvents = 'none';
+                if (selectedCount) {
+                    selectedCount.classList.remove('text-blue-600', 'font-medium', 'bg-blue-100');
+                }
+            }
         }
     }
 
     function updateSelectAllState() {
         const checkedBoxes = document.querySelectorAll('.book-checkbox:checked');
         const totalBoxes = bookCheckboxes.length;
-        const selectAllLabel = selectAll.nextElementSibling;
         
-        selectAll.checked = checkedBoxes.length === totalBoxes;
-        selectAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < totalBoxes;
-        
-        // Update label color based on selection
-        if (checkedBoxes.length > 0) {
-            selectAllLabel.classList.add('text-blue-600', 'font-medium');
-        } else {
-            selectAllLabel.classList.remove('text-blue-600', 'font-medium');
+        if (selectAll) {
+            selectAll.checked = checkedBoxes.length === totalBoxes;
+            selectAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < totalBoxes;
         }
     }
-
-    function showLoading() {
-        document.getElementById('loadingOverlay').classList.remove('hidden');
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').classList.add('hidden');
-    }
-
-    // Generate barcode for selected books
-    window.generateBarcodeSelected = function() {
-        const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
-        if (selectedIds.length === 0) {
-            showWarningAlert('Pilih buku yang akan di-generate barcode');
-            return;
-        }
-
-        showLoading();
-        fetch('{{ route("buku.generate-multiple-barcode") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ buku_ids: selectedIds })
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                showSuccessAlert('Barcode berhasil di-generate untuk ' + data.count + ' buku');
-                location.reload();
-            } else {
-                showErrorAlert('Gagal generate barcode: ' + data.message);
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            showErrorAlert('Terjadi kesalahan saat generate barcode');
-        });
-    };
-
-    // Print barcode for selected books
-    window.printBarcodeSelected = function() {
-        const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
-        if (selectedIds.length === 0) {
-            showWarningAlert('Pilih buku yang akan dicetak barcode');
-            return;
-        }
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route("buku.print-multiple-barcode") }}';
-        form.target = '_blank';
-
-        const csrfToken = document.createElement('input');
-        csrfToken.type = 'hidden';
-        csrfToken.name = '_token';
-        csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        form.appendChild(csrfToken);
-
-        selectedIds.forEach(id => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'buku_ids[]';
-            input.value = id;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    };
-
-    // Delete selected books
-    window.deleteSelected = function() {
-        const selectedIds = Array.from(document.querySelectorAll('.book-checkbox:checked')).map(cb => cb.value);
-        console.log('Selected IDs for deletion:', selectedIds);
-        
-        if (selectedIds.length === 0) {
-            showWarningAlert('Pilih buku yang akan dihapus');
-            return;
-        }
-
-        showConfirmDialog(
-            `Yakin ingin menghapus ${selectedIds.length} buku yang dipilih?`,
-            'Konfirmasi Hapus Buku',
-            function() {
-                console.log('Bulk delete confirmed for IDs:', selectedIds);
-                showLoading();
-                
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (!csrfToken) {
-                    hideLoading();
-                    showErrorAlert('CSRF token tidak ditemukan');
-                    return;
-                }
-                
-                fetch('{{ route("buku.destroy-multiple") }}', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ buku_ids: selectedIds })
-                })
-                .then(response => {
-                    console.log('Bulk delete response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    hideLoading();
-                    console.log('Bulk delete response:', data);
-                    
-                    if (data.success) {
-                        let message = `Berhasil menghapus ${data.count} buku`;
-                        if (data.errors && data.errors.length > 0) {
-                            message += `\n\nBeberapa buku tidak dapat dihapus:\n${data.errors.slice(0, 3).join('\n')}`;
-                            if (data.errors.length > 3) {
-                                message += `\n... dan ${data.errors.length - 3} error lainnya`;
-                            }
-                        }
-                        showSuccessAlert(message);
-                        setTimeout(() => location.reload(), 2000);
-                    } else {
-                        showErrorAlert('Gagal menghapus buku: ' + (data.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    console.error('Bulk delete error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menghapus buku: ' + error.message);
-                });
-            }
-        );
-    };
-
-    // Import modal functionality
-    window.showImportModal = function() {
-        document.getElementById('importModal').classList.remove('hidden');
-    };
-
-    window.hideImportModal = function() {
-        document.getElementById('importModal').classList.add('hidden');
-        document.getElementById('importForm').reset();
-    };
-
-    // Handle import form submission
-    document.getElementById('importForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Importing...';
-        submitBtn.disabled = true;
-        
-        fetch('{{ route("buku.import") }}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(html => {
-            // Check if response contains error
-            if (html.includes('error')) {
-                showErrorAlert('Gagal import data. Silakan cek file dan coba lagi.');
-            } else {
-                showSuccessAlert('Import berhasil!');
-                location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showErrorAlert('Terjadi kesalahan saat import');
-        })
-        .finally(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            hideImportModal();
-        });
-    });
 });
 
-// SweetAlert2 Functions for Book Management
-function confirmDeleteBuku(id) {
-    console.log('Attempting to delete book with ID:', id);
+// Filter Modal Functions
+function openFilterModal() {
+    document.getElementById('filterModal').classList.remove('hidden');
+}
+
+function closeFilterModal() {
+    document.getElementById('filterModal').classList.add('hidden');
+}
+
+function resetFilters() {
+    // Reset all form fields
+    const form = document.getElementById('filterForm');
+    form.reset();
     
-    if (!id) {
-        showErrorAlert('ID buku tidak valid');
-        return;
+    // Redirect to base URL without filters
+    window.location.href = '{{ route("buku.index") }}';
+}
+
+// Handle filter form submission
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    showLoadingOverlay();
+    
+    const formData = new FormData(this);
+    const params = new URLSearchParams();
+    
+    // Add current search parameter if exists
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && searchInput.value.trim()) {
+        params.set('search', searchInput.value.trim());
     }
     
-    showConfirmDialog(
-        'Yakin ingin menghapus buku ini?',
-        'Konfirmasi Hapus Buku',
-        function() {
-            console.log('Delete confirmed for book ID:', id);
-            showLoading();
-            
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            if (!csrfToken) {
-                hideLoading();
-                showErrorAlert('CSRF token tidak ditemukan');
-                return;
-            }
-            
-            fetch(`/admin/buku/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                hideLoading();
-                console.log('Delete response:', data);
-                if (data.success) {
-                    showSuccessAlert('Buku berhasil dihapus');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showErrorAlert('Gagal menghapus buku: ' + (data.message || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                hideLoading();
-                console.error('Delete error:', error);
-                showErrorAlert('Terjadi kesalahan saat menghapus buku: ' + error.message);
-            });
+    // Add filter parameters
+    for (let [key, value] of formData.entries()) {
+        if (value.trim()) {
+            params.set(key, value);
         }
-    );
-}
+    }
+    
+    // Redirect with filters
+    window.location.href = '{{ route("buku.index") }}' + '?' + params.toString();
+});
 
-function showLoading() {
-    document.getElementById('loadingOverlay').classList.remove('hidden');
-}
+// Close modal when clicking outside
+document.getElementById('filterModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeFilterModal();
+    }
+});
 
-function hideLoading() {
-    document.getElementById('loadingOverlay').classList.add('hidden');
+// Loading overlay function
+function showLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    }
 }
 </script>
-
-<!-- Import Modal -->
-<div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Import Data Buku</h3>
-                    <button type="button" onclick="hideImportModal()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <form id="importForm" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">File Excel/CSV</label>
-                        <input type="file" name="file" accept=".xlsx,.xls,.csv" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                        <p class="text-xs text-gray-500 mt-1">Format: .xlsx, .xls, atau .csv (maks. 2MB)</p>
-                    </div>
-                    
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div class="flex items-start">
-                            <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-3"></i>
-                            <div>
-                                <h4 class="text-sm font-medium text-blue-800">Petunjuk Import</h4>
-                                <ul class="text-sm text-blue-700 mt-1 list-disc list-inside space-y-1">
-                                    <li>Download template terlebih dahulu</li>
-                                    <li>Isi data sesuai format template</li>
-                                    <li>Pastikan ID master data (kategori, jenis, dll) valid</li>
-                                    <li>Barcode kosong akan di-generate otomatis</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex space-x-3 pt-4">
-                        <button type="button" onclick="hideImportModal()" 
-                                class="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200">
-                            Batal
-                        </button>
-                        <button type="submit" 
-                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200">
-                            <i class="fas fa-upload mr-2"></i>
-                            Import
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection 
+@endsection

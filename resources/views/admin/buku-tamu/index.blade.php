@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Absensi Pengunjung')
+@section('title', 'Buku Tamu')
 
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -14,7 +14,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h4 class="text-[12px] font-medium text-gray-600 uppercase">Hari Ini</h4>
-                    <p class="text-[16px] font-bold text-gray-900">{{ $totalPengunjungHariIni }}</p>
+                    <p class="text-[16px] font-bold text-gray-900">{{ $totalTamuHariIni }}</p>
                 </div>
                 <div class="bg-blue-100 h-12 w-12 flex items-center justify-center rounded-full">
                     <i class="fas fa-users text-blue-600 text-sm"></i>
@@ -26,7 +26,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h3 class="text-[12px] font-medium text-gray-600 uppercase">Bulan Ini</h3>
-                    <p class="text-[16px] font-bold text-gray-900">{{ $totalPengunjungBulanIni }}</p>
+                    <p class="text-[16px] font-bold text-gray-900">{{ $totalTamuBulanIni }}</p>
                 </div>
                 <div class="bg-green-100 h-12 w-12 flex items-center justify-center rounded-full">
                     <i class="fas fa-chart-line text-green-600 text-xl"></i>
@@ -65,23 +65,23 @@
         <div class="flex items-center bg-blue-700 py-4 justify-between mb-6 px-4 rounded-t-xl">
             <h2 class="text-sm font-semibold text-gray-100 flex space-x-2 items-center">
                 <i class="fas fa-users mr-2 "></i>
-                Pengunjung Hari Ini
+                Tamu Hari Ini
                 <span class="text-xs text-gray-400" >{{ now()->format('d F Y') }}</span>
             </h2>
             <p class="text-xs text-gray-100">
                 
             </p>
             <div class="flex space-x-2">
-            <input type="text" id="searchVisitor" placeholder="Cari pengunjung..." 
+            <input type="text" id="searchVisitor" placeholder="Cari tamu..." 
                    class="px-4 py-2 rounded-lg border outline-none border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs">
 
 
-                <a href="{{ route('admin.absensi-pengunjung.create') }}" 
+                <a href="{{ route('admin.buku-tamu.create') }}" 
                class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
                 <i class="fas fa-plus mr-2"></i>
                 Tambah
             </a>
-            <a href="{{ route('admin.absensi-pengunjung.history') }}" 
+            <a href="{{ route('admin.buku-tamu.history') }}" 
                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
                 <i class="fas fa-history mr-2"></i>
                 Riwayat
@@ -91,37 +91,37 @@
 
         <!-- Visitors List -->
         <div id="visitors-container" class="space-y-4">
-            @if($absensiHariIni->count() === 0)
+            @if($kunjunganHariIni->count() === 0)
                 <div class="text-center py-12 text-gray-800 bg-blue-800 rounded-lg">
                     <i class="fas fa-users text-xl mb-4 text-gray-300"></i>
-                    <h3 class="text-sm font-medium mb-2">Belum ada pengunjung hari ini</h3>
-                    <p class="text-gray-400">Mulai dengan menambahkan pengunjung baru</p>
+                    <h3 class="text-sm font-medium mb-2">Belum ada tamu hari ini</h3>
+                    <p class="text-gray-400">Mulai dengan menambahkan tamu baru</p>
                 </div>
             @else
-                @foreach($absensiHariIni as $absensi)
-                    @if($absensi->anggota)
-                        <div class="visitor-item bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200" data-id="{{ $absensi->id }}">
+                @foreach($kunjunganHariIni as $kunjungan)
+                    @if($kunjungan->anggota || $kunjungan->nama_tamu)
+                        <div class="visitor-item bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200" data-id="{{ $kunjungan->id }}">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4">
 
-                                    <img src="{{ $absensi->anggota->foto ? asset('storage/' . $absensi->anggota->foto) : 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>') }}" 
+                                    <img src="{{ $kunjungan->anggota && $kunjungan->anggota->foto ? asset('storage/' . $kunjungan->anggota->foto) : 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e5e7eb"/><text x="20" y="24" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">👤</text></svg>') }}" 
                                          alt="Foto" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
                                     <div>
-                                        <h4 class="font-semibold text-gray-900">{{ $absensi->anggota->nama_lengkap }}</h4>
+                                        <h4 class="font-semibold text-gray-900">{{ $kunjungan->nama_tamu ?? ($kunjungan->anggota ? $kunjungan->anggota->nama_lengkap : 'Nama Tidak Tersedia') }}</h4>
                                         <p class="text-sm text-gray-600">
-                                            {{ $absensi->anggota->nomor_anggota }} | 
-                                            {{ $absensi->anggota->kelas ? $absensi->anggota->kelas->nama_kelas : '-' }}
+                                            {{ $kunjungan->anggota ? $kunjungan->anggota->nomor_anggota : 'Tamu Umum' }} | 
+                                            {{ $kunjungan->instansi ?? ($kunjungan->anggota && $kunjungan->anggota->kelas ? $kunjungan->anggota->kelas->nama_kelas : '-') }}
                                         </p>
                                         <p class="text-xs text-gray-500">
-                                            Masuk: {{ $absensi->waktu_masuk->format('H:i') }} 
-                                            @if($absensi->waktu_keluar)
-                                                | Keluar: {{ $absensi->waktu_keluar->format('H:i') }}
+                                            Datang: {{ $kunjungan->waktu_datang->format('H:i') }} 
+                                            @if($kunjungan->waktu_pulang)
+                                                | Pulang: {{ $kunjungan->waktu_pulang->format('H:i') }}
                                             @endif
                                         </p>
-                                        @if($absensi->tujuan_kunjungan)
+                                        @if($kunjungan->keperluan)
                                             <p class="text-xs text-blue-600 font-medium">
                                                 <i class="fas fa-bullseye mr-1"></i>
-                                                {{ $absensi->tujuan_kunjungan }}
+                                                {{ $kunjungan->keperluan }}
                                             </p>
                                         @endif
                                     </div>
@@ -130,10 +130,10 @@
                                 <div class="flex items-center space-x-3">
                                     <!-- Status Badge -->
                                     <div class="flex items-center">
-                                        @if($absensi->waktu_keluar)
+                                        @if($kunjungan->waktu_pulang)
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 <i class="fas fa-sign-out-alt mr-1"></i>
-                                                Sudah Keluar
+                                                Sudah Pulang
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -145,29 +145,30 @@
 
                                     <!-- Action Buttons -->
                                     <div class="flex items-center space-x-2">
-                                        @if(!$absensi->waktu_keluar)
-                                            <button onclick="recordExit({{ $absensi->id }})" 
-                                                    class="  text-red-700  rounded-lg text-sm font-medium transition-colors duration-200">
+                                        @if(!$kunjungan->waktu_pulang)
+                                            <button onclick="recordExit({{ $kunjungan->id }})" 
+                                                    class="text-red-700 rounded-lg text-sm font-medium transition-colors duration-200">
                                                 <i class="fas fa-sign-out-alt mr-1"></i>
-                                                                                            </button>
+                                                Pulang
+                                            </button>
                                         @endif
                                         
-                                        <a href="{{ route('admin.absensi-pengunjung.show', $absensi->id) }}" 
+                                        <a href="{{ route('admin.buku-tamu.show', $kunjungan->id) }}" 
                                            class="text-blue-600 hover:text-blue-800 transition-colors duration-200" 
                                            title="Lihat Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         
-                                        <a href="{{ route('admin.absensi-pengunjung.edit', $absensi->id) }}" 
+                                        <a href="{{ route('admin.buku-tamu.edit', $kunjungan->id) }}" 
                                            class="text-yellow-600 hover:text-yellow-800 transition-colors duration-200" 
                                            title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         
-                                        <form action="{{ route('admin.absensi-pengunjung.destroy', $absensi->id) }}" 
+                                        <form action="{{ route('admin.buku-tamu.destroy', $kunjungan->id) }}" 
                                               method="POST" 
                                               class="inline" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus data absensi ini?')">
+                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kunjungan ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 
@@ -194,19 +195,19 @@
 @section('scripts')
 <script>
 // Make functions globally available immediately
-window.recordExit = async function(absensiId) {
-    if (!confirm('Apakah Anda yakin ingin mencatat waktu keluar untuk pengunjung ini?')) {
+window.recordExit = async function(kunjunganId) {
+    if (!confirm('Apakah Anda yakin ingin mencatat waktu pulang untuk tamu ini?')) {
         return;
     }
 
     try {
-        const response = await fetch(`{{ route('admin.absensi-pengunjung.record-exit') }}`, {
+        const response = await fetch(`{{ route('admin.buku-tamu.record-exit') }}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ absensi_id: absensiId })
+            body: JSON.stringify({ kunjungan_id: kunjunganId })
         });
 
         const result = await response.json();
@@ -222,7 +223,7 @@ window.recordExit = async function(absensiId) {
         }
     } catch (error) {
         console.error('Error recording exit:', error);
-        showMessage('Terjadi kesalahan saat mencatat waktu keluar', 'error');
+        showMessage('Terjadi kesalahan saat mencatat waktu pulang', 'error');
     }
 };
 
@@ -276,65 +277,25 @@ window.showMessage = function(message, type) {
 
 // Wait for DOM to be ready for event listeners
 document.addEventListener('DOMContentLoaded', function() {
-    // Refresh visitors
-    document.getElementById('refresh-visitors').addEventListener('click', () => {
-        location.reload();
-    });
-
-    // Create test data
-    document.getElementById('create-test-data').addEventListener('click', async () => {
-        if (!confirm('Apakah Anda yakin ingin membuat data test? Data ini akan membantu debugging.')) {
-            return;
-        }
-
-        try {
-            const response = await fetch('{{ route("admin.absensi-pengunjung.create-test-data") }}', {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    // Search functionality for visitors
+    const searchInput = document.getElementById('searchVisitor');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const visitorItems = document.querySelectorAll('.visitor-item');
+            
+            visitorItems.forEach(item => {
+                const visitorName = item.querySelector('h4').textContent.toLowerCase();
+                const visitorInfo = item.querySelector('.text-gray-600').textContent.toLowerCase();
+                
+                if (visitorName.includes(searchTerm) || visitorInfo.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
                 }
             });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showMessage(result.message, 'success');
-                // Refresh the page to show new data
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else {
-                showMessage(result.message, 'error');
-            }
-        } catch (error) {
-            console.error('Error creating test data:', error);
-            showMessage('Terjadi kesalahan saat membuat data test', 'error');
-        }
-    });
-
-    // Debug data
-    document.getElementById('debug-data').addEventListener('click', async () => {
-        try {
-            const response = await fetch('{{ route("admin.absensi-pengunjung.debug-data") }}', {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                console.log('Debug Data:', result.data);
-                alert(`Debug Info:\nTotal Absensi: ${result.data.total_absensi}\nAbsensi Hari Ini: ${result.data.absensi_hari_ini}\nTotal Anggota: ${result.data.total_anggota}\nTanggal: ${result.data.today}`);
-            } else {
-                alert('Error: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat debug data');
-        }
-    });
+        });
+    }
 });
 </script>
 @endsection

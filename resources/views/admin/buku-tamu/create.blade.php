@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Pengunjung')
+@section('title', 'Tambah Tamu')
 
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -10,12 +10,12 @@
     <div class="bg-gradient-to-r from-green-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold">➕ Tambah Pengunjung</h1>
-                <p class="text-green-100 mt-1">Catat kunjungan anggota perpustakaan</p>
+                <h1 class="text-2xl font-bold">➕ Tambah Tamu</h1>
+                <p class="text-green-100 mt-1">Catat kunjungan tamu di buku tamu perpustakaan</p>
             </div>
             <div class="text-right">
-                <div class="text-3xl font-bold">{{ $totalPengunjungHariIni ?? 0 }}</div>
-                <div class="text-sm text-green-100">Pengunjung Hari Ini</div>
+                <div class="text-3xl font-bold">{{ $totalTamuHariIni ?? 0 }}</div>
+                <div class="text-sm text-green-100">Tamu Hari Ini</div>
             </div>
         </div>
     </div>
@@ -25,7 +25,7 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold text-gray-800">
                 <i class="fas fa-search mr-2 text-blue-600"></i>
-                Form Pencarian & Absensi Anggota
+                Form Pencarian & Kunjungan Tamu
             </h2>
             <div class="flex items-center space-x-2">
                 <div id="connection-status" class="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -34,28 +34,41 @@
         </div>
 
         <!-- Search & Scan Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="mb-6">
             <div>
                 <label for="search-member" class="block text-sm font-medium text-gray-700 mb-2">Cari Anggota</label>
                 <div class="flex">
                     <input type="text" id="search-member" 
                            class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                           placeholder="Masukkan nama atau nomor anggota...">
+                           placeholder="Ketik nama atau nomor anggota untuk pencarian otomatis...">
                     <button type="button" id="search-btn" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-r-lg font-medium transition-colors duration-200">
-                        <i class="fas fa-search"></i> Cari
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 font-medium transition-colors duration-200">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button type="button" id="scan-btn" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-r-lg font-medium transition-colors duration-200" 
+                            title="Scan Barcode Anggota">
+                        <i class="fas fa-barcode"></i>
                     </button>
                 </div>
+                <div id="search-loading" class="text-center mt-2 hidden">
+                    <i class="fas fa-spinner fa-spin text-blue-600"></i>
+                    <span class="text-sm text-gray-600 ml-2">Mencari anggota...</span>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Scan Barcode</label>
-                <div class="flex">
-                    <input type="text" id="barcode-input" 
-                           class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
-                           placeholder="Scan barcode atau masukkan nomor anggota...">
-                    <button type="button" id="scan-btn" 
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-r-lg font-medium transition-colors duration-200">
-                        <i class="fas fa-barcode"></i> Scan
+        </div>
+        
+        <!-- Quick Guest Registration Button -->
+        <div class="mb-6">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h6 class="text-sm font-semibold text-yellow-800">Tamu Non-Anggota</h6>
+                        <p class="text-sm text-yellow-700">Untuk tamu yang bukan anggota perpustakaan, langsung isi form buku tamu</p>
+                    </div>
+                    <button type="button" id="guest-registration-btn" 
+                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                        <i class="fas fa-user-plus mr-2"></i> Daftar Tamu
                     </button>
                 </div>
             </div>
@@ -106,42 +119,83 @@
 
             <!-- Attendance Form -->
             <div class="bg-white border border-gray-200 rounded-xl p-6">
-                <h5 class="text-lg font-semibold text-gray-800 mb-4">Form Absensi</h5>
+                <h5 class="text-lg font-semibold text-gray-800 mb-4">Form Buku Tamu</h5>
                 <form id="attendance-form">
                     <input type="hidden" id="anggota-id" name="anggota_id">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="waktu-masuk" class="block text-sm font-medium text-gray-700 mb-2">Waktu Masuk</label>
-                            <input type="datetime-local" id="waktu-masuk" name="waktu_masuk" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                                   value="{{ now()->format('Y-m-d\TH:i') }}">
+                    
+                    <!-- Guest Information Section -->
+                    <div class="mb-6">
+                        <h6 class="text-md font-semibold text-gray-700 mb-4">Informasi Tamu</h6>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="nama-tamu" class="block text-sm font-medium text-gray-700 mb-2">Nama Tamu</label>
+                                <input type="text" id="nama-tamu" name="nama_tamu" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Masukkan nama tamu...">
+                                <small class="text-gray-500">Akan diisi otomatis jika memilih anggota</small>
+                            </div>
+                            <div>
+                                <label for="instansi" class="block text-sm font-medium text-gray-700 mb-2">Instansi/Asal Sekolah</label>
+                                <input type="text" id="instansi" name="instansi" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Nama instansi atau sekolah asal...">
+                            </div>
+                            <div>
+                                <label for="no-telepon" class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
+                                <input type="tel" id="no-telepon" name="no_telepon" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Nomor telepon tamu...">
+                            </div>
+                            <div>
+                                <label for="keperluan" class="block text-sm font-medium text-gray-700 mb-2">Keperluan <span class="text-red-500">*</span></label>
+                                <select id="keperluan" name="keperluan" 
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Pilih keperluan kunjungan</option>
+                                    <option value="Membaca Buku">Membaca Buku</option>
+                                    <option value="Meminjam Buku">Meminjam Buku</option>
+                                    <option value="Mengembalikan Buku">Mengembalikan Buku</option>
+                                    <option value="Belajar/Kerja Kelompok">Belajar/Kerja Kelompok</option>
+                                    <option value="Konsultasi dengan Petugas">Konsultasi dengan Petugas</option>
+                                    <option value="Menggunakan Komputer/Internet">Menggunakan Komputer/Internet</option>
+                                    <option value="Mengikuti Kegiatan Perpustakaan">Mengikuti Kegiatan Perpustakaan</option>
+                                    <option value="Penelitian/Riset">Penelitian/Riset</option>
+                                    <option value="Kunjungan Akademik">Kunjungan Akademik</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label for="tujuan-kunjungan" class="block text-sm font-medium text-gray-700 mb-2">Tujuan Berkunjung</label>
-                            <select id="tujuan-kunjungan" name="tujuan_kunjungan" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Pilih tujuan kunjungan</option>
-                                <option value="1">1 - Membaca Buku</option>
-                                <option value="2">2 - Meminjam Buku</option>
-                                <option value="3">3 - Mengembalikan Buku</option>
-                                <option value="4">4 - Belajar/Kerja Kelompok</option>
-                                <option value="5">5 - Konsultasi dengan Petugas</option>
-                                <option value="6">6 - Menggunakan Komputer/Internet</option>
-                                <option value="7">7 - Mengikuti Kegiatan Perpustakaan</option>
-                                <option value="8">8 - Lainnya</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-2">Keterangan (Opsional)</label>
-                            <textarea id="keterangan" name="keterangan" rows="3" 
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                                      placeholder="Catatan tambahan..."></textarea>
+                    </div>
+                    
+                    <!-- Visit Information Section -->
+                    <div class="mb-6">
+                        <h6 class="text-md font-semibold text-gray-700 mb-4">Informasi Kunjungan</h6>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="waktu-datang" class="block text-sm font-medium text-gray-700 mb-2">Waktu Datang <span class="text-red-500">*</span></label>
+                                <input type="datetime-local" id="waktu-datang" name="waktu_datang" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       value="{{ now()->format('Y-m-d\TH:i') }}">
+                            </div>
+                            <div>
+                                <label for="status-kunjungan" class="block text-sm font-medium text-gray-700 mb-2">Status Kunjungan</label>
+                                <select id="status-kunjungan" name="status_kunjungan" 
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="datang" selected>Datang</option>
+                                    <option value="pulang">Pulang</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-2">Keterangan (Opsional)</label>
+                                <textarea id="keterangan" name="keterangan" rows="3" 
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                          placeholder="Catatan tambahan atau keterangan khusus..."></textarea>
+                            </div>
                         </div>
                     </div>
                     <div class="flex space-x-3 mt-6">
                         <button type="submit" 
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center">
-                            <i class="fas fa-save mr-2"></i> Catat Absensi
+                            <i class="fas fa-save mr-2"></i> Catat Kunjungan
                         </button>
                         <button type="button" id="reset-form" 
                                 class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center">
@@ -155,14 +209,14 @@
 
     <!-- Quick Actions -->
     <div class="flex justify-between items-center mt-6">
-        <a href="{{ route('admin.absensi-pengunjung.index') }}" 
+        <a href="{{ route('admin.buku-tamu.index') }}" 
            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center">
             <i class="fas fa-arrow-left mr-2"></i>
             Kembali ke Daftar
         </a>
         <div class="text-sm text-gray-500">
             <i class="fas fa-info-circle mr-1"></i>
-            Gunakan pencarian atau scan barcode untuk mencatat absensi
+            Gunakan pencarian atau scan barcode untuk mencatat kunjungan
         </div>
     </div>
 </div>
@@ -260,14 +314,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         setupEventListeners() {
-            jQuery('#search-btn').on('click', () => this.searchMembers());
+            // Auto-search as user types (debounced)
+            let searchTimeout;
+            jQuery('#search-member').on('input', (e) => {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        this.searchMembers(query);
+                    }, 500); // Wait 500ms after user stops typing
+                } else if (query.length === 0) {
+                    // Clear results when input is empty
+                    jQuery('#search-results').hide();
+                }
+            });
+            
+            jQuery('#search-btn').on('click', () => {
+                const query = jQuery('#search-member').val().trim();
+                if (query) this.searchMembers(query);
+            });
+            
             jQuery('#search-member').on('keypress', (e) => {
-                if (e.which === 13) this.searchMembers();
+                if (e.which === 13) {
+                    const query = jQuery('#search-member').val().trim();
+                    if (query) this.searchMembers(query);
+                }
             });
+            
             jQuery('#scan-btn').on('click', () => this.openScanModal());
-            jQuery('#barcode-input').on('keypress', (e) => {
-                if (e.which === 13) this.scanBarcode();
-            });
+            jQuery('#guest-registration-btn').on('click', () => this.showGuestForm());
             jQuery('#attendance-form').on('submit', (e) => this.submitAttendance(e));
             jQuery('#reset-form').on('click', () => this.resetForm());
 
@@ -285,19 +361,24 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        searchMembers() {
-            const query = jQuery('#search-member').val().trim();
+        searchMembers(query = null) {
+            const searchQuery = query || jQuery('#search-member').val().trim();
             
-            if (query.length < 2) {
+            if (searchQuery.length < 2) {
                 this.showMessage('Minimal 2 karakter untuk pencarian', 'warning');
                 return;
             }
 
+            // Show loading state
+            jQuery('#search-loading').show();
+            jQuery('#search-results').hide();
+
             jQuery.ajax({
-                url: '{{ route("admin.absensi-pengunjung.search-members") }}',
+                url: '{{ route("admin.buku-tamu.search-members") }}',
                 method: 'GET',
-                data: { q: query },
+                data: { q: searchQuery },
                 success: (response) => {
+                    jQuery('#search-loading').hide();
                     if (response.success) {
                         this.displaySearchResults(response.data);
                     } else {
@@ -305,6 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 error: (xhr) => {
+                    jQuery('#search-loading').hide();
                     this.showMessage('Terjadi kesalahan saat mencari anggota', 'error');
                 }
             });
@@ -320,24 +402,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                             <i class="fas fa-info-circle text-blue-600 text-xl mb-2"></i>
                             <p class="text-blue-800">Tidak ada anggota ditemukan</p>
+                            <p class="text-sm text-blue-600 mt-1">Coba gunakan kata kunci yang berbeda atau scan barcode</p>
                         </div>
                     </div>
                 `);
             } else {
+                // Add header info
+                container.append(`
+                    <div class="col-span-full mb-4">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <p class="text-sm text-green-700">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Ditemukan ${members.length} anggota. Klik "Pilih" untuk melanjutkan.
+                            </p>
+                        </div>
+                    </div>
+                `);
+                
                 members.forEach(member => {
                     const memberCard = `
-                        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow duration-200 member-card" data-member='${JSON.stringify(member)}'>
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-blue-300 transition-all duration-200 member-card cursor-pointer" data-member='${JSON.stringify(member)}'>
                             <div class="text-center">
                                 <img src="${member.foto || '/images/default-avatar.png'}" 
                                      alt="Foto ${member.nama_lengkap}" 
                                      class="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-gray-200">
                                 <h6 class="font-semibold text-gray-800 mb-2">${member.nama_lengkap}</h6>
                                 <p class="text-sm text-gray-600 mb-3">
-                                    ${member.nomor_anggota}<br>
-                                    ${member.kelas} - ${member.jurusan}
+                                    <span class="bg-gray-100 px-2 py-1 rounded text-xs">${member.nomor_anggota}</span><br>
+                                    <span class="text-xs mt-1 inline-block">${member.kelas} - ${member.jurusan}</span>
                                 </p>
-                                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 select-member">
-                                    <i class="fas fa-check mr-1"></i> Pilih
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 select-member w-full">
+                                    <i class="fas fa-check mr-1"></i> Pilih Anggota
                                 </button>
                             </div>
                         </div>
@@ -346,46 +441,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 jQuery('.select-member').on('click', (e) => {
+                    e.stopPropagation();
                     const card = jQuery(e.target).closest('.member-card');
                     const memberData = JSON.parse(card.data('member'));
                     this.loadMemberData(memberData);
                     jQuery('#search-results').hide();
+                    this.showMessage(`Anggota ${memberData.nama_lengkap} berhasil dipilih`, 'success');
                 });
             }
 
             jQuery('#search-results').show();
         }
 
-        scanBarcode() {
-            const barcode = jQuery('#barcode-input').val().trim();
-            
-            if (!barcode) {
-                this.showMessage('Masukkan barcode atau nomor anggota', 'warning');
-                return;
-            }
-
-            jQuery.ajax({
-                url: '{{ route("admin.absensi-pengunjung.scan-barcode") }}',
-                method: 'POST',
-                data: { barcode: barcode },
-                success: (response) => {
-                    if (response.success) {
-                        this.loadMemberData(response.data);
-                        jQuery('#barcode-input').val('');
-                        this.showMessage(response.message, 'success');
-                    } else {
-                        this.showMessage(response.message, 'error');
-                    }
-                },
-                error: (xhr) => {
-                    this.showMessage('Terjadi kesalahan saat memproses barcode', 'error');
-                }
-            });
-        }
-
         openScanModal() {
             document.getElementById('scanModal').classList.remove('hidden');
-            this.initializeHTML5QRCodeScanner();
+            // Auto-start scanner when modal opens
+            setTimeout(() => {
+                this.initializeHTML5QRCodeScanner();
+            }, 300);
         }
 
         initializeHTML5QRCodeScanner() {
@@ -460,6 +533,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         onBarcodeDetected(decodedText) {
+            console.log('🎉 Barcode detected:', decodedText);
+            
             // Stop the scanner
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.stop().then(() => {
@@ -469,10 +544,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Update UI
-            jQuery('#barcode-input').val(decodedText);
+            // Close modal and show loading
             this.closeScanModal();
-            this.scanBarcode();
+            this.showMessage('Barcode berhasil dipindai! Memproses data...', 'success');
+            
+            // Process the scanned barcode directly
+            jQuery.ajax({
+                url: '{{ route("admin.buku-tamu.scan-barcode") }}',
+                method: 'POST',
+                data: { barcode: decodedText },
+                success: (response) => {
+                    if (response.success) {
+                        this.loadMemberData(response.data);
+                        this.showMessage(response.message, 'success');
+                    } else {
+                        this.showMessage(response.message, 'error');
+                    }
+                },
+                error: (xhr) => {
+                    this.showMessage('Terjadi kesalahan saat memproses barcode', 'error');
+                }
+            });
         }
 
         startScanning() {
@@ -538,6 +630,9 @@ document.addEventListener('DOMContentLoaded', function() {
             jQuery('#member-class').val(memberData.kelas);
             jQuery('#member-major').val(memberData.jurusan);
             
+            // Auto-fill guest information when member is selected
+            jQuery('#nama-tamu').val(memberData.nama_lengkap);
+            
             if (memberData.foto) {
                 jQuery('#member-photo').attr('src', memberData.foto);
             } else {
@@ -550,32 +645,63 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }
 
+        showGuestForm() {
+            // Clear member data
+            jQuery('#anggota-id').val('');
+            jQuery('#member-name').val('');
+            jQuery('#member-number').val('');
+            jQuery('#member-class').val('');
+            jQuery('#member-major').val('');
+            jQuery('#member-photo').attr('src', '/images/default-avatar.png');
+            
+            // Clear guest name to allow manual input
+            jQuery('#nama-tamu').val('').focus();
+            
+            // Show the form
+            jQuery('#member-form').show();
+            jQuery('#search-results').hide();
+            
+            // Scroll to form
+            jQuery('html, body').animate({
+                scrollTop: jQuery('#member-form').offset().top - 100
+            }, 500);
+            
+            this.showMessage('Form siap untuk tamu non-anggota. Silakan isi data tamu.', 'success');
+        }
+
         submitAttendance(e) {
             e.preventDefault();
             
+            const namaTamu = jQuery('#nama-tamu').val().trim();
+            const keperluan = jQuery('#keperluan').val();
             const anggotaId = jQuery('#anggota-id').val();
-            const tujuanKunjungan = jQuery('#tujuan-kunjungan').val();
             
-            if (!anggotaId) {
-                this.showMessage('Pilih anggota terlebih dahulu', 'warning');
+            // Validation
+            if (!namaTamu) {
+                this.showMessage('Nama tamu harus diisi', 'warning');
+                jQuery('#nama-tamu').focus();
                 return;
             }
             
-            if (!tujuanKunjungan) {
-                this.showMessage('Pilih tujuan kunjungan', 'warning');
-                jQuery('#tujuan-kunjungan').focus();
+            if (!keperluan) {
+                this.showMessage('Pilih keperluan kunjungan', 'warning');
+                jQuery('#keperluan').focus();
                 return;
             }
             
             const formData = {
-                anggota_id: anggotaId,
-                waktu_masuk: jQuery('#waktu-masuk').val(),
-                tujuan_kunjungan: tujuanKunjungan,
+                anggota_id: anggotaId || null,
+                nama_tamu: namaTamu,
+                instansi: jQuery('#instansi').val(),
+                keperluan: keperluan,
+                waktu_datang: jQuery('#waktu-datang').val(),
+                no_telepon: jQuery('#no-telepon').val(),
+                status_kunjungan: jQuery('#status-kunjungan').val(),
                 keterangan: jQuery('#keterangan').val()
             };
 
             jQuery.ajax({
-                url: '{{ route("admin.absensi-pengunjung.store-ajax") }}',
+                url: '{{ route("admin.buku-tamu.store") }}',
                 method: 'POST',
                 data: formData,
                 success: (response) => {
@@ -583,14 +709,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.showMessage(response.message, 'success');
                         this.resetForm();
                         setTimeout(() => {
-                            window.location.href = '{{ route("admin.absensi-pengunjung.index") }}';
+                            window.location.href = '{{ route("admin.buku-tamu.index") }}';
                         }, 2000);
                     } else {
                         this.showMessage(response.message, 'error');
                     }
                 },
                 error: (xhr) => {
-                    this.showMessage('Terjadi kesalahan saat mencatat absensi', 'error');
+                    this.showMessage('Terjadi kesalahan saat mencatat kunjungan', 'error');
                 }
             });
         }
@@ -599,10 +725,12 @@ document.addEventListener('DOMContentLoaded', function() {
             jQuery('#member-form').hide();
             jQuery('#search-results').hide();
             jQuery('#search-member').val('');
-            jQuery('#barcode-input').val('');
+            jQuery('#search-loading').hide();
             jQuery('#attendance-form')[0].reset();
-            jQuery('#waktu-masuk').val('{{ now()->format("Y-m-d\TH:i") }}');
-            jQuery('#tujuan-kunjungan').val(''); // Reset tujuan kunjungan
+            jQuery('#waktu-datang').val('{{ now()->format("Y-m-d\TH:i") }}');
+            jQuery('#keperluan').val(''); // Reset keperluan
+            jQuery('#status-kunjungan').val('datang'); // Reset to default
+            jQuery('#anggota-id').val(''); // Clear member ID
         }
 
         showMessage(message, type) {

@@ -1,9 +1,10 @@
 @extends('layouts.admin')
 
 @section('title', 'Tambah Buku Baru')
+@section('page-title', 'Tambah Buku Baru')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="max-w-full mx-auto">
     <div class="space-y-6">
         <!-- Header Section -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -58,6 +59,31 @@
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('judul_buku') border-red-500 @enderror"
                                    placeholder="Masukkan judul buku">
                             @error('judul_buku')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="barcode" class="block text-sm font-medium text-gray-700 mb-2">
+                                Barcode (Opsional)
+                            </label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('barcode') border-red-500 @enderror"
+                                       placeholder="Masukkan barcode manual atau scan">
+                                <button type="button" id="scanBarcodeBtn" 
+                                        class="px-3 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                                    <i class="fas fa-qrcode"></i>
+                                </button>
+                                <button type="button" id="generateBarcodeBtn" 
+                                        class="px-3 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Kosongkan untuk generate otomatis, gunakan ikon scan atau generate
+                            </p>
+                            @error('barcode')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -251,44 +277,7 @@
                     </div>
                 </div>
 
-                <!-- Barcode Section -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-barcode text-indigo-500 mr-2"></i>
-                        Barcode
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="barcode" class="block text-sm font-medium text-gray-700 mb-2">
-                                Barcode (Opsional)
-                            </label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 @error('barcode') border-red-500 @enderror"
-                                       placeholder="Masukkan barcode manual atau scan">
-                                <button type="button" id="scanBarcodeBtn" 
-                                        class="px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                                    <i class="fas fa-qrcode mr-2"></i>
-                                    Scan
-                                </button>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Kosongkan untuk generate otomatis, atau masukkan barcode manual
-                            </p>
-                            @error('barcode')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
 
-                        <div class="flex items-end">
-                            <button type="button" id="generateBarcodeBtn" 
-                                    class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                                <i class="fas fa-magic mr-2"></i>
-                                Generate Barcode Otomatis
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- Barcode Scanner Modal -->
                     <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">

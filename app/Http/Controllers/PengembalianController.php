@@ -22,18 +22,38 @@ class PengembalianController extends Controller
         // Hapus middleware permission untuk method pencarian - akan dicek di method masing-masing jika diperlukan
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // Hanya tampilkan pengembalian hari ini dengan detail lengkap
-        $pengembalian = Pengembalian::with([
+        $query = Pengembalian::with([
             'anggota.kelas', 
             'user', 
             'detailPengembalian.buku.kategoriBuku',
             'peminjaman.detailPeminjaman.buku'
         ])
-            ->whereDate('tanggal_pengembalian', today())
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        ->whereDate('tanggal_pengembalian', today())
+        ->orderBy('created_at', 'desc');
+        
+        // Add search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nomor_pengembalian', 'like', "%{$search}%")
+                  ->orWhereHas('anggota', function($q2) use ($search) {
+                      $q2->where('nama_lengkap', 'like', "%{$search}%")
+                         ->orWhere('nama', 'like', "%{$search}%")
+                         ->orWhere('nomor_anggota', 'like', "%{$search}%")
+                         ->orWhere('nis', 'like', "%{$search}%")
+                         ->orWhere('barcode_anggota', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('detailPengembalian.buku', function($q3) use ($search) {
+                      $q3->where('judul_buku', 'like', "%{$search}%")
+                         ->orWhere('isbn', 'like', "%{$search}%")
+                         ->orWhere('barcode', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        $pengembalian = $query->paginate(10);
             
         return view('admin.pengembalian.index', compact('pengembalian'));
     }

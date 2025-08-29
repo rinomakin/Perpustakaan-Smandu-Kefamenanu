@@ -5,27 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AbsensiPengunjung extends Model
+class BukuTamu extends Model
 {
     use HasFactory;
 
-    protected $table = 'absensi_pengunjung';
+    protected $table = 'buku_tamu';
 
     protected $fillable = [
         'anggota_id',
-        'nama_pengunjung',
-        'tujuan_kunjungan',
-        'waktu_masuk',
-        'waktu_keluar',
-        'status',
-        'catatan',
+        'nama_tamu',
+        'instansi',
+        'keperluan',
+        'waktu_datang',
+        'waktu_pulang',
+        'status_kunjungan',
         'keterangan',
+        'no_telepon',
         'petugas_id',
     ];
 
     protected $casts = [
-        'waktu_masuk' => 'datetime',
-        'waktu_keluar' => 'datetime',
+        'waktu_datang' => 'datetime',
+        'waktu_pulang' => 'datetime',
     ];
 
     public function anggota()
@@ -37,4 +38,4 @@ class AbsensiPengunjung extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'petugas_id');
     }
-} 
+}

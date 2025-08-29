@@ -10,7 +10,9 @@
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $pengaturan->favicon) }}">
     @endif
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vite CSS & JS -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,164 +20,130 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Navbar and dropdown styles */
-        .group:hover .group-hover\:opacity-100 {
-            opacity: 1;
+        .profile-dropdown {
+            transform: translateY(-10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
         }
         
-        .group:hover .group-hover\:visible {
+        .profile-menu:hover .profile-dropdown {
+            transform: translateY(0);
+            opacity: 1;
             visibility: visible;
         }
         
-        /* Mobile menu transition */
-        #mobileMenu {
-            transition: all 0.3s ease-in-out;
-        }
-        
-        /* Additional CSS to ensure proper styling */
         body {
             font-family: 'Inter', sans-serif;
         }
-        
-        .btn {
-            @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
-        }
-        
-        .btn-primary {
-            @apply bg-blue-600 hover:bg-blue-700 text-white;
-        }
-        
-        .btn-success {
-            @apply bg-green-600 hover:bg-green-700 text-white;
-        }
-        
-        .btn-danger {
-            @apply bg-red-600 hover:bg-red-700 text-white;
-        }
-        
-        .btn-warning {
-            @apply bg-yellow-600 hover:bg-yellow-700 text-white;
-        }
-        
-        .form-input {
-            @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-        }
-        
-        .card {
-            @apply bg-white rounded-lg shadow-md border border-gray-200;
-        }
-        
-        .table {
-            @apply min-w-full divide-y divide-gray-200;
-        }
-        
-        .table th {
-            @apply px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
-        }
-        
-        .table td {
-            @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
-        }
-        
-        /* Dropdown arrow animation */
-        .group:hover .fa-chevron-down {
-            transform: rotate(180deg);
-            transition: transform 0.2s ease-in-out;
-        }
-        
-        .fa-chevron-down {
-            transition: transform 0.2s ease-in-out;
-        }
-        
-        /* Navbar responsive adjustments */
-        @media (max-width: 768px) {
-            .navbar-menu {
-                display: none;
-            }
-        }
     </style>
 </head>
-<body class="bg-gray-100">
-    <!-- Navbar -->
-    <nav class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+<body class="min-h-screen bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="bg-gradient-to-r from-green-600 to-teal-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-full mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
                 <!-- Logo dan Brand -->
-                <a href="{{ route('petugas.dashboard') }}">
-                    <div class="flex items-center space-x-2">
-                        <div class="flex items-center space-x-3">
-                            <img src="{{ asset($pengaturan->logo) }}" alt="Logo" class="h-10 w-auto">
-                            <div>
-                                <h1 class="font-bold text-xs w-10 whitespace-nowrap">{{ $pengaturan->nama_website ?? 'SIPERPUS' }}</h1>
-                                <p class="text-blue-100 text-xs whitespace-nowrap">Petugas Panel</p>
-                            </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ route('petugas.dashboard') }}" class="flex items-center space-x-3">
+                        <img src="{{ asset($pengaturan->logo ?? 'images/logo.png') }}" alt="Logo" class="h-10 w-auto">
+                        <div>
+                            <h1 class="font-bold text-lg">{{ $pengaturan->nama_website ?? 'SIPERPUS' }}</h1>
+                            <p class="text-xs text-green-100">Petugas Panel</p>
                         </div>
-                    </div>
-                </a>
-
+                    </a>
+                </div>
+                
                 <!-- Navigation Menu -->
-                <div class="hidden md:flex items-center space-x-2 navbar-menu">
-                    <!-- Dashboard -->
+                <div class="hidden md:flex items-center space-x-2">
                     <a href="{{ route('petugas.dashboard') }}" 
-                       class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.dashboard') ? 'bg-white bg-opacity-20' : '' }}">
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.dashboard') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
+                        <span class="font-medium">Dashboard</span>
                     </a>
 
-                    <!-- Beranda -->
                     <a href="{{ route('petugas.beranda') }}" 
-                       class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.beranda') ? 'bg-white bg-opacity-20' : '' }}">
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.beranda') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-home"></i>
-                        <span>Beranda</span>
+                        <span class="font-medium">Beranda</span>
                     </a>
 
-                    <!-- Tentang -->
                     <a href="{{ route('petugas.tentang') }}" 
-                       class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.tentang') ? 'bg-white bg-opacity-20' : '' }}">
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.tentang') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-info-circle"></i>
-                        <span>Tentang</span>
+                        <span class="font-medium">Tentang</span>
                     </a>
 
-                    <!-- Absensi Pengunjung -->
-                    <a href="{{ route('petugas.absensi-pengunjung.index') }}" 
-                       class="flex text-xs items-center gap-1 px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.absensi-pengunjung.*') ? 'bg-white bg-opacity-20' : '' }}">
+                    <a href="{{ route('petugas.buku-tamu.index') }}" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('petugas.buku-tamu.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-clipboard-list"></i>
-                        <span>Absensi</span>
+                        <span class="font-medium">Buku Tamu</span>
                     </a>
                 </div>
 
-                <!-- User Menu -->
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" 
+                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+
+                <!-- Right side - Profile Menu -->
                 <div class="flex items-center space-x-4">
                     <!-- Notifications -->
                     <div class="relative">
                         <button class="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors">
-                            <i class="fas fa-bell text-sm"></i>
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                     </div>
 
-                    <!-- User Dropdown -->
-                    <div class="relative group">
-                        <button class="flex items-center space-x-2 p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors">
-                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+                    <!-- Profile Dropdown -->
+                    <div class="relative profile-menu">
+                        <button class="flex items-center space-x-3 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-lg transition-colors duration-200">
+                            <div class="w-8 h-8 bg-white bg-opacity-30 rounded-full flex items-center justify-center overflow-hidden">
                                 @if(Auth::user()->foto && file_exists(public_path('storage/' . Auth::user()->foto)))
                                     <img src="{{ asset('storage/' . Auth::user()->foto) }}" 
                                          alt="Foto Profil"
                                          class="w-full h-full object-cover">
                                 @else
-                                    <i class="fas fa-user text-sm"></i>
+                                    <i class="fas fa-user text-white text-sm"></i>
                                 @endif
                             </div>
-                            <span class="text-sm font-medium">{{ Auth::user()->nama_panggilan ?: Auth::user()->nama_lengkap }}</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
+                            <div class="hidden sm:block text-left">
+                                <div class="text-sm font-medium text-white">{{ Auth::user()->nama_panggilan ?: Auth::user()->nama_lengkap }}</div>
+                                <div class="text-xs text-green-100">{{ Auth::user()->role->nama_peran ?? 'Petugas' }}</div>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-white"></i>
                         </button>
                         
-                        <!-- Dropdown Menu -->
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <!-- Profile Dropdown Menu -->
+                        <div class="profile-dropdown absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+                            <div class="p-4 border-b border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center overflow-hidden">
+                                        @if(Auth::user()->foto && file_exists(public_path('storage/' . Auth::user()->foto)))
+                                            <img src="{{ asset('storage/' . Auth::user()->foto) }}" 
+                                                 alt="Foto Profil"
+                                                 class="w-full h-full object-cover">
+                                        @else
+                                            <i class="fas fa-user text-white"></i>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">{{ Auth::user()->nama_lengkap }}</div>
+                                        <div class="text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                                        <div class="text-xs text-green-600 font-medium">{{ Auth::user()->role->nama_peran ?? 'Petugas' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="py-2">
                                 <a href="{{ route('petugas.profil') }}"
-                                   class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                     <i class="fas fa-user-circle mr-3 text-gray-400"></i>
-                                    <span class="text-xs">Profil</span>
+                                    <span>Profil Saya</span>
                                 </a>
                                 
                                 <hr class="my-2">
@@ -183,13 +151,63 @@
                                 <form method="POST" action="{{ route('logout') }}" class="block">
                                     @csrf
                                     <button type="submit" 
-                                            class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                            class="flex w-full items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors">
                                         <i class="fas fa-sign-out-alt mr-3"></i>
-                                        <span class="text-xs">Logout</span>
+                                        <span>Logout</span>
                                     </button>
                                 </form>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-green-700 border-t border-green-500">
+            <div class="px-4 py-2 space-y-2">
+                <a href="{{ route('petugas.dashboard') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-green-600 transition-colors {{ request()->routeIs('petugas.dashboard') ? 'bg-green-600' : '' }}">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ route('petugas.beranda') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-green-600 transition-colors {{ request()->routeIs('petugas.beranda') ? 'bg-green-600' : '' }}">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Beranda</span>
+                </a>
+                <a href="{{ route('petugas.tentang') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-green-600 transition-colors {{ request()->routeIs('petugas.tentang') ? 'bg-green-600' : '' }}">
+                    <i class="fas fa-info-circle w-5"></i>
+                    <span>Tentang</span>
+                </a>
+                <a href="{{ route('petugas.buku-tamu.index') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-green-600 transition-colors {{ request()->routeIs('petugas.buku-tamu.*') ? 'bg-green-600' : '' }}">
+                    <i class="fas fa-clipboard-list w-5"></i>
+                    <span>Buku Tamu</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen bg-gray-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            @yield('content')
+        </div>
+    </main>
+
+    <!-- Mobile menu toggle script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+    
+    @stack('scripts')
+</body>
+</html>
                     </div>
 
                     <!-- Mobile menu button -->
@@ -221,10 +239,10 @@
                     <span>Tentang</span>
                 </a>
                 
-                <a href="{{ route('petugas.absensi-pengunjung.index') }}" 
+                <a href="{{ route('petugas.buku-tamu.index') }}" 
                    class="flex items-center px-3 py-2 text-sm font-medium text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
-                    <i class="fas fa-clipboard-list mr-3"></i>
-                    <span>Absensi</span>
+                    <i class="fas fa-book mr-3"></i>
+                    <span>Buku Tamu</span>
                 </a>
                 
                 <hr class="border-blue-600 my-2">

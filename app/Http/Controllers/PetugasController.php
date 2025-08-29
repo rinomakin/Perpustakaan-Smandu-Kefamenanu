@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\AbsensiPengunjung;
+use App\Models\BukuTamu;
 use App\Models\PengaturanWebsite;
 
 class PetugasController extends Controller
@@ -16,15 +16,15 @@ class PetugasController extends Controller
 
     public function dashboard()
     {
-        $totalPengunjungHariIni = AbsensiPengunjung::whereDate('created_at', today())->count();
-        $pengunjungMasuk = AbsensiPengunjung::whereDate('created_at', today())
-            ->where('status', 'masuk')
+        $totalTamuHariIni = BukuTamu::whereDate('created_at', today())->count();
+        $tamuDatang = BukuTamu::whereDate('created_at', today())
+            ->where('status_kunjungan', 'datang')
             ->count();
-        $pengunjungKeluar = AbsensiPengunjung::whereDate('created_at', today())
-            ->where('status', 'keluar')
+        $tamuPulang = BukuTamu::whereDate('created_at', today())
+            ->where('status_kunjungan', 'pulang')
             ->count();
             
-        return view('petugas.dashboard', compact('totalPengunjungHariIni', 'pengunjungMasuk', 'pengunjungKeluar'));
+        return view('petugas.dashboard', compact('totalTamuHariIni', 'tamuDatang', 'tamuPulang'));
     }
 
     public function beranda()

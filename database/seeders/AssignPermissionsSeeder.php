@@ -54,8 +54,8 @@ class AssignPermissionsSeeder extends Seeder
             // Denda - view only
             'denda.view',
             
-            // Absensi - view only
-            'absensi-pengunjung.view',
+            // Buku Tamu - view only
+            'buku-tamu.view',
             
             // Laporan
             'laporan.anggota',
@@ -103,11 +103,11 @@ class AssignPermissionsSeeder extends Seeder
             // Denda - view only
             'denda.view',
             
-            // Absensi - full access
-            'absensi-pengunjung.view',
-            'absensi-pengunjung.create',
-            'absensi-pengunjung.edit',
-            'absensi-pengunjung.export',
+            // Buku Tamu - full access
+            'buku-tamu.view',
+            'buku-tamu.create',
+            'buku-tamu.edit',
+            'buku-tamu.export',
         ];
         
         $petugasRole->syncPermissions($petugasPermissions);

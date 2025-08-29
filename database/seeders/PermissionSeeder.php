@@ -110,13 +110,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'Kelola Denda', 'slug' => 'denda.manage', 'description' => 'Dapat mengelola semua aspek denda', 'group_name' => 'Denda'],
             ['name' => 'Export Denda', 'slug' => 'denda.export', 'description' => 'Dapat export data denda', 'group_name' => 'Denda'],
 
-            // Absensi Pengunjung
-            ['name' => 'Lihat Absensi Pengunjung', 'slug' => 'absensi-pengunjung.view', 'description' => 'Dapat melihat daftar absensi pengunjung', 'group_name' => 'Absensi'],
-            ['name' => 'Tambah Absensi Pengunjung', 'slug' => 'absensi-pengunjung.create', 'description' => 'Dapat menambah absensi pengunjung baru', 'group_name' => 'Absensi'],
-            ['name' => 'Edit Absensi Pengunjung', 'slug' => 'absensi-pengunjung.edit', 'description' => 'Dapat mengedit data absensi pengunjung', 'group_name' => 'Absensi'],
-            ['name' => 'Hapus Absensi Pengunjung', 'slug' => 'absensi-pengunjung.delete', 'description' => 'Dapat menghapus absensi pengunjung', 'group_name' => 'Absensi'],
-            ['name' => 'Kelola Absensi Pengunjung', 'slug' => 'absensi-pengunjung.manage', 'description' => 'Dapat mengelola semua aspek absensi pengunjung', 'group_name' => 'Absensi'],
-            ['name' => 'Export Absensi Pengunjung', 'slug' => 'absensi-pengunjung.export', 'description' => 'Dapat export data absensi pengunjung', 'group_name' => 'Absensi'],
+            // Buku Tamu
+            ['name' => 'Lihat Buku Tamu', 'slug' => 'buku-tamu.view', 'description' => 'Dapat melihat daftar buku tamu', 'group_name' => 'Buku Tamu'],
+            ['name' => 'Tambah Buku Tamu', 'slug' => 'buku-tamu.create', 'description' => 'Dapat menambah data buku tamu baru', 'group_name' => 'Buku Tamu'],
+            ['name' => 'Edit Buku Tamu', 'slug' => 'buku-tamu.edit', 'description' => 'Dapat mengedit data buku tamu', 'group_name' => 'Buku Tamu'],
+            ['name' => 'Hapus Buku Tamu', 'slug' => 'buku-tamu.delete', 'description' => 'Dapat menghapus data buku tamu', 'group_name' => 'Buku Tamu'],
+            ['name' => 'Kelola Buku Tamu', 'slug' => 'buku-tamu.manage', 'description' => 'Dapat mengelola semua aspek buku tamu', 'group_name' => 'Buku Tamu'],
+            ['name' => 'Export Buku Tamu', 'slug' => 'buku-tamu.export', 'description' => 'Dapat export data buku tamu', 'group_name' => 'Buku Tamu'],
 
             // Laporan
             ['name' => 'Laporan Anggota', 'slug' => 'laporan.anggota', 'description' => 'Dapat melihat laporan anggota', 'group_name' => 'Laporan'],
@@ -124,7 +124,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'Laporan Peminjaman', 'slug' => 'laporan.peminjaman', 'description' => 'Dapat melihat laporan peminjaman', 'group_name' => 'Laporan'],
             ['name' => 'Laporan Pengembalian', 'slug' => 'laporan.pengembalian', 'description' => 'Dapat melihat laporan pengembalian', 'group_name' => 'Laporan'],
             ['name' => 'Laporan Denda', 'slug' => 'laporan.denda', 'description' => 'Dapat melihat laporan denda', 'group_name' => 'Laporan'],
-            ['name' => 'Laporan Absensi', 'slug' => 'laporan.absensi', 'description' => 'Dapat melihat laporan absensi', 'group_name' => 'Laporan'],
+            ['name' => 'Laporan Buku Tamu', 'slug' => 'laporan.buku-tamu', 'description' => 'Dapat melihat laporan buku tamu', 'group_name' => 'Laporan'],
             ['name' => 'Laporan Kas', 'slug' => 'laporan.kas', 'description' => 'Dapat melihat laporan kas', 'group_name' => 'Laporan'],
 
             // Pengaturan

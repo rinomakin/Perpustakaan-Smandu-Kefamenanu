@@ -13,7 +13,7 @@
                 <h3 class="page-title">Riwayat Kunjungan</h3>
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('admin.absensi-pengunjung.index') }}">Absensi Pengunjung</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.buku-tamu.index') }}">Buku Tamu</a></li>
                     <li class="breadcrumb-item active">Riwayat Kunjungan</li>
                 </ul>
             </div>
@@ -239,7 +239,7 @@ class HistoryManager {
         `);
 
         $.ajax({
-            url: '{{ route("admin.absensi-pengunjung.history.search") }}',
+            url: '{{ route("admin.buku-tamu.history.search") }}',
             method: 'GET',
             data: filters,
             success: (response) => {
@@ -299,11 +299,11 @@ class HistoryManager {
                     </td>
                     <td>${item.keterangan || '-'}</td>
                     <td>
-                        <a href="{{ route('admin.absensi-pengunjung.show', '') }}/${item.id}" 
+                        <a href="{{ route('admin.buku-tamu.show', '') }}/${item.id}" 
                            class="btn btn-sm btn-info" title="Lihat">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{{ route('admin.absensi-pengunjung.edit', '') }}/${item.id}" 
+                        <a href="{{ route('admin.buku-tamu.edit', '') }}/${item.id}" 
                            class="btn btn-sm btn-warning" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
@@ -385,13 +385,13 @@ class HistoryManager {
     exportExcel() {
         const filters = this.getFilters();
         const params = new URLSearchParams(filters);
-        window.open(`{{ route('admin.absensi-pengunjung.export-excel') }}?${params.toString()}`, '_blank');
+        window.open(`{{ route('admin.buku-tamu.export-excel') }}?${params.toString()}`, '_blank');
     }
 
     exportPdf() {
         const filters = this.getFilters();
         const params = new URLSearchParams(filters);
-        window.open(`{{ route('admin.absensi-pengunjung.export-pdf') }}?${params.toString()}`, '_blank');
+        window.open(`{{ route('admin.buku-tamu.export-pdf') }}?${params.toString()}`, '_blank');
     }
 
     showMessage(message, type) {

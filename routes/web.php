@@ -6,7 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\KepsekController;
 use App\Http\Controllers\FrontendController;
-use App\Http\Controllers\AbsensiPengunjungController;
+use App\Http\Controllers\BukuTamuController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\JurusanController;
@@ -41,6 +41,38 @@ Route::get('/', function () {
 });
 
 
+
+// Test route for debugging buku-tamu search
+Route::get('/test-buku-tamu-route', function() {
+    return response()->json([
+        'admin_search_url' => route('admin.buku-tamu.search-members'),
+        'petugas_search_url' => route('petugas.buku-tamu.search-members'),
+        'current_user' => auth()->user() ? auth()->user()->name : 'Not logged in',
+        'timestamp' => now()
+    ]);
+})->name('test.buku.tamu.route');
+
+// Simple test search route without middleware
+Route::get('/test-search-simple', [BukuTamuController::class, 'searchMembers'])->name('test.search.simple');
+
+// Simple debug route without admin middleware - for testing access
+Route::get('/debug-user-access', function() {
+    return response()->json([
+        'logged_in' => auth()->check(),
+        'user' => auth()->user() ? [
+            'id' => auth()->user()->id,
+            'name' => auth()->user()->nama_lengkap,
+            'email' => auth()->user()->email,
+            'role' => auth()->user()->role->nama_peran ?? 'N/A'
+        ] : null,
+        'timestamp' => now()
+    ]);
+})->middleware('auth');
+
+// Test searchMembers without role middleware
+Route::get('/test-search-members-no-role', [BukuTamuController::class, 'searchMembers'])
+    ->middleware('auth')
+    ->name('test.search.members.no.role');
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -424,28 +456,38 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::post('/denda/{id}/update-status', [DendaController::class, 'updateStatusPembayaran'])->name('admin.denda.update-status');
     Route::post('/denda/search', [DendaController::class, 'searchDenda'])->name('admin.denda.search');
     
-    // CRUD Absensi Pengunjung
-    // Absensi Pengunjung
-    Route::resource('absensi-pengunjung', AbsensiPengunjungController::class)->names([
-        'index' => 'admin.absensi-pengunjung.index',
-        'create' => 'admin.absensi-pengunjung.create',
-        'store' => 'admin.absensi-pengunjung.store',
-        'show' => 'admin.absensi-pengunjung.show',
-        'edit' => 'admin.absensi-pengunjung.edit',
-        'update' => 'admin.absensi-pengunjung.update',
-        'destroy' => 'admin.absensi-pengunjung.destroy',
+    // CRUD Buku Tamu
+    // Buku Tamu
+    Route::resource('buku-tamu', BukuTamuController::class)->names([
+        'index' => 'admin.buku-tamu.index',
+        'create' => 'admin.buku-tamu.create',
+        'store' => 'admin.buku-tamu.store',
+        'show' => 'admin.buku-tamu.show',
+        'edit' => 'admin.buku-tamu.edit',
+        'update' => 'admin.buku-tamu.update',
+        'destroy' => 'admin.buku-tamu.destroy',
     ]);
-    Route::post('/absensi-pengunjung/scan-barcode', [AbsensiPengunjungController::class, 'scanBarcode'])->name('admin.absensi-pengunjung.scan-barcode');
-Route::get('/absensi-pengunjung/search-members', [AbsensiPengunjungController::class, 'searchMembers'])->name('admin.absensi-pengunjung.search-members');
-Route::post('/absensi-pengunjung/store-ajax', [AbsensiPengunjungController::class, 'storeAjax'])->name('admin.absensi-pengunjung.store-ajax');
-Route::post('/absensi-pengunjung/record-exit', [AbsensiPengunjungController::class, 'recordExit'])->name('admin.absensi-pengunjung.record-exit');
-Route::get('/absensi-pengunjung/history', [AbsensiPengunjungController::class, 'history'])->name('admin.absensi-pengunjung.history');
-Route::get('/absensi-pengunjung/history/search', [AbsensiPengunjungController::class, 'searchHistory'])->name('admin.absensi-pengunjung.history.search');
-Route::get('/absensi-pengunjung/export-excel', [AbsensiPengunjungController::class, 'exportExcel'])->name('admin.absensi-pengunjung.export-excel');
-Route::get('/absensi-pengunjung/export-pdf', [AbsensiPengunjungController::class, 'exportPdf'])->name('admin.absensi-pengunjung.export-pdf');
-Route::get('/absensi-pengunjung/today', [AbsensiPengunjungController::class, 'todayVisitors'])->name('admin.absensi-pengunjung.today');
-Route::get('/absensi-pengunjung/create-test-data', [AbsensiPengunjungController::class, 'createTestData'])->name('admin.absensi-pengunjung.create-test-data');
-Route::get('/absensi-pengunjung/debug-data', [AbsensiPengunjungController::class, 'debugData'])->name('admin.absensi-pengunjung.debug-data');
+    Route::post('/buku-tamu/scan-barcode', [BukuTamuController::class, 'scanBarcode'])->name('admin.buku-tamu.scan-barcode');
+    Route::get('/buku-tamu/search-members', [BukuTamuController::class, 'searchMembers'])->name('admin.buku-tamu.search-members');
+    // Test route to debug the search-members issue
+    Route::get('/buku-tamu/test-search-route', function() {
+        return response()->json([
+            'success' => true,
+            'message' => 'Test route berhasil diakses',
+            'user' => auth()->user() ? auth()->user()->name : 'Not logged in',
+            'timestamp' => now(),
+            'route_name' => 'admin.buku-tamu.test-search-route'
+        ]);
+    })->name('admin.buku-tamu.test-search-route');
+    Route::post('/buku-tamu/store-ajax', [BukuTamuController::class, 'storeAjax'])->name('admin.buku-tamu.store-ajax');
+    Route::post('/buku-tamu/record-exit', [BukuTamuController::class, 'recordExit'])->name('admin.buku-tamu.record-exit');
+    Route::get('/buku-tamu/history', [BukuTamuController::class, 'history'])->name('admin.buku-tamu.history');
+    Route::get('/buku-tamu/history/search', [BukuTamuController::class, 'searchHistory'])->name('admin.buku-tamu.history.search');
+    Route::get('/buku-tamu/export-excel', [BukuTamuController::class, 'exportExcel'])->name('admin.buku-tamu.export-excel');
+    Route::get('/buku-tamu/export-pdf', [BukuTamuController::class, 'exportPdf'])->name('admin.buku-tamu.export-pdf');
+    Route::get('/buku-tamu/today', [BukuTamuController::class, 'todayVisitors'])->name('admin.buku-tamu.today');
+    Route::get('/buku-tamu/create-test-data', [BukuTamuController::class, 'createTestData'])->name('admin.buku-tamu.create-test-data');
+    Route::get('/buku-tamu/debug-data', [BukuTamuController::class, 'debugData'])->name('admin.buku-tamu.debug-data');
     
     // Riwayat Peminjaman
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('riwayat-peminjaman.index');
@@ -480,17 +522,17 @@ Route::middleware(['auth', 'role:PETUGAS'])->prefix('petugas')->group(function (
     Route::post('/profil/ganti-password', [AdminController::class, 'gantiPassword'])->name('petugas.profil.ganti-password');
     Route::delete('/profil/hapus-foto', [AdminController::class, 'hapusFoto'])->name('petugas.profil.hapus-foto');
     
-    Route::resource('absensi-pengunjung', AbsensiPengunjungController::class)->names([
-        'index' => 'petugas.absensi-pengunjung.index',
-        'create' => 'petugas.absensi-pengunjung.create',
-        'store' => 'petugas.absensi-pengunjung.store',
-        'show' => 'petugas.absensi-pengunjung.show',
-        'edit' => 'petugas.absensi-pengunjung.edit',
-        'update' => 'petugas.absensi-pengunjung.update',
-        'destroy' => 'petugas.absensi-pengunjung.destroy',
+    Route::resource('buku-tamu', BukuTamuController::class)->names([
+        'index' => 'petugas.buku-tamu.index',
+        'create' => 'petugas.buku-tamu.create',
+        'store' => 'petugas.buku-tamu.store',
+        'show' => 'petugas.buku-tamu.show',
+        'edit' => 'petugas.buku-tamu.edit',
+        'update' => 'petugas.buku-tamu.update',
+        'destroy' => 'petugas.buku-tamu.destroy',
     ]);
-    Route::post('/absensi-pengunjung/scan-qr', [AbsensiPengunjungController::class, 'scanQR'])->name('petugas.absensi-pengunjung.scan-qr');
-    Route::get('/absensi-pengunjung/search-members', [AbsensiPengunjungController::class, 'searchMembers'])->name('petugas.absensi-pengunjung.search-members');
+    Route::post('/buku-tamu/scan-qr', [BukuTamuController::class, 'scanQR'])->name('petugas.buku-tamu.scan-qr');
+    Route::get('/buku-tamu/search-members', [BukuTamuController::class, 'searchMembers'])->name('petugas.buku-tamu.search-members');
 });
 
 // Kepala Sekolah Routes

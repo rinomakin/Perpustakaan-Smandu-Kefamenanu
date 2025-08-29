@@ -55,9 +55,9 @@ class Anggota extends Model
         return $this->hasMany(Denda::class);
     }
 
-    public function absensiPengunjung()
+    public function bukuTamu()
     {
-        return $this->hasMany(AbsensiPengunjung::class);
+        return $this->hasMany(BukuTamu::class);
     }
 
     // Method untuk generate nomor anggota otomatis dengan locking untuk mencegah duplikasi
