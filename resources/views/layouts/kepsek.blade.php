@@ -45,7 +45,7 @@
             <div class="flex items-center justify-between h-16">
                 <!-- Logo dan Brand -->
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('kepsek.dashboard') }}" class="flex items-center space-x-3">
+                    <a href="{{ url('/') }}" class="flex items-center space-x-3">
                         <div class="bg-white bg-opacity-20 p-2 rounded-lg">
                             <i class="fas fa-graduation-cap text-xl"></i>
                         </div>
@@ -58,14 +58,14 @@
                 
                 <!-- Navigation Menu -->
                 <div class="hidden md:flex items-center space-x-2">
-                    <a href="{{ route('kepsek.dashboard') }}" 
-                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kepsek.dashboard') ? 'bg-white bg-opacity-20' : '' }}">
+                    <a href="{{ url('/') }}" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->is('/') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-tachometer-alt"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
 
-                    <a href="{{ route('kepsek.laporan') }}" 
-                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kepsek.laporan') ? 'bg-white bg-opacity-20' : '' }}">
+                    <a href="{{ route('laporan.index') }}" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-chart-bar"></i>
                         <span class="font-medium">Laporan</span>
                     </a>
@@ -80,6 +80,12 @@
                        class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('kepsek.data-buku') ? 'bg-white bg-opacity-20' : '' }}">
                         <i class="fas fa-book"></i>
                         <span class="font-medium">Data Buku</span>
+                    </a>
+
+                    <a href="{{ route('admin.buku-tamu.index') }}" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors {{ request()->routeIs('admin.buku-tamu.*') ? 'bg-white bg-opacity-20' : '' }}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="font-medium">Buku Tamu</span>
                     </a>
 
                     <a href="{{ route('kepsek.riwayat-peminjaman') }}" 
@@ -180,13 +186,13 @@
         <!-- Mobile Menu -->
         <div id="mobileMenu" class="hidden md:hidden bg-purple-700 border-t border-purple-500">
             <div class="px-4 py-2 space-y-2">
-                <a href="{{ route('kepsek.dashboard') }}" 
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->routeIs('kepsek.dashboard') ? 'bg-purple-600' : '' }}">
+                <a href="{{ url('/') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->is('/') ? 'bg-purple-600' : '' }}">
                     <i class="fas fa-tachometer-alt w-5"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{{ route('kepsek.laporan') }}" 
-                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->routeIs('kepsek.laporan') ? 'bg-purple-600' : '' }}">
+                <a href="{{ route('laporan.index') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-purple-600' : '' }}">
                     <i class="fas fa-chart-bar w-5"></i>
                     <span>Laporan</span>
                 </a>
@@ -199,6 +205,11 @@
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->routeIs('kepsek.data-buku') ? 'bg-purple-600' : '' }}">
                     <i class="fas fa-book w-5"></i>
                     <span>Data Buku</span>
+                </a>
+                <a href="{{ route('admin.buku-tamu.index') }}" 
+                   class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->routeIs('admin.buku-tamu.*') ? 'bg-purple-600' : '' }}">
+                    <i class="fas fa-clipboard-list w-5"></i>
+                    <span>Buku Tamu</span>
                 </a>
                 <a href="{{ route('kepsek.riwayat-peminjaman') }}" 
                    class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-600 transition-colors {{ request()->routeIs('kepsek.riwayat-peminjaman') ? 'bg-purple-600' : '' }}">
@@ -240,8 +251,8 @@
                     <span>Dashboard</span>
                 </a>
                 
-                <a href="{{ route('kepsek.laporan') }}" 
-                   class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors {{ request()->routeIs('kepsek.laporan') ? 'bg-blue-600' : '' }}">
+                <a href="{{ route('laporan.index') }}" 
+                   class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors {{ request()->routeIs('laporan.*') ? 'bg-blue-600' : '' }}">
                     <i class="fas fa-chart-bar w-5"></i>
                     <span>Laporan</span>
                 </a>

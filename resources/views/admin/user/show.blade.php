@@ -12,11 +12,13 @@
                 <p class="text-gray-600 text-sm mt-1">Informasi lengkap user: {{ $user->nama_lengkap }}</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
+                @if(Auth::user()->hasPermission('user.update') || Auth::user()->isAdmin())
                 <a href="{{ route('user.edit', $user->id) }}" 
                    class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                     <i class="fas fa-edit mr-2"></i>
                     Edit User
                 </a>
+                @endif
                 <a href="{{ route('user.index') }}" 
                    class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                     <i class="fas fa-arrow-left mr-2"></i>
@@ -220,7 +222,7 @@
                 </div>
 
                 <!-- Special Actions -->
-                @if($user->id !== auth()->id())
+                @if((Auth::user()->hasAnyPermission(['user.update', 'user.delete']) || Auth::user()->isAdmin()) && $user->id !== auth()->id())
                     <div class="bg-gray-50 rounded-lg p-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                             <i class="fas fa-tools mr-2 text-green-600"></i>
@@ -228,22 +230,26 @@
                         </h3>
                         
                         <div class="space-y-3">
+                            @if(Auth::user()->hasPermission('user.update') || Auth::user()->isAdmin())
                             <button type="button" 
                                     onclick="confirmResetPassword({{ $user->id }})"
                                     class="w-full inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                                 <i class="fas fa-key mr-2"></i>
                                 Reset Password
                             </button>
+                            @endif
                             
+                            @if(Auth::user()->hasPermission('user.delete') || Auth::user()->isAdmin())
                             <button type="button" 
                                     onclick="confirmDeleteUser({{ $user->id }})"
                                     class="w-full inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                                 <i class="fas fa-trash mr-2"></i>
                                 Hapus User
                             </button>
+                            @endif
                         </div>
                     </div>
-                @else
+                @elseif($user->id === auth()->id())
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
@@ -257,6 +263,20 @@
                             </div>
                         </div>
                     </div>
+                @else
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lock text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Akses Terbatas</h3>
+                                <p class="text-sm text-blue-700 mt-1">
+                                    Anda tidak memiliki hak akses untuk mengelola user ini. Silakan hubungi administrator untuk mendapatkan akses.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>
@@ -265,11 +285,13 @@
         <div class="mt-8 pt-6 border-t border-gray-200">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div class="flex flex-col sm:flex-row gap-3">
+                    @if(Auth::user()->hasPermission('user.update') || Auth::user()->isAdmin())
                     <a href="{{ route('user.edit', $user->id) }}" 
                        class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors duration-200">
                         <i class="fas fa-edit mr-2"></i>
                         Edit User
                     </a>
+                    @endif
                     <a href="{{ route('user.index') }}" 
                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
                         <i class="fas fa-arrow-left mr-2"></i>
@@ -277,21 +299,25 @@
                     </a>
                 </div>
                 
-                @if($user->id !== auth()->id())
+                @if((Auth::user()->hasAnyPermission(['user.update', 'user.delete']) || Auth::user()->isAdmin()) && $user->id !== auth()->id())
                     <div class="flex flex-col sm:flex-row gap-2">
+                        @if(Auth::user()->hasPermission('user.update') || Auth::user()->isAdmin())
                         <button type="button" 
                                 onclick="confirmResetPassword({{ $user->id }})"
                                 class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200">
                             <i class="fas fa-key mr-2"></i>
                             Reset Password
                         </button>
+                        @endif
                         
+                        @if(Auth::user()->hasPermission('user.delete') || Auth::user()->isAdmin())
                         <button type="button" 
                                 onclick="confirmDeleteUser({{ $user->id }})"
                                 class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200">
                             <i class="fas fa-trash mr-2"></i>
                             Hapus User
                         </button>
+                        @endif
                     </div>
                 @endif
             </div>

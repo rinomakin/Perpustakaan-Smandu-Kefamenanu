@@ -36,15 +36,6 @@ class KepsekController extends Controller
         ));
     }
 
-    public function laporan()
-    {
-        $laporanBulanan = Peminjaman::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
-            ->whereYear('created_at', now()->year)
-            ->groupBy('bulan')
-            ->get();
-            
-        return view('kepsek.laporan', compact('laporanBulanan'));
-    }
-
+    // Laporan method removed - kepala sekolah now uses admin laporan system
 
 } 

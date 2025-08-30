@@ -101,7 +101,7 @@
                 </div>
             </div>
             <div class="mt-4 text-center">
-                <a href="{{ route('kepsek.laporan') }}" 
+                <a href="{{ route('laporan.index') }}" 
                    class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
                     <i class="fas fa-chart-line mr-2"></i>
                     Lihat Laporan Lengkap
@@ -183,7 +183,7 @@
             </div>
             <p class="text-green-100 text-sm mb-4">Akses laporan komprehensif dan statistik perpustakaan</p>
             <div class="mt-auto">
-                <a href="{{ route('kepsek.laporan') }}" 
+                <a href="{{ route('laporan.index') }}" 
                    class="inline-flex items-center px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg text-xs font-medium transition-colors duration-200">
                     <i class="fas fa-arrow-right mr-1"></i>
                     Lihat Laporan

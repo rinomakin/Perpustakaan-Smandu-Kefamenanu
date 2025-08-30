@@ -17,7 +17,7 @@ class BukuTamuController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:ADMIN,PETUGAS']);
+        $this->middleware(['auth', 'role:ADMIN,PETUGAS,KEPALA_SEKOLAH']);
     }
 
     public function index()

@@ -32,13 +32,14 @@
         }
         
         .sidebar-link.active {
-            background: linear-gradient(135deg, #3b82f6);
+            background: linear-gradient(135deg, #215361); 
             color: white;
         }
         
         .sidebar-link:hover {
-            background: rgba(59, 100, 246, 0.1);
+            background: #215361 ;
             transform: translateX(2px);
+            opacity: 1;
         }
         
         .profile-dropdown {
@@ -79,7 +80,7 @@
         /* Smooth Scrollbar */
         .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+            scrollbar-color: rgba(156, 163, 170, 0.5) transparent;
         }
         
         .custom-scrollbar::-webkit-scrollbar {
@@ -133,8 +134,8 @@
                 <div class="space-y-2">
                     <!-- Dashboard -->
                     @if(Auth::user()->hasPermission('dashboard.view') || Auth::user()->isAdmin() || Auth::user()->isKepalaSekolah())
-                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.dashboard') : route('admin.dashboard') }}" 
-                       class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ (request()->routeIs('admin.dashboard') || request()->routeIs('kepsek.dashboard')) ? 'active' : '' }}">
+                    <a href="{{ url('/') }}" 
+                       class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ (request()->is('/') && (Auth::user()->isAdmin() || Auth::user()->isKepalaSekolah())) ? 'active' : '' }}">
                         <i class="fas fa-tachometer-alt mr-3 text-xs"></i>
                         <span class="text-sm font-medium">Dashboard</span>
                     </a>
@@ -143,8 +144,10 @@
                       <!-- Master Data Section -->
                     @php
                         $hasMasterPermission = Auth::user()->hasAnyPermission([
-                            'role.manage', 'permissions.manage', 'jurusan.manage', 'kelas.manage', 
-                            'jenis-buku.manage', 'kategori-buku.manage', 'rak-buku.manage', 'sumber-buku.manage'
+                            'role.view', 'role.manage', 'permission.view', 'permission.manage', 
+                            'jurusan.view', 'jurusan.manage', 'kelas.view', 'kelas.manage', 
+                            'jenis-buku.view', 'jenis-buku.manage', 'kategori-buku.view', 'kategori-buku.manage', 
+                            'rak-buku.view', 'rak-buku.manage', 'sumber-buku.view', 'sumber-buku.manage'
                         ]) || Auth::user()->isAdmin();
                         
                         $masterDataActive = request()->routeIs('role.*', 'user.*', 'permissions.*', 'jurusan.*', 'kelas.*', 'jenis-buku.*', 'kategori-buku.*', 'rak-buku.*', 'sumber-buku.*');
@@ -166,7 +169,7 @@
                         
                         <!-- Master Data Dropdown Menu -->
                         <div id="masterDropdown" class="master-dropdown ml-4 mt-2 space-y-1 custom-scrollbar {{ $masterDataActive ? 'active' : '' }}">
-                            @if(Auth::user()->hasPermission('role.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['role.view', 'role.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('role.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('role.*') ? 'active' : '' }}">
                                 <i class="fas fa-user-shield mr-3 text-xs"></i>
@@ -174,7 +177,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('permissions.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['permission.view', 'permission.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('permissions.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('permissions.*') ? 'active' : '' }}">
                                 <i class="fas fa-shield-alt mr-3 text-xs"></i>
@@ -182,7 +185,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('user.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['user.view', 'user.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('user.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('user.*') ? 'active' : '' }}">
                                 <i class="fas fa-user-cog mr-3 text-xs"></i>
@@ -190,7 +193,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('jurusan.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['jurusan.view', 'jurusan.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('jurusan.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
                                 <i class="fas fa-graduation-cap mr-3 text-xs"></i>
@@ -198,7 +201,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('kelas.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['kelas.view', 'kelas.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('kelas.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('kelas.*') ? 'active' : '' }}">
                                 <i class="fas fa-chalkboard mr-3 text-xs"></i>
@@ -206,7 +209,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('jenis-buku.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['jenis-buku.view', 'jenis-buku.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('jenis-buku.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('jenis-buku.*') ? 'active' : '' }}">
                                 <i class="fas fa-tags mr-3 text-xs"></i>
@@ -214,7 +217,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('kategori-buku.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['kategori-buku.view', 'kategori-buku.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('kategori-buku.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('kategori-buku.*') ? 'active' : '' }}">
                                 <i class="fas fa-folder mr-3 text-xs"></i>
@@ -222,7 +225,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('rak-buku.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['rak-buku.view', 'rak-buku.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('rak-buku.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('rak-buku.*') ? 'active' : '' }}">
                                 <i class="fas fa-archive mr-3 text-xs"></i>
@@ -230,7 +233,7 @@
                             </a>
                             @endif
                             
-                            @if(Auth::user()->hasPermission('sumber-buku.manage') || Auth::user()->isAdmin())
+                            @if(Auth::user()->hasAnyPermission(['sumber-buku.view', 'sumber-buku.manage']) || Auth::user()->isAdmin())
                             <a href="{{ route('sumber-buku.index') }}" 
                                class="sidebar-link flex items-center px-4 py-2 text-gray-600 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('sumber-buku.*') ? 'active' : '' }}">
                                 <i class="fas fa-building mr-3 text-xs"></i>
@@ -244,7 +247,15 @@
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Manajemen Data</h3>
                         
-                        @if(Auth::user()->hasPermission('anggota.view') || Auth::user()->isAdmin())
+                        @if(Auth::user()->hasAnyPermission(['user.view', 'user.manage']) || Auth::user()->isAdmin())
+                        <a href="{{ route('user.index') }}" 
+                           class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('user.*') ? 'active' : '' }}">
+                            <i class="fas fa-user-cog mr-3 text-xs"></i>
+                            <span class="text-sm font-medium">Data User</span>
+                        </a>
+                        @endif
+                        
+                        @if(Auth::user()->hasAnyPermission(['anggota.view', 'anggota.manage']) || Auth::user()->isAdmin())
                         <a href="{{ route('anggota.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('anggota.*') ? 'active' : '' }}">
                             <i class="fas fa-users mr-3 text-xs"></i>
@@ -252,7 +263,7 @@
                         </a>
                         @endif
                         
-                        @if(Auth::user()->hasPermission('buku.view') || Auth::user()->isAdmin())
+                        @if(Auth::user()->hasAnyPermission(['buku.view', 'buku.manage']) || Auth::user()->isAdmin())
                         <a href="{{ route('buku.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('buku.*') ? 'active' : '' }}">
                             <i class="fas fa-book mr-3 text-xs"></i>
@@ -265,7 +276,7 @@
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Transaksi</h3>
                         
-                        @if(Auth::user()->hasPermission('peminjaman.view') || Auth::user()->isAdmin())
+                        @if(Auth::user()->hasAnyPermission(['peminjaman.view', 'peminjaman.manage']) || Auth::user()->isAdmin())
                         <a href="{{ route('peminjaman.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('peminjaman.*') ? 'active' : '' }}">
                             <i class="fas fa-hand-holding mr-3 text-xs"></i>
@@ -273,7 +284,7 @@
                         </a>
                         @endif
                         
-                        @if(Auth::user()->hasPermission('pengembalian.view') || Auth::user()->isAdmin())
+                        @if(Auth::user()->hasAnyPermission(['pengembalian.view', 'pengembalian.manage']) || Auth::user()->isAdmin())
                         <a href="{{ route('pengembalian.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('pengembalian.*') ? 'active' : '' }}">
                             <i class="fas fa-undo-alt mr-3 text-xs"></i>
@@ -281,7 +292,7 @@
                         </a>
                         @endif
                         
-                        @if(Auth::user()->hasPermission('denda.view') || Auth::user()->isAdmin())
+                        @if(Auth::user()->hasAnyPermission(['denda.view', 'denda.manage']) || Auth::user()->isAdmin())
                         <a href="{{ route('admin.denda.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.denda.*') ? 'active' : '' }}">
                             <i class="fas fa-money-bill-wave mr-3 text-xs"></i>
@@ -289,7 +300,7 @@
                         </a>
                         @endif
                         
-                        @if(Auth::user()->hasPermission('buku-tamu.view') || Auth::user()->isAdmin())
+                        @if(Auth::user()->hasAnyPermission(['buku-tamu.view', 'buku-tamu.manage']) || Auth::user()->isAdmin())
                         <a href="{{ route('admin.buku-tamu.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.buku-tamu.*') ? 'active' : '' }}">
                             <i class="fas fa-clipboard-list mr-3 text-xs"></i>
@@ -301,20 +312,27 @@
                   
                     
                     <!-- Reports Section -->
+                    @php
+                        $hasLaporanPermission = Auth::user()->hasAnyPermission([
+                            'laporan.view', 'laporan.anggota', 'laporan.buku', 'laporan.peminjaman', 
+                            'laporan.pengembalian', 'laporan.denda', 'laporan.kas', 'laporan.absensi'
+                        ]) || Auth::user()->isAdmin() || Auth::user()->isKepalaSekolah();
+                    @endphp
+                    
+                    @if($hasLaporanPermission)
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Laporan</h3>
                         
-                        @if(Auth::user()->hasPermission('laporan.view') || Auth::user()->isAdmin())
                         <a href="{{ route('laporan.index') }}" 
                            class="sidebar-link flex items-center px-4 py-2.5 text-gray-700 rounded-lg transition-all duration-200 {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
                             <i class="fas fa-chart-bar mr-3 text-xs"></i>
                             <span class="text-sm font-medium">Laporan</span>
                         </a>
-                        @endif
                     </div>
+                    @endif
                     
                     <!-- Settings Section -->
-                    @if(Auth::user()->isAdmin())
+                    @if(Auth::user()->hasAnyPermission(['pengaturan.view', 'pengaturan.manage']) || Auth::user()->isAdmin())
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Pengaturan</h3>
                         
@@ -440,7 +458,7 @@
                         <nav class="flex" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">
-                                    <a href="{{ Auth::user()->isKepalaSekolah() ? route('kepsek.dashboard') : route('admin.dashboard') }}" 
+                                    <a href="{{ url('/') }}" 
                                        class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                                         <i class="fas fa-home mr-2 text-xs"></i>
                                         Dashboard

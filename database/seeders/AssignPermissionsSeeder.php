@@ -27,48 +27,16 @@ class AssignPermissionsSeeder extends Seeder
         $allPermissions = Permission::where('status', 'aktif')->pluck('slug')->toArray();
         $adminRole->syncPermissions($allPermissions);
 
-        // Kepala Sekolah gets limited permissions
-        $kepalaSekolahPermissions = [
-            // Dashboard
-            'dashboard.view',
-            
-            // View permissions only
-            'anggota.view',
-            'buku.view',
-            'kategori-buku.view',
-            'jenis-buku.view',
-            'sumber-buku.view',
-            'rak-buku.view',
-            
-            // Peminjaman - view only
-            'peminjaman.view',
-            'peminjaman.show',
-            
-            // Pengembalian - view only
-            'pengembalian.view',
-            'pengembalian.show',
-            
-            // Riwayat transaksi
-            'riwayat-transaksi.view',
-            
-            // Denda - view only
-            'denda.view',
-            
-            // Buku Tamu - view only
-            'buku-tamu.view',
-            
-            // Laporan
-            'laporan.anggota',
-            'laporan.buku',
-            'laporan.peminjaman',
-            'laporan.pengembalian',
-            'laporan.denda',
-            'laporan.absensi',
-            'laporan.kas',
-            
-            // Pengaturan - view only
-            'pengaturan.view',
+        // Kepala Sekolah gets ALL permissions except admin-only role/permission management
+        $allPermissions = Permission::where('status', 'aktif')->pluck('slug')->toArray();
+        
+        // Remove admin-only permissions
+        $adminOnlyPermissions = [
+            'role.view', 'role.create', 'role.edit', 'role.delete', 'role.manage',
+            'permission.view', 'permission.manage'
         ];
+        
+        $kepalaSekolahPermissions = array_diff($allPermissions, $adminOnlyPermissions);
         
         $kepalaSekolahRole->syncPermissions($kepalaSekolahPermissions);
 

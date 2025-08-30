@@ -31,52 +31,66 @@ class PermissionSeeder extends Seeder
             ['name' => 'Lihat Permission', 'slug' => 'permission.view', 'description' => 'Dapat melihat daftar permission', 'group_name' => 'Permission Management'],
             ['name' => 'Kelola Permission', 'slug' => 'permission.manage', 'description' => 'Dapat mengelola permission', 'group_name' => 'Permission Management'],
 
+            // Jurusan Management
+            ['name' => 'Lihat Jurusan', 'slug' => 'jurusan.view', 'description' => 'Dapat melihat daftar jurusan', 'group_name' => 'Jurusan Management'],
+            ['name' => 'Tambah Jurusan', 'slug' => 'jurusan.create', 'description' => 'Dapat menambah jurusan baru', 'group_name' => 'Jurusan Management'],
+            ['name' => 'Edit Jurusan', 'slug' => 'jurusan.edit', 'description' => 'Dapat mengedit data jurusan', 'group_name' => 'Jurusan Management'],
+            ['name' => 'Hapus Jurusan', 'slug' => 'jurusan.delete', 'description' => 'Dapat menghapus jurusan', 'group_name' => 'Jurusan Management'],
+            ['name' => 'Kelola Jurusan', 'slug' => 'jurusan.manage', 'description' => 'Dapat mengelola semua aspek jurusan', 'group_name' => 'Jurusan Management'],
+
             // Anggota Management
-            ['name' => 'Lihat Anggota', 'slug' => 'anggota.view', 'description' => 'Dapat melihat daftar anggota', 'group_name' => 'Data Anggota'],
-            ['name' => 'Tambah Anggota', 'slug' => 'anggota.create', 'description' => 'Dapat menambah anggota baru', 'group_name' => 'Data Anggota'],
-            ['name' => 'Edit Anggota', 'slug' => 'anggota.edit', 'description' => 'Dapat mengedit data anggota', 'group_name' => 'Data Anggota'],
-            ['name' => 'Hapus Anggota', 'slug' => 'anggota.delete', 'description' => 'Dapat menghapus anggota', 'group_name' => 'Data Anggota'],
-            ['name' => 'Kelola Anggota', 'slug' => 'anggota.manage', 'description' => 'Dapat mengelola semua aspek anggota', 'group_name' => 'Data Anggota'],
-            ['name' => 'Export Anggota', 'slug' => 'anggota.export', 'description' => 'Dapat export data anggota', 'group_name' => 'Data Anggota'],
-            ['name' => 'Import Anggota', 'slug' => 'anggota.import', 'description' => 'Dapat import data anggota', 'group_name' => 'Data Anggota'],
+            ['name' => 'Lihat Anggota', 'slug' => 'anggota.view', 'description' => 'Dapat melihat daftar anggota', 'group_name' => 'Anggota Management'],
+            ['name' => 'Tambah Anggota', 'slug' => 'anggota.create', 'description' => 'Dapat menambah anggota baru', 'group_name' => 'Anggota Management'],
+            ['name' => 'Edit Anggota', 'slug' => 'anggota.edit', 'description' => 'Dapat mengedit data anggota', 'group_name' => 'Anggota Management'],
+            ['name' => 'Hapus Anggota', 'slug' => 'anggota.delete', 'description' => 'Dapat menghapus anggota', 'group_name' => 'Anggota Management'],
+            ['name' => 'Kelola Anggota', 'slug' => 'anggota.manage', 'description' => 'Dapat mengelola semua aspek anggota', 'group_name' => 'Anggota Management'],
+            ['name' => 'Export Anggota', 'slug' => 'anggota.export', 'description' => 'Dapat export data anggota', 'group_name' => 'Anggota Management'],
+            ['name' => 'Import Anggota', 'slug' => 'anggota.import', 'description' => 'Dapat import data anggota', 'group_name' => 'Anggota Management'],
 
             // Buku Management
-            ['name' => 'Lihat Buku', 'slug' => 'buku.view', 'description' => 'Dapat melihat daftar buku', 'group_name' => 'Data Buku'],
-            ['name' => 'Tambah Buku', 'slug' => 'buku.create', 'description' => 'Dapat menambah buku baru', 'group_name' => 'Data Buku'],
-            ['name' => 'Edit Buku', 'slug' => 'buku.edit', 'description' => 'Dapat mengedit data buku', 'group_name' => 'Data Buku'],
-            ['name' => 'Hapus Buku', 'slug' => 'buku.delete', 'description' => 'Dapat menghapus buku', 'group_name' => 'Data Buku'],
-            ['name' => 'Kelola Buku', 'slug' => 'buku.manage', 'description' => 'Dapat mengelola semua aspek buku', 'group_name' => 'Data Buku'],
-            ['name' => 'Export Buku', 'slug' => 'buku.export', 'description' => 'Dapat export data buku', 'group_name' => 'Data Buku'],
-            ['name' => 'Import Buku', 'slug' => 'buku.import', 'description' => 'Dapat import data buku', 'group_name' => 'Data Buku'],
-            ['name' => 'Cetak Barcode Buku', 'slug' => 'buku.print-barcode', 'description' => 'Dapat mencetak barcode buku', 'group_name' => 'Data Buku'],
+            ['name' => 'Lihat Buku', 'slug' => 'buku.view', 'description' => 'Dapat melihat daftar buku', 'group_name' => 'Buku Management'],
+            ['name' => 'Tambah Buku', 'slug' => 'buku.create', 'description' => 'Dapat menambah buku baru', 'group_name' => 'Buku Management'],
+            ['name' => 'Edit Buku', 'slug' => 'buku.edit', 'description' => 'Dapat mengedit data buku', 'group_name' => 'Buku Management'],
+            ['name' => 'Hapus Buku', 'slug' => 'buku.delete', 'description' => 'Dapat menghapus buku', 'group_name' => 'Buku Management'],
+            ['name' => 'Kelola Buku', 'slug' => 'buku.manage', 'description' => 'Dapat mengelola semua aspek buku', 'group_name' => 'Buku Management'],
+            ['name' => 'Export Buku', 'slug' => 'buku.export', 'description' => 'Dapat export data buku', 'group_name' => 'Buku Management'],
+            ['name' => 'Import Buku', 'slug' => 'buku.import', 'description' => 'Dapat import data buku', 'group_name' => 'Buku Management'],
+            ['name' => 'Cetak Barcode Buku', 'slug' => 'buku.print-barcode', 'description' => 'Dapat mencetak barcode buku', 'group_name' => 'Buku Management'],
 
-            // Kategori Buku
-            ['name' => 'Lihat Kategori Buku', 'slug' => 'kategori-buku.view', 'description' => 'Dapat melihat daftar kategori buku', 'group_name' => 'Data Master'],
-            ['name' => 'Tambah Kategori Buku', 'slug' => 'kategori-buku.create', 'description' => 'Dapat menambah kategori buku baru', 'group_name' => 'Data Master'],
-            ['name' => 'Edit Kategori Buku', 'slug' => 'kategori-buku.edit', 'description' => 'Dapat mengedit data kategori buku', 'group_name' => 'Data Master'],
-            ['name' => 'Hapus Kategori Buku', 'slug' => 'kategori-buku.delete', 'description' => 'Dapat menghapus kategori buku', 'group_name' => 'Data Master'],
-            ['name' => 'Kelola Kategori Buku', 'slug' => 'kategori-buku.manage', 'description' => 'Dapat mengelola semua aspek kategori buku', 'group_name' => 'Data Master'],
+            // Kelas Management
+            ['name' => 'Lihat Kelas', 'slug' => 'kelas.view', 'description' => 'Dapat melihat daftar kelas', 'group_name' => 'Kelas Management'],
+            ['name' => 'Tambah Kelas', 'slug' => 'kelas.create', 'description' => 'Dapat menambah kelas baru', 'group_name' => 'Kelas Management'],
+            ['name' => 'Edit Kelas', 'slug' => 'kelas.edit', 'description' => 'Dapat mengedit data kelas', 'group_name' => 'Kelas Management'],
+            ['name' => 'Hapus Kelas', 'slug' => 'kelas.delete', 'description' => 'Dapat menghapus kelas', 'group_name' => 'Kelas Management'],
+            ['name' => 'Kelola Kelas', 'slug' => 'kelas.manage', 'description' => 'Dapat mengelola semua aspek kelas', 'group_name' => 'Kelas Management'],
 
-            // Jenis Buku
-            ['name' => 'Lihat Jenis Buku', 'slug' => 'jenis-buku.view', 'description' => 'Dapat melihat daftar jenis buku', 'group_name' => 'Data Master'],
-            ['name' => 'Tambah Jenis Buku', 'slug' => 'jenis-buku.create', 'description' => 'Dapat menambah jenis buku baru', 'group_name' => 'Data Master'],
-            ['name' => 'Edit Jenis Buku', 'slug' => 'jenis-buku.edit', 'description' => 'Dapat mengedit data jenis buku', 'group_name' => 'Data Master'],
-            ['name' => 'Hapus Jenis Buku', 'slug' => 'jenis-buku.delete', 'description' => 'Dapat menghapus jenis buku', 'group_name' => 'Data Master'],
-            ['name' => 'Kelola Jenis Buku', 'slug' => 'jenis-buku.manage', 'description' => 'Dapat mengelola semua aspek jenis buku', 'group_name' => 'Data Master'],
+            // Kategori Buku Management
+            ['name' => 'Lihat Kategori Buku', 'slug' => 'kategori-buku.view', 'description' => 'Dapat melihat daftar kategori buku', 'group_name' => 'Kategori Buku Management'],
+            ['name' => 'Tambah Kategori Buku', 'slug' => 'kategori-buku.create', 'description' => 'Dapat menambah kategori buku baru', 'group_name' => 'Kategori Buku Management'],
+            ['name' => 'Edit Kategori Buku', 'slug' => 'kategori-buku.edit', 'description' => 'Dapat mengedit data kategori buku', 'group_name' => 'Kategori Buku Management'],
+            ['name' => 'Hapus Kategori Buku', 'slug' => 'kategori-buku.delete', 'description' => 'Dapat menghapus kategori buku', 'group_name' => 'Kategori Buku Management'],
+            ['name' => 'Kelola Kategori Buku', 'slug' => 'kategori-buku.manage', 'description' => 'Dapat mengelola semua aspek kategori buku', 'group_name' => 'Kategori Buku Management'],
 
-            // Sumber Buku
-            ['name' => 'Lihat Sumber Buku', 'slug' => 'sumber-buku.view', 'description' => 'Dapat melihat daftar sumber buku', 'group_name' => 'Data Master'],
-            ['name' => 'Tambah Sumber Buku', 'slug' => 'sumber-buku.create', 'description' => 'Dapat menambah sumber buku baru', 'group_name' => 'Data Master'],
-            ['name' => 'Edit Sumber Buku', 'slug' => 'sumber-buku.edit', 'description' => 'Dapat mengedit data sumber buku', 'group_name' => 'Data Master'],
-            ['name' => 'Hapus Sumber Buku', 'slug' => 'sumber-buku.delete', 'description' => 'Dapat menghapus sumber buku', 'group_name' => 'Data Master'],
-            ['name' => 'Kelola Sumber Buku', 'slug' => 'sumber-buku.manage', 'description' => 'Dapat mengelola semua aspek sumber buku', 'group_name' => 'Data Master'],
+            // Jenis Buku Management
+            ['name' => 'Lihat Jenis Buku', 'slug' => 'jenis-buku.view', 'description' => 'Dapat melihat daftar jenis buku', 'group_name' => 'Jenis Buku Management'],
+            ['name' => 'Tambah Jenis Buku', 'slug' => 'jenis-buku.create', 'description' => 'Dapat menambah jenis buku baru', 'group_name' => 'Jenis Buku Management'],
+            ['name' => 'Edit Jenis Buku', 'slug' => 'jenis-buku.edit', 'description' => 'Dapat mengedit data jenis buku', 'group_name' => 'Jenis Buku Management'],
+            ['name' => 'Hapus Jenis Buku', 'slug' => 'jenis-buku.delete', 'description' => 'Dapat menghapus jenis buku', 'group_name' => 'Jenis Buku Management'],
+            ['name' => 'Kelola Jenis Buku', 'slug' => 'jenis-buku.manage', 'description' => 'Dapat mengelola semua aspek jenis buku', 'group_name' => 'Jenis Buku Management'],
 
-            // Rak Buku
-            ['name' => 'Lihat Rak Buku', 'slug' => 'rak-buku.view', 'description' => 'Dapat melihat daftar rak buku', 'group_name' => 'Data Master'],
-            ['name' => 'Tambah Rak Buku', 'slug' => 'rak-buku.create', 'description' => 'Dapat menambah rak buku baru', 'group_name' => 'Data Master'],
-            ['name' => 'Edit Rak Buku', 'slug' => 'rak-buku.edit', 'description' => 'Dapat mengedit data rak buku', 'group_name' => 'Data Master'],
-            ['name' => 'Hapus Rak Buku', 'slug' => 'rak-buku.delete', 'description' => 'Dapat menghapus rak buku', 'group_name' => 'Data Master'],
-            ['name' => 'Kelola Rak Buku', 'slug' => 'rak-buku.manage', 'description' => 'Dapat mengelola semua aspek rak buku', 'group_name' => 'Data Master'],
+            // Sumber Buku Management
+            ['name' => 'Lihat Sumber Buku', 'slug' => 'sumber-buku.view', 'description' => 'Dapat melihat daftar sumber buku', 'group_name' => 'Sumber Buku Management'],
+            ['name' => 'Tambah Sumber Buku', 'slug' => 'sumber-buku.create', 'description' => 'Dapat menambah sumber buku baru', 'group_name' => 'Sumber Buku Management'],
+            ['name' => 'Edit Sumber Buku', 'slug' => 'sumber-buku.edit', 'description' => 'Dapat mengedit data sumber buku', 'group_name' => 'Sumber Buku Management'],
+            ['name' => 'Hapus Sumber Buku', 'slug' => 'sumber-buku.delete', 'description' => 'Dapat menghapus sumber buku', 'group_name' => 'Sumber Buku Management'],
+            ['name' => 'Kelola Sumber Buku', 'slug' => 'sumber-buku.manage', 'description' => 'Dapat mengelola semua aspek sumber buku', 'group_name' => 'Sumber Buku Management'],
+
+            // Rak Buku Management
+            ['name' => 'Lihat Rak Buku', 'slug' => 'rak-buku.view', 'description' => 'Dapat melihat daftar rak buku', 'group_name' => 'Rak Buku Management'],
+            ['name' => 'Tambah Rak Buku', 'slug' => 'rak-buku.create', 'description' => 'Dapat menambah rak buku baru', 'group_name' => 'Rak Buku Management'],
+            ['name' => 'Edit Rak Buku', 'slug' => 'rak-buku.edit', 'description' => 'Dapat mengedit data rak buku', 'group_name' => 'Rak Buku Management'],
+            ['name' => 'Hapus Rak Buku', 'slug' => 'rak-buku.delete', 'description' => 'Dapat menghapus rak buku', 'group_name' => 'Rak Buku Management'],
+            ['name' => 'Kelola Rak Buku', 'slug' => 'rak-buku.manage', 'description' => 'Dapat mengelola semua aspek rak buku', 'group_name' => 'Rak Buku Management'],
 
             // Peminjaman - Granular Permissions
             ['name' => 'Lihat Peminjaman', 'slug' => 'peminjaman.view', 'description' => 'Dapat melihat daftar peminjaman', 'group_name' => 'Transaksi'],
@@ -119,6 +133,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'Export Buku Tamu', 'slug' => 'buku-tamu.export', 'description' => 'Dapat export data buku tamu', 'group_name' => 'Buku Tamu'],
 
             // Laporan
+            ['name' => 'Lihat Laporan', 'slug' => 'laporan.view', 'description' => 'Dapat mengakses halaman laporan', 'group_name' => 'Laporan'],
             ['name' => 'Laporan Anggota', 'slug' => 'laporan.anggota', 'description' => 'Dapat melihat laporan anggota', 'group_name' => 'Laporan'],
             ['name' => 'Laporan Buku', 'slug' => 'laporan.buku', 'description' => 'Dapat melihat laporan buku', 'group_name' => 'Laporan'],
             ['name' => 'Laporan Peminjaman', 'slug' => 'laporan.peminjaman', 'description' => 'Dapat melihat laporan peminjaman', 'group_name' => 'Laporan'],

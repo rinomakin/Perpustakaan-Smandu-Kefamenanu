@@ -1,0 +1,410 @@
+/* Dark Mode Implementation for SIPERPUS */
+
+/* =================================== */
+/* Dark Mode CSS Variables */
+/* =================================== */
+[data-theme=\"dark\"] {
+    /* Dark Colors */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+
+    /* Dark Gradients */
+    --gradient-primary-dark: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+    --gradient-secondary-dark: linear-gradient(
+        135deg,
+        #1e40af 0%,
+        #1e3a8a 100%
+    );
+    --gradient-background-dark: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #1e293b 100%
+    );
+
+    /* Dark Glassmorphism */
+    --glass-bg-dark: rgba(15, 23, 42, 0.25);
+    --glass-border-dark: rgba(148, 163, 184, 0.18);
+    --glass-shadow-dark: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* =================================== */
+/* Dark Mode Base Styles */
+/* =================================== */
+[data-theme=\"dark\"] body {
+    background: var(--gradient-background-dark);
+    color: var(--text-primary);
+}
+
+[data-theme=\"dark\"] .modern-card {
+    background: var(--bg-secondary);
+    border-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme=\"dark\"] .modern-card-glass {
+    background: var(--glass-bg-dark);
+    border-color: var(--glass-border-dark);
+    box-shadow: var(--glass-shadow-dark);
+}
+
+[data-theme=\"dark\"] .stat-card {
+    background: var(--bg-secondary);
+    border-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme=\"dark\"] .stat-card::before {
+    background: var(--gradient-primary-dark);
+}
+
+/* =================================== */
+/* Dark Mode Navigation */
+/* =================================== */
+[data-theme=\"dark\"] .nav-modern {
+    background: var(--glass-bg-dark);
+    border-color: var(--glass-border-dark);
+    box-shadow: var(--glass-shadow-dark);
+}
+
+/* =================================== */
+/* Dark Mode Forms */
+/* =================================== */
+[data-theme=\"dark\"] .input-modern {
+    background: var(--bg-secondary);
+    border-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme=\"dark\"] .input-modern:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* =================================== */
+/* Dark Mode Tables */
+/* =================================== */
+[data-theme=\"dark\"] .table-modern {
+    background: var(--bg-secondary);
+    border-color: var(--bg-tertiary);
+}
+
+[data-theme=\"dark\"] .table-modern thead {
+    background: var(--bg-tertiary);
+}
+
+[data-theme=\"dark\"] .table-modern thead th {
+    color: var(--text-primary);
+    border-color: var(--bg-tertiary);
+}
+
+[data-theme=\"dark\"] .table-modern tbody tr {
+    border-color: var(--bg-tertiary);
+}
+
+[data-theme=\"dark\"] .table-modern tbody tr:hover {
+    background: rgba(16, 185, 129, 0.05);
+}
+
+[data-theme=\"dark\"] .table-modern tbody td {
+    color: var(--text-secondary);
+}
+
+/* =================================== */
+/* Dark Mode Alerts */
+/* =================================== */
+[data-theme=\"dark\"] .alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #34d399;
+}
+
+[data-theme=\"dark\"] .alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+}
+
+[data-theme=\"dark\"] .alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+[data-theme=\"dark\"] .alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+}
+
+/* =================================== */
+/* Dark Mode Theme Toggle Button */
+/* =================================== */
+.theme-toggle {
+    position: relative;
+    width: 3rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    outline: none;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.05);
+}
+
+.theme-toggle::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle::after {
+    content: "☀️";
+    position: absolute;
+    top: 50%;
+    left: 0.25rem;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    transition: opacity 0.3s ease;
+}
+
+[data-theme=\"dark\"] .theme-toggle {
+    background: linear-gradient(135deg, #1e40af, #1e3a8a);
+}
+
+[data-theme=\"dark\"] .theme-toggle::before {
+    transform: translateX(1.5rem);
+    background: #0f172a;
+}
+
+[data-theme=\"dark\"] .theme-toggle::after {
+    content: "🌙";
+    left: 1.75rem;
+}
+
+/* =================================== */
+/* Enhanced Responsive Design */
+/* =================================== */
+
+/* Mobile First Approach */
+@media (max-width: 640px) {
+    .modern-card {
+        margin: 0 -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .table-modern {
+        font-size: 0.875rem;
+    }
+
+    .table-modern thead th,
+    .table-modern tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    /* Mobile Navigation Improvements */
+    .mobile-menu {
+        backdrop-filter: blur(10px);
+    }
+
+    .nav-link {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Tablet Styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .modern-card {
+        border-radius: var(--radius-lg);
+    }
+
+    .grid-responsive {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+}
+
+/* Desktop Enhancements */
+@media (min-width: 1025px) {
+    .modern-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-6px);
+    }
+
+    .btn-modern:hover {
+        transform: translateY(-1px) scale(1.02);
+    }
+
+    /* Enhanced animations for desktop */
+    .nav-link {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-link::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: white;
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+        width: 100%;
+    }
+}
+
+/* =================================== */
+/* High Contrast Mode Support */
+/* =================================== */
+@media (prefers-contrast: high) {
+    .modern-card {
+        border-width: 2px;
+        border-color: #000;
+    }
+
+    .btn-modern {
+        border: 2px solid;
+    }
+
+    .badge-modern {
+        border-width: 2px;
+    }
+}
+
+/* =================================== */
+/* Reduced Motion Support */
+/* =================================== */
+@media (prefers-reduced-motion: reduce) {
+    .modern-card,
+    .stat-card,
+    .btn-modern,
+    .nav-link,
+    .theme-toggle,
+    .theme-toggle::before {
+        transition: none;
+        animation: none;
+    }
+
+    .loading::after {
+        animation: none;
+    }
+
+    .notification-badge {
+        animation: none;
+    }
+}
+
+/* =================================== */
+/* Print Styles Enhanced */
+/* =================================== */
+@media print {
+    [data-theme=\"dark\"] * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+    }
+
+    .theme-toggle,
+    .nav-modern,
+    .mobile-menu {
+        display: none !important;
+    }
+
+    .modern-card,
+    .stat-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+/* =================================== */
+/* Focus Management for Accessibility */
+/* =================================== */
+.focus-visible:focus {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+[data-theme=\"dark\"] .focus-visible:focus {
+    outline-color: #34d399;
+}
+
+/* =================================== */
+/* Loading State Improvements */
+/* =================================== */
+.skeleton-loader {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+[data-theme=\"dark\"] .skeleton-loader {
+    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* =================================== */
+/* Container Queries Support */
+/* =================================== */
+@container (max-width: 400px) {
+    .stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-icon {
+        width: 2rem;
+        height: 2rem;
+    }
+}

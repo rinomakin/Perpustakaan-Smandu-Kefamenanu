@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\KepsekController;
-use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\BukuTamuController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\BukuController;
@@ -18,6 +18,7 @@ use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\DendaController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\CetakController;
+use App\Http\Controllers\PengembalianController;
 use App\Http\Controllers\RiwayatPeminjamanController;
 use App\Http\Controllers\RiwayatPengembalianController;
 use App\Http\Controllers\RoleController;
@@ -35,252 +36,64 @@ use App\Http\Controllers\PermissionController;
 |
 */
 
-// Redirect root to login
+// Redirect root to appropriate dashboard based on user role
 Route::get('/', function () {
-    return redirect('/login');
+    if (!Auth::check()) {
+        return redirect('/login');
+    }
+    
+    $user = Auth::user();
+    $kodePeran = $user->role ? $user->role->kode_peran : null;
+    
+    switch ($kodePeran) {
+        case 'ADMIN':
+            // Langsung tampilkan dashboard admin di root URL
+            return app(\App\Http\Controllers\AdminController::class)->dashboard();
+        case 'KEPALA_SEKOLAH':
+            // Langsung tampilkan dashboard kepala sekolah di root URL
+            return app(\App\Http\Controllers\KepsekController::class)->dashboard();
+        case 'PETUGAS':
+            return redirect('/petugas/dashboard');
+        default:
+            return redirect('/login');
+    }
 });
-
-
-
-// Test route for debugging buku-tamu search
-Route::get('/test-buku-tamu-route', function() {
-    return response()->json([
-        'admin_search_url' => route('admin.buku-tamu.search-members'),
-        'petugas_search_url' => route('petugas.buku-tamu.search-members'),
-        'current_user' => auth()->user() ? auth()->user()->name : 'Not logged in',
-        'timestamp' => now()
-    ]);
-})->name('test.buku.tamu.route');
-
-// Simple test search route without middleware
-Route::get('/test-search-simple', [BukuTamuController::class, 'searchMembers'])->name('test.search.simple');
-
-// Simple debug route without admin middleware - for testing access
-Route::get('/debug-user-access', function() {
-    return response()->json([
-        'logged_in' => auth()->check(),
-        'user' => auth()->user() ? [
-            'id' => auth()->user()->id,
-            'name' => auth()->user()->nama_lengkap,
-            'email' => auth()->user()->email,
-            'role' => auth()->user()->role->nama_peran ?? 'N/A'
-        ] : null,
-        'timestamp' => now()
-    ]);
-})->middleware('auth');
-
-// Test searchMembers without role middleware
-Route::get('/test-search-members-no-role', [BukuTamuController::class, 'searchMembers'])
-    ->middleware('auth')
-    ->name('test.search.members.no.role');
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Route test tanpa middleware sama sekali
-Route::get('/test-route', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'Route tanpa middleware berhasil',
-        'timestamp' => now()
-    ]);
-})->name('test.route');
-
-// Route test search tanpa middleware
-Route::get('/test-search', function(\Illuminate\Http\Request $request) {
-    return response()->json([
-        'success' => true,
-        'message' => 'Test search berhasil',
-        'query' => $request->get('query', ''),
-        'timestamp' => now()
-    ]);
-})->name('test.search');
-
-// Route test untuk memeriksa data peminjaman aktif
-Route::get('/test-peminjaman-aktif', function() {
-    try {
-        // Cek semua peminjaman dengan status dipinjam
-        $peminjamanAktif = \App\Models\Peminjaman::where('status', 'dipinjam')
-            ->with(['anggota', 'detailPeminjaman.buku'])
-            ->get();
-        
-        // Cek anggota dengan peminjaman aktif
-        $anggotaDenganPeminjaman = \App\Models\Anggota::whereHas('peminjaman', function($q) {
-            $q->where('status', 'dipinjam');
-        })->count();
-        
-        return response()->json([
-            'success' => true,
-            'total_peminjaman_aktif' => $peminjamanAktif->count(),
-            'total_anggota_dengan_peminjaman' => $anggotaDenganPeminjaman,
-            'sample_peminjaman' => $peminjamanAktif->take(3)->map(function($p) {
-                return [
-                    'id' => $p->id,
-                    'anggota' => $p->anggota ? $p->anggota->nama_lengkap : 'N/A',
-                    'status' => $p->status,
-                    'detail_count' => $p->detailPeminjaman->count()
-                ];
-            }),
-            'timestamp' => now()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-            'timestamp' => now()
-        ]);
+// Dashboard redirect untuk user yang sudah login
+Route::get('/dashboard', function () {
+    if (!Auth::check()) {
+        return redirect('/login');
     }
-})->name('test.peminjaman.aktif');
-
-// Route search anggota tanpa middleware - untuk testing
-Route::get('/search-anggota-test', function(\Illuminate\Http\Request $request) {
-    try {
-        $query = $request->get('query', '');
-        
-        // Query sederhana untuk testing
-        $anggota = \App\Models\Anggota::with(['kelas', 'jurusan'])
-            ->whereHas('peminjaman', function($q) {
-                $q->where('status', 'dipinjam');
-            })
-            ->where(function($q) use ($query) {
-                $q->where('nama', 'LIKE', "%{$query}%")
-                  ->orWhere('nama_lengkap', 'LIKE', "%{$query}%")
-                  ->orWhere('nis', 'LIKE', "%{$query}%")
-                  ->orWhere('nomor_anggota', 'LIKE', "%{$query}%");
-            })
-            ->limit(5)
-            ->get();
-        
-        $result = $anggota->map(function($anggota) {
-            $peminjamanAktif = $anggota->peminjaman()->where('status', 'dipinjam')->count();
-            
-            return [
-                'id' => $anggota->id,
-                'nama_lengkap' => $anggota->nama_lengkap,
-                'nis' => $anggota->nis,
-                'nomor_anggota' => $anggota->nomor_anggota,
-                'barcode_anggota' => $anggota->barcode_anggota,
-                'kelas' => $anggota->kelas ? $anggota->kelas->nama_kelas : 'N/A',
-                'jurusan' => $anggota->jurusan ? $anggota->jurusan->nama_jurusan : 'N/A',
-                'jenis_anggota' => $anggota->jenis_anggota,
-                'jumlah_peminjaman_aktif' => $peminjamanAktif,
-                'detail_peminjaman' => []
-            ];
-        });
-        
-        return response()->json([
-            'success' => true,
-            'data' => $result,
-            'debug' => [
-                'query' => $query,
-                'count' => $result->count(),
-                'total_peminjaman_aktif' => $result->sum('jumlah_peminjaman_aktif')
-            ]
-        ]);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
-            'debug' => [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]
-        ], 500);
+    
+    $user = Auth::user();
+    $kodePeran = $user->role ? $user->role->kode_peran : null;
+    
+    switch ($kodePeran) {
+        case 'ADMIN':
+            return redirect('/'); // Redirect ke root untuk admin
+        case 'KEPALA_SEKOLAH':
+            return redirect('/'); // Redirect ke root untuk kepala sekolah
+        case 'PETUGAS':
+            return redirect('/petugas/dashboard');
+        default:
+            return redirect('/login');
     }
-})->name('search.anggota.test');
+})->name('dashboard');
 
-// Route search anggota menggunakan controller method yang sudah ada
-Route::get('/search-anggota-simple', [\App\Http\Controllers\PengembalianController::class, 'searchAnggota'])
-    ->name('search.anggota.simple');
+// Route alternatif untuk akses langsung admin dan kepala sekolah
+Route::get('/admin-panel', [AdminController::class, 'dashboard'])
+    ->middleware(['auth', 'role:ADMIN'])
+    ->name('admin.dashboard.direct');
+    
+Route::get('/kepsek-panel', [KepsekController::class, 'dashboard'])
+    ->middleware(['auth', 'role:KEPALA_SEKOLAH'])
+    ->name('kepsek.dashboard.direct');
 
-// Route test yang sangat sederhana untuk debugging
-Route::get('/debug-search', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'Route debug search berhasil',
-        'timestamp' => now(),
-        'test_data' => [
-            'query' => request()->get('query', ''),
-            'user' => auth()->user() ? auth()->user()->name : 'Not logged in'
-        ]
-    ]);
-})->name('debug.search');
-
-// Route test untuk pengembalian search-anggota
-Route::get('/test-pengembalian-search', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'Route pengembalian search berfungsi',
-        'timestamp' => now(),
-        'route' => 'admin.pengembalian.search-anggota'
-    ]);
-})->name('test.pengembalian.search');
-
-// Route test model Anggota yang sangat sederhana
-Route::get('/test-anggota-basic', function() {
-    try {
-        $anggota = \App\Models\Anggota::first();
-        return response()->json([
-            'success' => true,
-            'message' => 'Model Anggota berfungsi',
-            'sample_anggota' => $anggota ? [
-                'id' => $anggota->id,
-                'nama' => $anggota->nama,
-                'nama_lengkap' => $anggota->nama_lengkap
-            ] : null,
-            'total_anggota' => \App\Models\Anggota::count()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage()
-        ], 500);
-    }
-})->name('test.anggota.basic');
-
-// Route test untuk memeriksa model Anggota
-Route::get('/test-anggota-model', function() {
-    try {
-        $totalAnggota = \App\Models\Anggota::count();
-        
-        // Test query sederhana untuk anggota dengan nama yang mengandung 'ri'
-        $anggotaTest = \App\Models\Anggota::where('nama', 'LIKE', '%ri%')
-            ->orWhere('nama_lengkap', 'LIKE', '%ri%')
-            ->limit(3)
-            ->get(['id', 'nama', 'nama_lengkap', 'nis']);
-        
-        return response()->json([
-            'success' => true,
-            'total_anggota' => $totalAnggota,
-            'anggota_test' => $anggotaTest,
-            'timestamp' => now()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ], 500);
-    }
-})->name('test.anggota.model');
-
-// Frontend Routes (untuk petugas menampilkan ke siswa/guru)
-Route::middleware(['auth', 'role:PETUGAS'])->prefix('frontend')->group(function () {
-    Route::get('/', [FrontendController::class, 'index'])->name('frontend.home');
-    Route::get('/cari-buku', [FrontendController::class, 'cariBuku'])->name('frontend.cari.buku');
-    Route::get('/tentang', [FrontendController::class, 'tentang'])->name('frontend.tentang');
-    Route::get('/koleksi-buku', [FrontendController::class, 'koleksiBuku'])->name('frontend.koleksi');
-});
-
-// API Routes untuk AJAX (tanpa middleware admin)
-Route::middleware(['auth'])->group(function () {
-    // Routes ini akan dipindah ke admin group
-});
 
 
 
@@ -300,18 +113,13 @@ Route::middleware(['auth', 'role:ADMIN,KEPALA_SEKOLAH'])->prefix('admin')->group
     Route::get('/peminjaman/search-anggota', [PeminjamanController::class, 'searchAnggota'])->name('peminjaman.search-anggota');
     Route::get('/peminjaman/search-buku', [PeminjamanController::class, 'searchBuku'])->name('peminjaman.search-buku');
     
-    // Route test untuk debugging
-    Route::get('/test-search', function() {
-        return response()->json(['success' => true, 'message' => 'Route test berhasil']);
-    })->name('test.search');
-    
     // CRUD Anggota
     Route::get('/anggota/export', [AnggotaController::class, 'export'])->name('anggota.export');
     Route::get('/anggota/download-template', [AnggotaController::class, 'downloadTemplate'])->name('anggota.download-template');
     Route::post('/anggota/import', [AnggotaController::class, 'import'])->name('anggota.import');
     Route::post('/anggota/bulk-delete', [AnggotaController::class, 'bulkDelete'])->name('anggota.bulk-delete');
     Route::get('/anggota/cetak-kartu/{id}', [AnggotaController::class, 'cetakKartu'])->name('anggota.cetak-kartu');
-Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKartu'])->name('anggota.bulk-print-kartu');
+    Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKartu'])->name('anggota.bulk-print-kartu');
     Route::post('/anggota/scan-barcode', [AnggotaController::class, 'scanBarcode'])->name('anggota.scan-barcode');
     Route::post('/anggota/generate-barcode', [AnggotaController::class, 'generateBarcode'])->name('anggota.generate-barcode');
     Route::post('/anggota/clean-duplicates', [AnggotaController::class, 'cleanDuplicateData'])->name('anggota.clean-duplicates');
@@ -385,58 +193,17 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::post('/peminjaman/scan-multiple-buku', [PeminjamanController::class, 'scanMultipleBuku'])->name('peminjaman.scan-multiple-buku');
     
     // CRUD Pengembalian
-    Route::resource('pengembalian', \App\Http\Controllers\PengembalianController::class);
+    Route::resource('pengembalian', PengembalianController::class);
     
     // Route pencarian anggota untuk pengembalian - dengan detail peminjaman
-    // Route untuk pencarian anggota dengan peminjaman aktif - menggunakan controller method
     Route::get('/pengembalian/search-anggota', [PengembalianController::class, 'searchAnggota'])
         ->name('pengembalian.search-anggota');
     
-    Route::get('/pengembalian/search-anggota-no-permission', [\App\Http\Controllers\PengembalianController::class, 'searchAnggotaNoPermission'])->name('pengembalian.search-anggota-no-permission');
-    Route::get('/pengembalian/test-search-anggota', [\App\Http\Controllers\PengembalianController::class, 'testSearchAnggota'])->name('pengembalian.test-search-anggota');
-    Route::get('/pengembalian/test-simple', function() {
-        return response()->json([
-            'success' => true,
-            'message' => 'Route test simple berhasil',
-            'user' => auth()->user() ? auth()->user()->name : 'Not logged in',
-            'timestamp' => now()
-        ]);
-    })->name('pengembalian.test-simple');
-    
-    // Route untuk testing tanpa permission check
-    // Route test yang sangat sederhana - tanpa middleware
-    Route::get('/pengembalian/test-simple-search', function() {
-        return response()->json([
-            'success' => true,
-            'message' => 'Route test berhasil',
-            'timestamp' => now(),
-            'user' => auth()->user() ? auth()->user()->name : 'Not logged in'
-        ]);
-    })->name('pengembalian.test-simple-search');
-    
-
-    
-    Route::get('/pengembalian/search-anggota-test', function(Request $request) {
-        $query = $request->get('query', '');
-        $user = auth()->user();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Route test search berhasil',
-            'query' => $query,
-            'user' => $user ? $user->name : 'Not logged in',
-            'user_id' => $user ? $user->id : null,
-            'is_admin' => $user ? $user->isAdmin() : false,
-            'has_permission' => $user ? $user->hasPermission('pengembalian.manage') : false,
-            'timestamp' => now()
-        ]);
-    })->name('pengembalian.search-anggota-test');
-    Route::get('/pengembalian/get-peminjaman-aktif', [\App\Http\Controllers\PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
-    Route::post('/pengembalian/scan-barcode', [\App\Http\Controllers\PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
-    Route::post('/pengembalian/scan-barcode-anggota', [\App\Http\Controllers\PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
-    Route::get('/pengembalian/test-permission', [\App\Http\Controllers\PengembalianController::class, 'testPermission'])->name('pengembalian.test-permission');
-    Route::post('/pengembalian/{id}/update-status-pembayaran-denda', [\App\Http\Controllers\PengembalianController::class, 'updateStatusPembayaranDenda'])->name('pengembalian.update-status-pembayaran-denda');
-    Route::get('/pengembalian/{id}/denda-info', [\App\Http\Controllers\PengembalianController::class, 'getDendaInfo'])->name('pengembalian.denda-info');
+    Route::get('/pengembalian/get-peminjaman-aktif', [PengembalianController::class, 'getPeminjamanAktif'])->name('pengembalian.get-peminjaman-aktif');
+    Route::post('/pengembalian/scan-barcode', [PengembalianController::class, 'scanBarcode'])->name('pengembalian.scan-barcode');
+    Route::post('/pengembalian/scan-barcode-anggota', [PengembalianController::class, 'scanBarcodeAnggota'])->name('pengembalian.scan-barcode-anggota');
+    Route::post('/pengembalian/{id}/update-status-pembayaran-denda', [PengembalianController::class, 'updateStatusPembayaranDenda'])->name('pengembalian.update-status-pembayaran-denda');
+    Route::get('/pengembalian/{id}/denda-info', [PengembalianController::class, 'getDendaInfo'])->name('pengembalian.denda-info');
 
     // Riwayat Pengembalian
     Route::get('/riwayat-pengembalian', [RiwayatPengembalianController::class, 'index'])->name('riwayat-pengembalian.index');
@@ -469,16 +236,6 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     ]);
     Route::post('/buku-tamu/scan-barcode', [BukuTamuController::class, 'scanBarcode'])->name('admin.buku-tamu.scan-barcode');
     Route::get('/buku-tamu/search-members', [BukuTamuController::class, 'searchMembers'])->name('admin.buku-tamu.search-members');
-    // Test route to debug the search-members issue
-    Route::get('/buku-tamu/test-search-route', function() {
-        return response()->json([
-            'success' => true,
-            'message' => 'Test route berhasil diakses',
-            'user' => auth()->user() ? auth()->user()->name : 'Not logged in',
-            'timestamp' => now(),
-            'route_name' => 'admin.buku-tamu.test-search-route'
-        ]);
-    })->name('admin.buku-tamu.test-search-route');
     Route::post('/buku-tamu/store-ajax', [BukuTamuController::class, 'storeAjax'])->name('admin.buku-tamu.store-ajax');
     Route::post('/buku-tamu/record-exit', [BukuTamuController::class, 'recordExit'])->name('admin.buku-tamu.record-exit');
     Route::get('/buku-tamu/history', [BukuTamuController::class, 'history'])->name('admin.buku-tamu.history');
@@ -486,8 +243,6 @@ Route::get('/anggota/bulk-print-kartu', [AnggotaController::class, 'bulkPrintKar
     Route::get('/buku-tamu/export-excel', [BukuTamuController::class, 'exportExcel'])->name('admin.buku-tamu.export-excel');
     Route::get('/buku-tamu/export-pdf', [BukuTamuController::class, 'exportPdf'])->name('admin.buku-tamu.export-pdf');
     Route::get('/buku-tamu/today', [BukuTamuController::class, 'todayVisitors'])->name('admin.buku-tamu.today');
-    Route::get('/buku-tamu/create-test-data', [BukuTamuController::class, 'createTestData'])->name('admin.buku-tamu.create-test-data');
-    Route::get('/buku-tamu/debug-data', [BukuTamuController::class, 'debugData'])->name('admin.buku-tamu.debug-data');
     
     // Riwayat Peminjaman
     Route::get('/riwayat-peminjaman', [RiwayatPeminjamanController::class, 'index'])->name('riwayat-peminjaman.index');
@@ -531,14 +286,14 @@ Route::middleware(['auth', 'role:PETUGAS'])->prefix('petugas')->group(function (
         'update' => 'petugas.buku-tamu.update',
         'destroy' => 'petugas.buku-tamu.destroy',
     ]);
-    Route::post('/buku-tamu/scan-qr', [BukuTamuController::class, 'scanQR'])->name('petugas.buku-tamu.scan-qr');
+    Route::post('/buku-tamu/scan-barcode', [BukuTamuController::class, 'scanBarcode'])->name('petugas.buku-tamu.scan-barcode');
     Route::get('/buku-tamu/search-members', [BukuTamuController::class, 'searchMembers'])->name('petugas.buku-tamu.search-members');
 });
 
 // Kepala Sekolah Routes
 Route::middleware(['auth', 'role:KEPALA_SEKOLAH'])->prefix('kepsek')->group(function () {
     Route::get('/dashboard', [KepsekController::class, 'dashboard'])->name('kepsek.dashboard');
-    Route::get('/laporan', [KepsekController::class, 'laporan'])->name('kepsek.laporan');
+    // Laporan route removed - kepala sekolah now uses admin laporan
     
     // Profil Kepala Sekolah (menggunakan AdminController yang sudah ada)
     Route::get('/profil', [AdminController::class, 'profil'])->name('kepsek.profil');
@@ -563,39 +318,3 @@ Route::middleware(['auth', 'role:KEPALA_SEKOLAH'])->prefix('kepsek')->group(func
     Route::get('/export/data-anggota', [AnggotaController::class, 'export'])->name('kepsek.export.data-anggota');
 });
 
-// Test route untuk debugging permission
-Route::get('/test-permissions', function () {
-    $user = auth()->user();
-    if (!$user) {
-        return 'Not logged in';
-    }
-    
-    echo "<h2>Testing permissions for: {$user->nama_lengkap}</h2>";
-    echo "<p>Role: {$user->role->nama_peran} ({$user->role->kode_peran})</p>";
-    
-    echo "<h3>Peminjaman Permissions:</h3>";
-    echo "peminjaman.view: " . ($user->hasPermission('peminjaman.view') ? 'YES' : 'NO') . "<br>";
-    echo "peminjaman.create: " . ($user->hasPermission('peminjaman.create') ? 'YES' : 'NO') . "<br>";
-    echo "peminjaman.edit: " . ($user->hasPermission('peminjaman.edit') ? 'YES' : 'NO') . "<br>";
-    echo "peminjaman.delete: " . ($user->hasPermission('peminjaman.delete') ? 'YES' : 'NO') . "<br>";
-    echo "peminjaman.show: " . ($user->hasPermission('peminjaman.show') ? 'YES' : 'NO') . "<br>";
-    
-    echo "<h3>Pengembalian Permissions:</h3>";
-    echo "pengembalian.view: " . ($user->hasPermission('pengembalian.view') ? 'YES' : 'NO') . "<br>";
-    echo "pengembalian.create: " . ($user->hasPermission('pengembalian.create') ? 'YES' : 'NO') . "<br>";
-    echo "pengembalian.edit: " . ($user->hasPermission('pengembalian.edit') ? 'YES' : 'NO') . "<br>";
-    echo "pengembalian.delete: " . ($user->hasPermission('pengembalian.delete') ? 'YES' : 'NO') . "<br>";
-    echo "pengembalian.show: " . ($user->hasPermission('pengembalian.show') ? 'YES' : 'NO') . "<br>";
-    
-    echo "<h3>All Permissions:</h3>";
-    $permissions = $user->getAllPermissions();
-    foreach ($permissions as $permission) {
-        echo "- {$permission->name} ({$permission->slug})<br>";
-    }
-    
-    echo "<h3>Test Links:</h3>";
-    echo "<a href='/admin/peminjaman'>Go to Peminjaman</a><br>";
-    echo "<a href='/admin/pengembalian'>Go to Pengembalian</a><br>";
-    
-    return '';
-})->middleware('auth');

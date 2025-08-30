@@ -1,208 +1,150 @@
 @extends('layouts.admin')
 
 @section('title', 'Laporan Denda')
+@section('page-title', 'Laporan Denda')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Laporan Data Denda</h3>
+<div class="space-y-6">
+    <!-- Header Section with Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Laporan Denda</h1>
+                <p class="text-gray-600 mt-1">Total: {{ $denda->count() }} denda</p>
+            </div>
+            
+            <!-- Filter Form -->
+            <form method="GET" class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-700">Periode:</label>
+                    <input type="date" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}" 
+                           class="px-3 py-2 text-sm border border-gray-300 rounded-lg">
+                    <span class="text-gray-500">s/d</span>
+                    <input type="date" name="tanggal_akhir" value="{{ request('tanggal_akhir') }}" 
+                           class="px-3 py-2 text-sm border border-gray-300 rounded-lg">
                 </div>
-                <div class="card-body">
-                    <!-- Filter Form -->
-                    <form method="GET" action="{{ route('admin.laporan.denda') }}" class="mb-4">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="tanggal_mulai">Tanggal Mulai</label>
-                                    <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai" 
-                                           value="{{ request('tanggal_mulai') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="tanggal_akhir">Tanggal Akhir</label>
-                                    <input type="date" class="form-control" id="tanggal_akhir" name="tanggal_akhir" 
-                                           value="{{ request('tanggal_akhir') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="status">Status</label>
-                                    <select class="form-control" id="status" name="status">
-                                        <option value="">Semua Status</option>
-                                        <option value="belum_bayar" {{ request('status') == 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
-                                        <option value="sudah_bayar" {{ request('status') == 'sudah_bayar' ? 'selected' : '' }}>Sudah Bayar</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>&nbsp;</label>
-                                    <div>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-search"></i> Filter
-                                        </button>
-                                        <a href="{{ route('admin.laporan.denda') }}" class="btn btn-secondary">
-                                            <i class="fas fa-refresh"></i> Reset
-                                        </a>
-                                        <button type="button" class="btn btn-success" onclick="printLaporan()">
-                                            <i class="fas fa-print"></i> Cetak
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                
+                <select name="status" class="px-3 py-2 text-sm border border-gray-300 rounded-lg">
+                    <option value="">Semua Status</option>
+                    <option value="belum_bayar" {{ request('status') == 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
+                    <option value="sudah_bayar" {{ request('status') == 'sudah_bayar' ? 'selected' : '' }}>Sudah Bayar</option>
+                </select>
+                
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+                    <i class="fas fa-filter mr-2"></i>Filter
+                </button>
+                
+                <a href="{{ route('admin.laporan.denda', array_merge(request()->query(), ['export' => 'excel'])) }}" 
+                   class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
+                    <i class="fas fa-download mr-2"></i>Excel
+                </a>
+                
+                <a href="{{ route('laporan.index') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg">
+                    <i class="fas fa-arrow-left mr-2"></i>Kembali
+                </a>
+            </form>
+        </div>
+    </div>
 
-                    <!-- Laporan Content -->
-                    <div id="laporan-content">
-                        <!-- Kop Laporan -->
-                        <div class="text-center mb-4" id="kop-laporan">
-                            <h4><strong>PERPUSTAKAAN SMAN 1 KEFAMENANU</strong></h4>
-                            <p>Jl. Soekarno-Hatta No. 1, Kefamenanu, Timor Tengah Utara, NTT</p>
-                            <p>Telp: (0388) 31123 | Email: perpus@sman1kefamenanu.sch.id</p>
-                            <hr style="border: 2px solid #000;">
-                            <h5><strong>LAPORAN DATA DENDA PERPUSTAKAAN</strong></h5>
-                            @if(request('tanggal_mulai') && request('tanggal_akhir'))
-                                <p>Periode: {{ \Carbon\Carbon::parse(request('tanggal_mulai'))->format('d/m/Y') }} - {{ \Carbon\Carbon::parse(request('tanggal_akhir'))->format('d/m/Y') }}</p>
-                            @endif
-                            <p>Tanggal Cetak: {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
-                        </div>
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @php
+            $totalDenda = $denda->sum('total_denda');
+            $dendaSudahBayar = $denda->where('status', 'sudah_bayar')->sum('total_denda');
+            $dendaBelumBayar = $denda->where('status', 'belum_bayar')->sum('total_denda');
+        @endphp
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div class="flex items-center">
+                <div class="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full">
+                    <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Denda</p>
+                    <p class="text-xl font-bold text-gray-900">Rp {{ number_format($totalDenda, 0, ',', '.') }}</p>
+                </div>
+            </div>
+        </div>
 
-                        <!-- Tabel Data -->
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Nama Anggota</th>
-                                        <th>NIS</th>
-                                        <th>Judul Buku</th>
-                                        <th>Tanggal Pinjam</th>
-                                        <th>Tanggal Kembali</th>
-                                        <th>Jumlah Hari</th>
-                                        <th>Jumlah Denda</th>
-                                        <th>Status</th>
-                                        <th>Tanggal Bayar</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($denda as $index => $d)
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $d->peminjaman->anggota->nama ?? '-' }}</td>
-                                        <td>{{ $d->peminjaman->anggota->nis ?? '-' }}</td>
-                                        <td>
-                                            @foreach($d->peminjaman->detailPeminjaman as $detail)
-                                                <div>{{ $detail->buku->judul ?? '-' }}</div>
-                                            @endforeach
-                                        </td>
-                                        <td>{{ \Carbon\Carbon::parse($d->peminjaman->tanggal_pinjam)->format('d/m/Y') }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($d->peminjaman->tanggal_kembali)->format('d/m/Y') }}</td>
-                                        <td>{{ $d->jumlah_hari }} hari</td>
-                                        <td>Rp {{ number_format($d->jumlah_denda, 0, ',', '.') }}</td>
-                                        <td>
-                                            @if($d->status == 'belum_bayar')
-                                                <span class="badge badge-danger">Belum Bayar</span>
-                                            @else
-                                                <span class="badge badge-success">Sudah Bayar</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($d->tanggal_bayar)
-                                                {{ \Carbon\Carbon::parse($d->tanggal_bayar)->format('d/m/Y') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="10" class="text-center">Tidak ada data denda</td>
-                                    </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div class="flex items-center">
+                <div class="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Sudah Bayar</p>
+                    <p class="text-xl font-bold text-gray-900">Rp {{ number_format($dendaSudahBayar, 0, ',', '.') }}</p>
+                </div>
+            </div>
+        </div>
 
-                        <!-- Ringkasan -->
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td><strong>Total Denda:</strong></td>
-                                        <td>{{ $denda->count() }} transaksi</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Total Jumlah Denda:</strong></td>
-                                        <td>Rp {{ number_format($denda->sum('jumlah_denda'), 0, ',', '.') }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Belum Bayar:</strong></td>
-                                        <td>{{ $denda->where('status', 'belum_bayar')->count() }} transaksi</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Sudah Bayar:</strong></td>
-                                        <td>{{ $denda->where('status', 'sudah_bayar')->count() }} transaksi</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Total Denda Belum Bayar:</strong></td>
-                                        <td>Rp {{ number_format($denda->where('status', 'belum_bayar')->sum('jumlah_denda'), 0, ',', '.') }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Total Denda Sudah Bayar:</strong></td>
-                                        <td>Rp {{ number_format($denda->where('status', 'sudah_bayar')->sum('jumlah_denda'), 0, ',', '.') }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Tanda Tangan -->
-                        <div class="row mt-5">
-                            <div class="col-md-6 offset-md-6 text-center">
-                                <p>Kefamenanu, {{ \Carbon\Carbon::now()->format('d/m/Y') }}</p>
-                                <p>Kepala Perpustakaan</p>
-                                <br><br><br>
-                                <p><strong>_________________________</strong></p>
-                                <p>NIP. _________________________</p>
-                            </div>
-                        </div>
-                    </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div class="flex items-center">
+                <div class="w-12 h-12 flex items-center justify-center bg-red-100 rounded-full">
+                    <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Belum Bayar</p>
+                    <p class="text-xl font-bold text-gray-900">Rp {{ number_format($dendaBelumBayar, 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Anggota</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nomor Peminjaman</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Terlambat</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Denda</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Bayar</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($denda as $index => $item)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ $item->peminjaman->anggota->nama_lengkap }}</div>
+                            <div class="text-xs text-gray-500">{{ $item->peminjaman->anggota->nomor_anggota }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                {{ $item->peminjaman->nomor_peminjaman }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->jumlah_hari_terlambat }} hari</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-red-600 font-medium">Rp {{ number_format($item->total_denda, 0, ',', '.') }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($item->status == 'sudah_bayar')
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Sudah Bayar</span>
+                            @else
+                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Belum Bayar</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $item->tanggal_bayar ? $item->tanggal_bayar->format('d/m/Y') : '-' }}
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data denda</h3>
+                            <p class="text-gray-600">Tidak ada denda yang sesuai dengan filter yang dipilih.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-
-<style>
-@media print {
-    .card-header, .btn, form {
-        display: none !important;
-    }
-    #laporan-content {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    .table {
-        font-size: 12px;
-    }
-    #kop-laporan {
-        margin-bottom: 20px;
-    }
-    .badge {
-        border: 1px solid #000;
-        color: #000 !important;
-        background: none !important;
-    }
-}
-</style>
-
-<script>
-function printLaporan() {
-    window.print();
-}
-</script>
 @endsection
